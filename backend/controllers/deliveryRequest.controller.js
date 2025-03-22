@@ -1,5 +1,5 @@
-import DeliveryRequest from "../models/deliveryRequest.js";
-import AcceptedDeliveryRequest from "../models/acceptedDeliveryRequest.js";
+import DeliveryRequest from "../models/deliveryRequest.model.js";
+import AcceptedDeliveryRequest from "../models/acceptedDeliveryRequest.model.js";
 import asyncHandler from "express-async-handler";
 
 // 🔹 Create Delivery Request
@@ -52,6 +52,16 @@ const acceptDeliveryRequest = asyncHandler(async (req, res) => {
 });
  
 
+// Get Accepted Delivery Request
+const getAcceptedRequestsByDriver = asyncHandler(async (req, res) => {
+  const driverId = req.driver._id;
+
+  const acceptedRequests = await AcceptedDeliveryRequest.find({ driverId });
+
+  res.json(acceptedRequests);
+});
+ 
 
 
-export { createDeliveryRequest, acceptDeliveryRequest };
+
+export { createDeliveryRequest, acceptDeliveryRequest, getAcceptedRequestsByDriver};
