@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import buyerRoutes from './routes/Buyer.routes.js';
+import productRoutes from './routes/product.routes.js';
+import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Load environment variables
@@ -28,10 +30,12 @@ mongoose
 
 // Routes
 app.use('/api/buyers', buyerRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check / root
 app.get('/', (req, res) => {
-  res.send('🚀 Buyer API is running...');
+  res.send('🚀 API is running...');
 });
 
 // Custom error handlers
