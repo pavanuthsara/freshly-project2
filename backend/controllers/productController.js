@@ -1,3 +1,4 @@
+// backend/controllers/productController.js
 import Product from '../models/product.model.js';
 import { deleteFile } from '../utils/file.js';
 
@@ -8,7 +9,7 @@ import { deleteFile } from '../utils/file.js';
 const getProducts = async (req, res, next) => {
   try {
     const total = await Product.countDocuments();
-    const maxLimit = process.env.PAGINATION_MAX_LIMIT;
+    const maxLimit = parseInt(process.env.PAGINATION_MAX_LIMIT) || 10;
     const maxSkip = total === 0 ? 0 : total - 1;
     const limit = Number(req.query.limit) || maxLimit;
     const skip = Number(req.query.skip) || 0;
@@ -44,9 +45,9 @@ const getTopProducts = async (req, res, next) => {
   try {
     const products = await Product.find({}).sort({ rating: -1 }).limit(3);
 
-    if (!products) {
+    if (!products || products.length === 0) {
       res.statusCode = 404;
-      throw new Error('Product not found!');
+      throw new Error('Top products not found!');
     }
 
     res.status(200).json(products);
@@ -81,9 +82,8 @@ const getProduct = async (req, res, next) => {
 // @access   Private
 const createProduct = async (req, res, next) => {
   try {
-    const { name, image, description, brand, category, price, countInStock } =
-      req.body;
-    console.log(req.file);
+    const { name, image, description, brand, category, price, countInStock } = req.body;
+
     const product = new Product({
       user: req.user._id,
       name,
@@ -94,9 +94,9 @@ const createProduct = async (req, res, next) => {
       price,
       countInStock
     });
-    const createdProduct = await product.save();
 
-    res.status(200).json({ message: 'Product created', createdProduct });
+    const createdProduct = await product.save();
+    res.status(201).json({ message: 'Product created', createdProduct });
   } catch (error) {
     next(error);
   }
@@ -108,9 +108,7 @@ const createProduct = async (req, res, next) => {
 // @access   Private
 const updateProduct = async (req, res, next) => {
   try {
-    const { name, image, description, brand, category, price, countInStock } =
-      req.body;
-
+    const { name, image, description, brand, category, price, countInStock } = req.body;
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -118,7 +116,6 @@ const updateProduct = async (req, res, next) => {
       throw new Error('Product not found!');
     }
 
-    // Save the current image path before updating
     const previousImage = product.image;
 
     product.name = name || product.name;
@@ -131,7 +128,6 @@ const updateProduct = async (req, res, next) => {
 
     const updatedProduct = await product.save();
 
-    // Delete the previous image if it exists and if it's different from the new image
     if (previousImage && previousImage !== updatedProduct.image) {
       deleteFile(previousImage);
     }
@@ -155,8 +151,9 @@ const deleteProduct = async (req, res, next) => {
       res.statusCode = 404;
       throw new Error('Product not found!');
     }
+
     await Product.deleteOne({ _id: product._id });
-    deleteFile(product.image); // Remove upload file
+    deleteFile(product.image);
 
     res.status(200).json({ message: 'Product deleted' });
   } catch (error) {

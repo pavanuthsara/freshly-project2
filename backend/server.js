@@ -4,8 +4,11 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import buyerRoutes from './routes/Buyer.routes.js';
 import productRoutes from './routes/product.routes.js';
+import orderRoutes from './routes/order.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
@@ -31,7 +34,13 @@ mongoose
 // Routes
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
+
+// Serve uploads folder statically
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Health check / root
 app.get('/', (req, res) => {
