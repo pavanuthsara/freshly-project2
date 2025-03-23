@@ -16,7 +16,7 @@ const SignInSignUp = () => {
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" placeholder="Name" />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="email" placeholder="Email" />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="password" placeholder="Password" />
-            <button className="mt-4 px-6 py-2 text-white bg-red-500 rounded-full">Sign Up</button>
+            <button className="mt-4 px-6 py-2 text-white bg-green-500 rounded-full">Sign Up</button>
           </form>
         </div>
 
@@ -29,12 +29,12 @@ const SignInSignUp = () => {
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="email" placeholder="Email" />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="password" placeholder="Password" />
             <a href="#" className="text-sm mt-2">Forgot your password?</a>
-            <button className="mt-4 px-6 py-2 text-white bg-red-500 rounded-full">Sign In</button>
+            <button className="mt-4 px-6 py-2 text-white bg-green-500 rounded-full">Sign In</button>
           </form>
         </div>
 
         {/* Overlay */}
-        <div className="absolute top-0 left-1/2 w-1/2 h-full bg-gradient-to-r from-red-400 to-pink-500 flex items-center justify-center text-white p-8 transition-transform duration-600" style={{ transform: isRightPanelActive ? "translateX(-100%)" : "translateX(0)" }}>
+        <div className="absolute top-0 left-1/2 w-1/2 h-full bg-gradient-to-r from-green-400 to-lime-500 flex items-center justify-center text-white p-8 transition-transform duration-600" style={{ transform: isRightPanelActive ? "translateX(-100%)" : "translateX(0)" }}>
           <div className="text-center">
             {isRightPanelActive ? (
               <>
@@ -44,7 +44,7 @@ const SignInSignUp = () => {
               </>
             ) : (
               <>
-                <h1 className="text-2xl font-bold">Hello, Friend!</h1>
+                <h1 className="text-2xl font-bold">Hello, Farmer!</h1>
                 <p className="mt-2">Enter your personal details and start the journey with us</p>
                 <button onClick={() => setIsRightPanelActive(true)} className="mt-4 px-6 py-2 border-white border rounded-full">Sign Up</button>
               </>
