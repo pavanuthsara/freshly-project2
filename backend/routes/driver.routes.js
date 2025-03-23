@@ -1,7 +1,15 @@
 import express from 'express';
 import { protect } from '../middleware/auth.middleware.js';
-import { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails} from '../controllers/driver.controller.js';
-import { validateDriverRegistration, validateDriverLogin } from '../middleware/driverValidator.middleware.js';
+
+import { registerDriver,
+         loginDriver,
+         logoutDriver,
+         updateDriver,
+         deleteDriver,
+         getDriverDetails} from '../controllers/driver.controller.js';
+
+import { validateDriverRegistration,
+         validateDriverLogin } from '../middleware/driverValidator.middleware.js';
 
 const router = express.Router();
 

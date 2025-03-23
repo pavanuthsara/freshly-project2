@@ -24,7 +24,7 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
   // 🔹 Accept Delivery Request
 const acceptDeliveryRequest = asyncHandler(async (req, res) => {
   const { deliveryId} = req.body;
-  const driverId = req.driver._id;
+  const driverId = req.user._id;
 
   // Find the pending delivery request
   const deliveryRequest = await DeliveryRequest.findOne({ deliveryId, status: "pending" });
@@ -54,7 +54,7 @@ const acceptDeliveryRequest = asyncHandler(async (req, res) => {
 
 // Get Accepted Delivery Request
 const getAcceptedRequestsByDriver = asyncHandler(async (req, res) => {
-  const driverId = req.driver._id;
+  const driverId = req.user._id;
 
   const acceptedRequests = await AcceptedDeliveryRequest.find({ driverId });
 

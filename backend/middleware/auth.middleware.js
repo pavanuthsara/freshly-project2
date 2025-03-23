@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 import Buyer from '../models/buyer.model.js';
-import farmerModel from '../models/farmer.model.js';
+import Farmer from '../models/farmer.model.js';
 import Driver from '../models/driver.model.js';
 
 const protect = asyncHandler(async (req, res, next) => {
@@ -23,18 +23,19 @@ const protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if the token belongs to a user or a driver
+    // Check if the token belongs to a buyer, farmer, or driver
     if (decoded.userId) {
-      req.user = await User.findById(decoded.userId).select('-password');
-    } else if (decoded.driverId) {
-      req.driver = await Driver.findById(decoded.driverId).select('-password');
-    {
-
-    }
-    
+      req.user = await Buyer.findById(decoded.userId).select('-password') ||
+                 await Farmer.findById(decoded.userId).select('-password') ||
+                 await Driver.findById(decoded.userId).select('-password');
     } else {
       res.status(401);
       throw new Error('Authentication failed: Invalid token payload.');
+    }
+
+    if (!req.user) {
+      res.status(401);
+      throw new Error('Authentication failed: User not found.');
     }
 
     next();
@@ -57,4 +58,4 @@ const admin = (req, res, next) => {
   }
 };
 
-export { protect, admin};
+export { protect, admin };

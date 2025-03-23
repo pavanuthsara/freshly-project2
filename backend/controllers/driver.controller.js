@@ -101,7 +101,7 @@ const logoutDriver = (req, res) => {
 //update driver details
 const updateDriver = asyncHandler(async (req, res) => {
   const { name, email, district, password, contactNumber, vehicleNumber, vehicleCapacity } = req.body;
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find the driver by their ID
   const driver = await Driver.findById(driverId);
@@ -145,7 +145,7 @@ const updateDriver = asyncHandler(async (req, res) => {
 // @route   DELETE /api/v1/driver/profile
 // @access  Private (Only logged-in driver can delete their profile)
 const deleteDriver = asyncHandler(async (req, res) => {
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find and delete the driver by their ID
   const driver = await Driver.findByIdAndDelete(driverId);
@@ -164,7 +164,7 @@ const deleteDriver = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/driver/profile
 // @access  Private (Only logged-in driver can view their details)
 const getDriverDetails = asyncHandler(async (req, res) => {
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find the driver by their ID and exclude password field for security
   const driver = await Driver.findById(driverId).select('-password');
