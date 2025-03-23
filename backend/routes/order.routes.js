@@ -8,8 +8,12 @@ import {
   updateOrderToPaid,
   updateOrderToDeliver,
   getOrders,
+<<<<<<< HEAD
   updateOrderStatus,
   stripePayment
+=======
+  updateOrderStatus
+>>>>>>> main
 } from '../controllers/order.controller.js';
 import validateRequest from '../middleware/validator.js';
 import { param, check, body } from 'express-validator';
@@ -92,7 +96,10 @@ const validator = {
   ]
 };
 
+<<<<<<< HEAD
 //router.post("/stripe-payment", stripePayment);
+=======
+>>>>>>> main
 // Routes
 router
   .route('/')

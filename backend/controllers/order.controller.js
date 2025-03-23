@@ -177,6 +177,7 @@ const getOrders = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 const stripePayment = async (req, res) => {
   const { username, amount, currency, email } = req.body;
 
@@ -209,6 +210,8 @@ const stripePayment = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> main
 export {
   addOrderItems,
   getMyOrders,
@@ -216,6 +219,10 @@ export {
   updateOrderToPaid,
   updateOrderToDeliver,
   updateOrderStatus,
+<<<<<<< HEAD
   getOrders,
   stripePayment
+=======
+  getOrders
+>>>>>>> main
 };
