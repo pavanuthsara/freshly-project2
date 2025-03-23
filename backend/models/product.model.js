@@ -1,64 +1,67 @@
-// backend/models/Product.js
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const productSchema = new mongoose.Schema({
-  productID: {
-    type: String,
-    required: true,
-    unique: true
+const productSchema = new mongoose.Schema(
+  {
+    productID: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => `PROD-${Date.now()}`, // Auto-generate productID
     },
-    
-// Name of the product
-name: {
-  type: String,
-  required: true
-},
-// Image URL of the product
-image: {
-  type: String,
-  required: true
-},
-// Description of the product
-description: {
-  type: String,
-  required: true
-},
 
-// Category of the product
-category: {
-  type: String,
-  required: true
-},
+    // Reference to the farmer who created the product
+    farmer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Farmer',
+      required: true,
+    },
 
-// Price of the product
-price: {
-  type: Number,
-  required: true,
-  min: [0.01, "Price must be greater than 0"]
-},
+    // Reference to the buyer (optional, if needed)
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Buyer',
+    },
 
-// Quantity available in stock
-quantity: {
-  type: Number,
-  required: true,
-  min: [1, "Minimum quantity is 1 kilo"]
-},
-certification: {
-  type: String,
-  required: true,
-  enum: ['Organic', 'GAP'], // these are some certificates to you know validate the product
-},
+    name: {
+      type: String,
+      required: true,
+    },
 
-farmer: {
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Farmer',
-  required: true,
-},
+    image: {
+      type: String,
+      required: true,
+    },
 
+    description: {
+      type: String,
+      required: true,
+    },
 
+    category: {
+      type: String,
+      required: true,
+    },
 
-},
-{ timestamps: true }
+    price: {
+      type: Number,
+      required: true,
+      min: [0.01, 'Price must be greater than 0'],
+    },
+
+    quantity: {
+      type: Number,
+      required: true,
+      min: [1, 'Minimum quantity is 1 kilo'],
+    },
+
+    certification: {
+      type: String,
+      required: true,
+      enum: ['Organic', 'GAP'], // Valid certifications
+    },
+  },
+  { timestamps: true }
 );
 
-module.exports = mongoose.model('Product', productSchema);
+const Product = mongoose.model('Product', productSchema);
+export default Product;

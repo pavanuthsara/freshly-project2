@@ -1,20 +1,27 @@
-const express = require('express');
-const authMiddleware = require('../middleware/authMiddleware');
-const {
+import express from 'express';
+import {
+  getProducts,
+  getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
+  getTopProducts,
   getProductsByCategory,
-} = require('../controllers/product.controller');
+} from '../controllers/productController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
 
 // Protect all routes
-router.use(authMiddleware);
+router.use(protect);
 
 // Routes
-router.post('/', createProduct);
-router.put('/:id', updateProduct);
-router.delete('/:id', deleteProduct);
-router.get('/category/:category', getProductsByCategory);
+router.get('/', getProducts); // Get all products
+router.get('/top', getTopProducts); // Get top products
+router.get('/:id', getProduct); // Get a single product
+router.post('/', createProduct); // Create a product
+router.put('/:id', updateProduct); // Update a product
+router.delete('/:id', deleteProduct); // Delete a product
+router.get('/category/:category', getProductsByCategory); // Get products by category
 
-module.exports = router;
+export default router;
