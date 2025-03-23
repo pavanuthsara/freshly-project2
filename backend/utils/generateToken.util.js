@@ -16,7 +16,7 @@ export const generateToken = (req, res, userId) => {
 };
 
 // For Driver Token Generation
-export const generateDriverToken = (req, res, driverId) => {
+/*export const generateDriverToken = (req, res, driverId) => {
   const token = jwt.sign({ driverId }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
@@ -29,4 +29,4 @@ export const generateDriverToken = (req, res, driverId) => {
   });
 
   return token;
-};
+};*/
