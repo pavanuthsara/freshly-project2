@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+import { useState } from 'react'
 
 // Buyer Pages
 import HomePage from './pages/HomePage';
@@ -9,6 +10,7 @@ import BuyerProfile from './pages/BuyerPages/BuyerProfile';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
+import SignInSignUp from './pages/SignInSignUp';
 
 function App() {
   return (

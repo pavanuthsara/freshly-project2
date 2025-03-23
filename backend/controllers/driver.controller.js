@@ -1,7 +1,8 @@
 import Driver from '../models/driver.model.js';
 import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
-import { generateDriverToken } from '../utils/generateToken.js';
+//import { generateDriverToken } from '../utils/generateToken.util.js';
+import { generateToken } from '../utils/generateToken.util.js';
 
 // Register a new driver
 const registerDriver = async (req, res, next) => {
@@ -34,7 +35,8 @@ const registerDriver = async (req, res, next) => {
     await driver.save();
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    //const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateToken(req, res, driver._id); // Generate token for driver
 
     res.status(201).json({
       message: 'Registration successful. Welcome!',
@@ -68,7 +70,8 @@ const loginDriver = async (req, res, next) => {
     }
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+   // const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateToken(req, res, driver._id); 
 
     res.status(200).json({
       message: 'Login successful.',
