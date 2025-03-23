@@ -1,4 +1,3 @@
-// backend/routes/product.routes.js
 import express from 'express';
 import {
   getProducts,
@@ -6,21 +5,23 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  getTopProducts
+  getTopProducts,
+  getProductsByCategory,
 } from '../controllers/productController.js';
 import { protect } from '../middleware/authMiddleware.js';
-import validateRequest from '../middleware/validator.js';
-import { check, param } from 'express-validator';
 
 const router = express.Router();
 
-// Define validators if needed (you already have these in previous steps)
+// Protect all routes
+router.use(protect);
 
-router.get('/', getProducts);
-router.get('/top', getTopProducts);
-router.get('/:id', getProduct);
-router.post('/', protect, createProduct);
-router.put('/:id', protect, updateProduct);
-router.delete('/:id', protect, deleteProduct);
+// Routes
+router.get('/', getProducts); // Get all products
+router.get('/top', getTopProducts); // Get top products
+router.get('/:id', getProduct); // Get a single product
+router.post('/', createProduct); // Create a product
+router.put('/:id', updateProduct); // Update a product
+router.delete('/:id', deleteProduct); // Delete a product
+router.get('/category/:category', getProductsByCategory); // Get products by category
 
 export default router;

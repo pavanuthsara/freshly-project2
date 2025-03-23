@@ -1,4 +1,3 @@
-// backend/models/product.model.js
 import mongoose from 'mongoose';
 
 const productSchema = new mongoose.Schema(
@@ -7,47 +6,59 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: () => `PROD-${Date.now()}` // Auto-generate productID
+      default: () => `PROD-${Date.now()}`, // Auto-generate productID
     },
 
-    // Reference to the buyer/farmer/user who created the product (optional)
+    // Reference to the farmer who created the product
+    farmer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Farmer',
+      required: true,
+    },
+
+    // Reference to the buyer (optional, if needed)
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Buyer',
-      required: true
     },
 
     name: {
       type: String,
-      required: true
+      required: true,
     },
 
     image: {
       type: String,
-      required: true
+      required: true,
     },
 
     description: {
       type: String,
-      required: true
+      required: true,
     },
 
     category: {
       type: String,
-      required: true
+      required: true,
     },
 
     price: {
       type: Number,
       required: true,
-      default: 0
+      min: [0.01, 'Price must be greater than 0'],
     },
 
-    countInStock: {
+    quantity: {
       type: Number,
       required: true,
-      default: 0
-    }
+      min: [1, 'Minimum quantity is 1 kilo'],
+    },
+
+    certification: {
+      type: String,
+      required: true,
+      enum: ['Organic', 'GAP'], // Valid certifications
+    },
   },
   { timestamps: true }
 );
