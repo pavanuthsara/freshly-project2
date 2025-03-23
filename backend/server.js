@@ -9,6 +9,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import farmerAnalyticsRoutes from './routes/farmerAnalytics.route.js';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,7 @@ app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/farmer', farmerAnalyticsRoutes);
 
 app.use('/api/deliveryrequest', deliveryRequestRoutes);
 app.use('/api/drivers', driverRoutes);
