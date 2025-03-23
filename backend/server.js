@@ -12,11 +12,16 @@ import { fileURLToPath } from 'url';
 
 // Load environment variables
 dotenv.config();
+import deliveryRequestRoutes from './routes/deliveryRequest.route.js';
+import driverRoutes from './routes/driver.route.js';
 
 const app = express();
 
 // Middleware to parse JSON and cookies
 app.use(express.json());
+
+app.use('/api/deliveryrequest', deliveryRequestRoutes);
+app.use('/api/drivers', driverRoutes);
 app.use(cookieParser());
 
 // Connect to MongoDB

@@ -1,7 +1,7 @@
 import Driver from '../models/driver.model.js';
 import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
-import { generateDriverToken } from '../utils/generateToken.js';
+import { generateDriverToken } from '../utils/generateToken.util.js';
 
 // Register a new driver
 const registerDriver = async (req, res, next) => {
