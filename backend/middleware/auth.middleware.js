@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
-//import User from '../models/userModel.js';
+import Buyer from '../models/buyer.model.js';
+import farmerModel from '../models/farmer.model.js';
 import Driver from '../models/driver.model.js';
 
 const protect = asyncHandler(async (req, res, next) => {
@@ -27,6 +28,10 @@ const protect = asyncHandler(async (req, res, next) => {
       req.user = await User.findById(decoded.userId).select('-password');
     } else if (decoded.driverId) {
       req.driver = await Driver.findById(decoded.driverId).select('-password');
+    {
+
+    }
+    
     } else {
       res.status(401);
       throw new Error('Authentication failed: Invalid token payload.');

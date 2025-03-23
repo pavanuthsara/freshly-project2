@@ -9,12 +9,12 @@ import uploadRoutes from './routes/upload.routes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import farmerAnalyticsRoutes from './routes/farmerAnalytics.route.js';
+import farmerAnalyticsRoutes from './routes/farmerAnalytics.routes.js';
 
 // Load environment variables
 dotenv.config();
-import deliveryRequestRoutes from './routes/deliveryRequest.route.js';
-import driverRoutes from './routes/driver.route.js';
+import deliveryRequestRoutes from './routes/deliveryRequest.routes.js';
+import driverRoutes from './routes/driver.routes.js';
 
 const app = express();
 
