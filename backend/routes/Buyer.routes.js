@@ -8,7 +8,7 @@ import {
   resetPasswordRequest,
   resetPassword
 } from '../controllers/Buyer.controller.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/auth.middleware.js';
 import validateRequest from '../middleware/validator.js';
 import { body, param } from 'express-validator';
 

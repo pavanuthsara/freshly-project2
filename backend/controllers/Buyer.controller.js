@@ -1,7 +1,7 @@
 import Buyer from '../models/buyer.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/generateToken.util.js';
 import transporter from '../config/email.js';
 
 // LOGIN
