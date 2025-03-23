@@ -8,12 +8,6 @@ const productSchema = new mongoose.Schema({
     unique: true
     },
     
-// Reference to the user who created the product
-user: {
-  type: mongoose.Schema.Types.ObjectId,
-  required: true,
-  ref: 'User'
-},
 // Name of the product
 name: {
   type: String,
@@ -40,15 +34,27 @@ category: {
 price: {
   type: Number,
   required: true,
-  default: 0
+  min: [0.01, "Price must be greater than 0"]
 },
 
 // Quantity available in stock
-countInStock: {
+quantity: {
   type: Number,
   required: true,
-  default: 0
+  min: [1, "Minimum quantity is 1 kilo"]
 },
+certification: {
+  type: String,
+  required: true,
+  enum: ['Organic', 'GAP'], // these are some certificates to you know validate the product
+},
+
+farmer: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: 'Farmer',
+  required: true,
+},
+
 
 
 },
