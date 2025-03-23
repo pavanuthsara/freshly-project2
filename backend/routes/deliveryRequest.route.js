@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post("/create", protect, createDeliveryRequest);
 router.post("/accept", protect, acceptDeliveryRequest);
-router.get("/accepted", protect, getAcceptedRequestsByDriver);
+router.get("/driveraccepted", protect, getAcceptedRequestsByDriver);
 
 export default router;

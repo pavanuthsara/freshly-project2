@@ -4,7 +4,6 @@ import { connectDB } from './config/db.js';
 import deliveryRequestRoutes from './routes/deliveryRequest.route.js';
 import driverRoutes from './routes/driver.route.js';
 
-
 const app = express();
 app.use(express.json());
 
