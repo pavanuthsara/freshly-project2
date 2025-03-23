@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: () => `PROD-${Date.now()}` // Auto-generate productID
+      default: () => `PROD-${Date.now()}` // Auto-generate productID  
     },
 
     // Reference to the buyer/farmer/user who created the product (optional)
