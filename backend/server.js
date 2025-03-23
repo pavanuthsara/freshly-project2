@@ -20,8 +20,7 @@ const app = express();
 // Middleware to parse JSON and cookies
 app.use(express.json());
 
-app.use('/api/deliveryrequest', deliveryRequestRoutes);
-app.use('/api/drivers', driverRoutes);
+
 app.use(cookieParser());
 
 // Connect to MongoDB
@@ -41,6 +40,9 @@ app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
+
+app.use('/api/deliveryrequest', deliveryRequestRoutes);
+app.use('/api/drivers', driverRoutes);
 
 // Serve uploads folder statically
 const __filename = fileURLToPath(import.meta.url);
