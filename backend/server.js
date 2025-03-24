@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
@@ -11,6 +12,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import farmerAnalyticsRoutes from './routes/farmerAnalytics.routes.js';
 
+
 // Load environment variables
 dotenv.config();
 import deliveryRequestRoutes from './routes/deliveryRequest.routes.js';
@@ -20,8 +22,8 @@ const app = express();
 
 // Middleware to parse JSON and cookies
 app.use(express.json());
-
 app.use(cookieParser());
+app.use(cors());
 
 // Connect to MongoDB
 mongoose

@@ -1,7 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";  // Import toast from react-toastify
+import "react-toastify/dist/ReactToastify.css";  // Import styles for toast
 
 const DriverSignInSignUp = () => {
+
+  const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+
   const [isRightPanelActive, setIsRightPanelActive] = useState(false);
   const [signUpData, setSignUpData] = useState({
     name: '',
@@ -36,12 +42,40 @@ const DriverSignInSignUp = () => {
 
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate if password and confirmPassword match
+    if (signUpData.password !== signUpData.confirmPassword) {
+      toast.error("Passwords do not match!", { position: "top-right" });
+      return;
+    }
+
+    // Validate password length
+    if (signUpData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long.", { position: "top-right" });
+      return;
+    }
+
     try {
-      const response = await axios.post('http://localhost:5000/api/drivers/register', signUpData);
-      console.log('Registration successful:', response.data);
+      const response = await axios.post(`${baseURL}/api/drivers/register`, signUpData);
+      toast.success('Registration successful!', { position: "top-right" });
       // Handle successful registration (e.g., redirect to login page)
+      // Reset the signup form after successful registration
+    setSignUpData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      district: '',
+      NIC: '',
+      contactNumber: '',
+      vehicleNumber: '',
+      vehicleCapacity: ''
+    });
+
+    // Switch to Sign In panel
+    setIsRightPanelActive(false);
     } catch (error) {
-      console.error('Registration failed:', error.response.data);
+      toast.error(error.response.data.message || 'Registration failed', { position: "top-right" });
       // Handle registration error
     }
   };
@@ -49,11 +83,11 @@ const DriverSignInSignUp = () => {
   const handleSignInSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/drivers/login', signInData);
-      console.log('Login successful:', response.data);
+      const response = await axios.post(`${baseURL}/api/drivers/login`, signInData);
+      toast.success('Login successful!', { position: "top-right" });
       // Handle successful login (e.g., redirect to dashboard)
     } catch (error) {
-      console.error('Login failed:', error.response.data);
+      toast.error(error.response.data.message || 'Login failed', { position: "top-right" });
       // Handle login error
     }
   };
@@ -61,21 +95,26 @@ const DriverSignInSignUp = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div
-        className={`relative w-[768px] max-w-full min-h-[550px] rounded-lg shadow-lg bg-white overflow-hidden transition-all duration-600 ${isRightPanelActive ? "right-panel-active" : ""}`}
+        className={`relative w-[768px] max-w-full min-h-[600px] rounded-lg shadow-lg bg-white overflow-hidden transition-all duration-600 ${isRightPanelActive ? "right-panel-active" : ""}`}
       >
         {/* Sign Up Form */}
         <div className={`absolute top-0 right-0 w-1/2 h-full flex items-center justify-center transition-all duration-600 ${isRightPanelActive ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
           <form className="flex flex-col items-center text-center p-6" onSubmit={handleSignUpSubmit}>
             <h1 className="text-xl font-bold">Create Account</h1>
             <span className="text-sm">or use your email for registration</span>
+
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="name" value={signUpData.name} onChange={handleSignUpChange} placeholder="Name" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="email" name="email" value={signUpData.email} onChange={handleSignUpChange} placeholder="Email" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="password" name="password" value={signUpData.password} onChange={handleSignUpChange} placeholder="Password" required />
+            <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="password" name="confirmPassword" value={signUpData.confirmPassword} onChange={handleSignUpChange} placeholder="Confirm Password" required />
+
+
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="district" value={signUpData.district} onChange={handleSignUpChange} placeholder="District" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="NIC" value={signUpData.NIC} onChange={handleSignUpChange} placeholder="NIC" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="contactNumber" value={signUpData.contactNumber} onChange={handleSignUpChange} placeholder="Contact Number" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="vehicleNumber" value={signUpData.vehicleNumber} onChange={handleSignUpChange} placeholder="Vehicle Number" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="number" name="vehicleCapacity" value={signUpData.vehicleCapacity} onChange={handleSignUpChange} placeholder="Vehicle Capacity" required min="100" />
+
             <button className="mt-4 px-6 py-2 text-white bg-green-500 rounded-full" type="submit">Sign Up</button>
           </form>
         </div>
