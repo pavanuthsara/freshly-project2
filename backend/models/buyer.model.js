@@ -1,5 +1,19 @@
 import mongoose from 'mongoose';
 
+// Define schema for individual cart items
+const cartItemSchema = new mongoose.Schema({
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true
+  },
+  qty: {
+    type: Number,
+    required: true,
+    default: 1
+  }
+});
+
 // Define the schema for buyers
 const buyerSchema = new mongoose.Schema(
   {
@@ -18,13 +32,13 @@ const buyerSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true
-    }
+    },
+    // Buyer's cart (array of products with quantity)
+    cart: [cartItemSchema]
   },
-  { timestamps: true } // Adds createdAt and updatedAt timestamps
+  { timestamps: true } // Adds createdAt and updatedAt
 );
 
-// Create the Buyer model
+// Create and export the Buyer model
 const Buyer = mongoose.model('Buyer', buyerSchema);
-
-// Export the Buyer model
 export default Buyer;

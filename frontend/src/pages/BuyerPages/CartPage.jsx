@@ -1,33 +1,65 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './CartPage.css';
 
 const CartPage = ({ cartItems, setCartItems }) => {
   const navigate = useNavigate();
 
-  // Remove product from the cart
-  const removeFromCart = (id) => {
-    setCartItems(cartItems.filter((item) => item._id !== id));
+  // ✅ Load cart from backend
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const { data } = await axios.get('/api/cart', {
+          withCredentials: true
+        });
+        setCartItems(data);
+      } catch (error) {
+        console.error('Error fetching cart:', error);
+      }
+    };
+    fetchCart();
+  }, [setCartItems]);
+
+  // ✅ Remove product from backend
+  const removeFromCart = async (productId) => {
+    try {
+      const { data } = await axios.delete(`/api/cart/${productId}`, {
+        withCredentials: true
+      });
+      setCartItems(data);
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+    }
   };
 
-  // Update quantity with validation (must be a number and at least 1)
-  const updateQty = (id, qty) => {
+  // ✅ Update quantity via backend
+  const updateQty = async (productId, qty) => {
     const numericQty = Number(qty);
     if (!numericQty || numericQty < 1) {
-      alert('Quantity must be a number greater than or equal to 1.');
+      alert('Quantity must be at least 1.');
       return;
     }
-    setCartItems(
-      cartItems.map((item) =>
-        item._id === id ? { ...item, qty: numericQty } : item
-      )
-    );
+
+    try {
+      const { data } = await axios.post(
+        '/api/cart',
+        { productId, qty: numericQty },
+        { withCredentials: true }
+      );
+      setCartItems(data);
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+    }
   };
 
-  // Calculate subtotal
-  const subtotal = cartItems.reduce((acc, item) => acc + item.qty * item.price, 0);
+  // ✅ Calculate subtotal
+  const subtotal = cartItems.reduce((acc, item) => {
+    const product = item.product;
+    return product ? acc + item.qty * product.price : acc;
+  }, 0);
 
-  // Proceed to Shipping Page
+  // ✅ Navigate to checkout
   const handleCheckout = () => {
     if (cartItems.length === 0) {
       alert('Your cart is empty.');
@@ -37,84 +69,93 @@ const CartPage = ({ cartItems, setCartItems }) => {
   };
 
   return (
-    <div
-      className="cart-page"
-      style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}
-    >
+    <div className="cart-page" style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Your Cart</h2>
+
       {cartItems.length === 0 ? (
         <p style={{ textAlign: 'center' }}>Your cart is empty.</p>
       ) : (
-        <div>
-          <table
-            className="cart-table"
-            style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}
-          >
+        <>
+          <table className="cart-table" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #ccc' }}>
-                <th style={{ padding: '10px' }}>Image</th>
-                <th style={{ padding: '10px' }}>Name</th>
-                <th style={{ padding: '10px' }}>Price</th>
-                <th style={{ padding: '10px' }}>Quantity</th>
-                <th style={{ padding: '10px' }}>Total</th>
-                <th style={{ padding: '10px' }}>Remove</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Remove</th>
               </tr>
             </thead>
             <tbody>
               {cartItems.map((item) => (
-                <tr key={item._id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      style={{ width: '50px', height: '50px', objectFit: 'cover' }}
-                    />
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>{item.name}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>Rs. {item.price}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>
-                    <input
-                      type="number"
-                      min="1"
-                      value={item.qty}
-                      onChange={(e) => updateQty(item._id, e.target.value)}
-                      style={{ width: '60px', textAlign: 'center' }}
-                    />
-                  </td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>Rs. {item.qty * item.price}</td>
-                  <td style={{ padding: '10px', textAlign: 'center' }}>
-                    <button
-                      onClick={() => removeFromCart(item._id)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '16px'
-                      }}
-                      title="Remove item"
-                    >
-                      ❌
-                    </button>
-                  </td>
+                <tr key={item.product?._id || item._id}>
+                  {item.product ? (
+                    <>
+                      <td style={{ textAlign: 'center' }}>
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                        />
+                      </td>
+                      <td style={{ textAlign: 'center' }}>{item.product.name}</td>
+                      <td style={{ textAlign: 'center' }}>Rs. {item.product.price}</td>
+                      <td style={{ textAlign: 'center' }}>
+                        <input
+                          type="number"
+                          min="1"
+                          value={item.qty}
+                          onChange={(e) => updateQty(item.product._id, e.target.value)}
+                          style={{ width: '60px', textAlign: 'center' }}
+                        />
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        Rs. {item.qty * item.product.price}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <button
+                          onClick={() => removeFromCart(item.product._id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '16px'
+                          }}
+                          title="Remove item"
+                        >
+                          ❌
+                        </button>
+                      </td>
+                    </>
+                  ) : (
+                    <td colSpan="6" style={{ textAlign: 'center', color: 'red' }}>
+                      ⚠️ Product no longer available.
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
           </table>
 
           <div className="cart-summary" style={{ textAlign: 'right' }}>
-            <h3 style={{ marginBottom: '20px' }}>Subtotal: Rs. {subtotal}</h3>
+            <h3 style={{ marginBottom: '20px' }}>Subtotal: Rs. {subtotal.toFixed(2)}</h3>
             <button
               onClick={handleCheckout}
               style={{
                 padding: '10px 20px',
                 fontSize: '16px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                backgroundColor: '#028b74',
+                color: 'white',
+                border: 'none',
+                borderRadius: '5px'
               }}
             >
               Proceed to Checkout
             </button>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

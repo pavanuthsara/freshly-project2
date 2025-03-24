@@ -1,4 +1,3 @@
-// src/pages/BuyerPages/ProductListPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ProductListPage.css';
@@ -13,7 +12,7 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
       try {
         setLoading(true);
         const res = await axios.get('/api/products');
-        setProducts(res.data.products); // based on your controller response
+        setProducts(res.data.products); // Adjust if your API returns differently
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load products');
@@ -24,17 +23,23 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
     fetchProducts();
   }, []);
 
-  const addToCart = (product) => {
-    setCartItems((prevCart) => {
-      const existingItem = prevCart.find((item) => item._id === product._id);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item._id === product._id ? { ...item, qty: item.qty + 1 } : item
-        );
-      } else {
-        return [...prevCart, { ...product, qty: 1 }];
-      }
-    });
+  // ✅ Add to cart via backend
+  const addToCart = async (product) => {
+    try {
+      const { data } = await axios.post(
+        '/api/cart',
+        {
+          productId: product._id,
+          qty: 1
+        },
+        { withCredentials: true }
+      );
+
+      setCartItems(data); // sync local cart state
+    } catch (error) {
+      console.error('Failed to add item to cart:', error);
+      alert('Failed to add item. Make sure you’re logged in.');
+    }
   };
 
   return (
