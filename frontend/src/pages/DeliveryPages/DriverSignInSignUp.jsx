@@ -2,11 +2,14 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";  // Import toast from react-toastify
 import "react-toastify/dist/ReactToastify.css";  // Import styles for toast
+import { useNavigate } from "react-router-dom";
+//import api from "../../../api";
+
 
 const DriverSignInSignUp = () => {
 
-  const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
+  const baseURL = "http://localhost:5000";
+  const navigate = useNavigate();//hook for navigation
 
   const [isRightPanelActive, setIsRightPanelActive] = useState(false);
   const [signUpData, setSignUpData] = useState({
@@ -58,7 +61,7 @@ const DriverSignInSignUp = () => {
     try {
       const response = await axios.post(`${baseURL}/api/drivers/register`, signUpData);
       toast.success('Registration successful!', { position: "top-right" });
-      // Handle successful registration (e.g., redirect to login page)
+      //
       // Reset the signup form after successful registration
     setSignUpData({
       name: '',
@@ -84,8 +87,19 @@ const DriverSignInSignUp = () => {
     e.preventDefault();
     try {
       const response = await axios.post(`${baseURL}/api/drivers/login`, signInData);
+      
+      
+       // Save the token in localStorage and redirect to dashboard
+       localStorage.setItem("token", response.data.token);
+
+        // Set the token in cookie
+      document.cookie = `jwt=${response.data.token}; path=/; max-age=86400`; // 24 hours expiry
+
+
       toast.success('Login successful!', { position: "top-right" });
-      // Handle successful login (e.g., redirect to dashboard)
+
+       navigate('/drivers/dashboard');  // Redirect to the dashboard after successful login
+
     } catch (error) {
       toast.error(error.response.data.message || 'Login failed', { position: "top-right" });
       // Handle login error

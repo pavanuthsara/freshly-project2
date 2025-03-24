@@ -26,5 +26,9 @@
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
     "react-router-dom": "^7.4.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3"
   }
 }
