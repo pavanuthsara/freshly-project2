@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import generateProductID from '../utils/generateProudctIDs.util.js';
 
 const productSchema = new mongoose.Schema(
   {
@@ -6,20 +7,20 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      default: () => `PROD-${Date.now()}`, // Auto-generate productID
+      default: generateProductID,
     },
 
     // Reference to the farmer who created the product
     farmer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Farmer',
-      required: true,
-    },
-
-    // Reference to the buyer (optional, if needed)
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Buyer',
+      id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Farmer',
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
     },
 
     name: {

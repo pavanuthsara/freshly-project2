@@ -10,6 +10,8 @@ import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import farmerAnalyticsRoutes from './routes/farmerAnalytics.route.js';
+import farmerRoutes from './routes/farmer.routes.js';
+import cors from 'cors';
 
 // Load environment variables
 dotenv.config();
@@ -36,12 +38,18 @@ mongoose
     process.exit(1);
   });
 
+  app.use(cors({
+    origin: true, // or specify your frontend URL
+    credentials: true // this is crucial for cookies
+  }));
+
 // Routes
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/farmer', farmerAnalyticsRoutes);
+app.use('/api/farmers',farmerRoutes)
 
 app.use('/api/deliveryrequest', deliveryRequestRoutes);
 app.use('/api/drivers', driverRoutes);
