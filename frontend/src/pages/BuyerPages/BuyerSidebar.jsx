@@ -1,9 +1,8 @@
-// src/components/BuyerSidebar.jsx
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import './BuyerSidebar.css';
 
-const BuyerSidebar = () => {
+const BuyerSidebar = ({ activeTab }) => {
   return (
     <aside className="buyer-sidebar">
       <div className="sidebar-header">
@@ -14,15 +13,15 @@ const BuyerSidebar = () => {
           <li>
             <NavLink
               to="/buyer/profile"
-              className={({ isActive }) => (isActive ? 'active-link' : '')}
+              className={({ isActive }) => (isActive || activeTab === 'profile' ? 'active-link' : '')}
             >
               My Profile
             </NavLink>
           </li>
           <li>
             <NavLink
-              to="/buyer/orders"
-              className={({ isActive }) => (isActive ? 'active-link' : '')}
+              to="/buyer/profile/orders"
+              className={({ isActive }) => (isActive || activeTab === 'orders' ? 'active-link' : '')}
             >
               My Orders
             </NavLink>
