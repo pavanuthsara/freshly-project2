@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import axios from 'axios'; 
 import { Edit, LogOut, User, Mail, Phone, MapPin, Camera, Loader2 } from 'lucide-react';
 import BuyerSidebar from './BuyerSidebar'; 
+import BuyerOrders from './BuyerOrders';
 import './BuyerProfile.css'; 
 
 const ProfileInfo = ({ user, errorMsg, onEditProfile }) => { 
@@ -383,6 +384,7 @@ const BuyerProfile = () => {
 
   const getActiveTab = () => { 
     if (!location || !location.pathname) return 'profile';
+    if (location.pathname.includes('/orders')) return 'orders';
     return 'profile';
   };
  
@@ -415,6 +417,10 @@ const BuyerProfile = () => {
               />
             }  
           /> 
+          <Route
+            path="/orders"
+            element={<BuyerOrders />}
+          />
           <Route  
             path="*"  
             element={<Navigate to="/buyer/profile" replace />}  

@@ -22,25 +22,28 @@ import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
 function App() {
   const [user, setUser] = useState({ name: 'Damith' }); // Simulated login
   const [cartItems, setCartItems] = useState([]); // Cart items
-
+  
   // ✅ New states for shipping and payment
   const [shippingAddress, setShippingAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
-
+  
   return (
     <Router>
       <Header user={user} setUser={setUser} cartItems={cartItems} />
-
+      
       <div style={{ marginTop: '70px' }}>
         <Routes>
           {/* Buyer Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/buyer/login" element={<BuyerLogin />} />
           <Route path="/buyer/register" element={<BuyerRegister />} />
-          <Route path="/buyer/profile" element={<BuyerProfile />} />
+          
+          {/* Updated BuyerProfile route with wildcard for nested routes */}
+          <Route path="/buyer/profile/*" element={<BuyerProfile />} />
+          
           <Route path="/products" element={<ProductListPage cartItems={cartItems} setCartItems={setCartItems} />} />
           <Route path="/cart" element={<CartPage cartItems={cartItems} setCartItems={setCartItems} />} />
-
+          
           {/* ✅ New Buyer Checkout Routes */}
           <Route
             path="/buyer/shipping"
@@ -71,7 +74,7 @@ function App() {
               />
             }
           />
-
+          
           {/* Farmer Routes */}
           <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
         </Routes>

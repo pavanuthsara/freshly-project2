@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 
 import buyerRoutes from './routes/Buyer.routes.js';
 import productRoutes from './routes/product.routes.js';
@@ -18,6 +19,14 @@ dotenv.config();
 
 const app = express();
 
+// Enable CORS for requests from your frontend
+app.use(
+  cors({
+    origin: 'http://localhost:5173', // Allow this origin
+    credentials: true, // Allow cookies to be sent
+  })
+);
+
 // Middleware to parse JSON and cookies
 app.use(express.json());
 app.use(cookieParser());
@@ -26,7 +35,7 @@ app.use(cookieParser());
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   })
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => {
