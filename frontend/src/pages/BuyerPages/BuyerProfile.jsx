@@ -1,76 +1,164 @@
 import React, { useEffect, useState } from 'react'; 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; 
 import axios from 'axios'; 
-import { Edit, LogOut } from 'lucide-react';
+import { Edit, LogOut, User, Mail, Phone, MapPin, Camera, Loader2 } from 'lucide-react';
 import BuyerSidebar from './BuyerSidebar'; 
 import './BuyerProfile.css'; 
 
 const ProfileInfo = ({ user, errorMsg, onEditProfile }) => { 
+  if (errorMsg) {
+    return (
+      <div className="error-container">
+        <div className="error-message">
+          <h3>Something went wrong</h3>
+          <p>{errorMsg}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return (
+      <div className="loading-container">
+        <Loader2 size={32} className="loading-spinner" />
+        <p>Loading your profile...</p>
+      </div>
+    );
+  }
+  
   return ( 
     <div className="profile-info-container"> 
       <div className="profile-header">
         <h2>Buyer Profile</h2>
-        {user && (
-          <button 
-            onClick={onEditProfile} 
-            className="edit-profile-btn"
-          >
-            <Edit size={20} /> Edit Profile
-          </button>
-        )}
+        <button 
+          onClick={onEditProfile} 
+          className="edit-profile-btn"
+          aria-label="Edit profile"
+        >
+          <Edit size={20} /> <span>Edit Profile</span>
+        </button>
       </div>
-
-      {errorMsg && <p className="error-message">{errorMsg}</p>} 
       
-      {user ? ( 
-        <div className="profile-details"> 
-          {user.profilePicture && (
+      <div className="profile-content-wrapper">
+        <div className="profile-avatar-section">
+          {user.profilePicture ? (
             <div className="profile-avatar">
               <img 
                 src={user.profilePicture} 
                 alt={`${user.name}'s profile`} 
                 className="avatar-image" 
               />
+              <button 
+                className="change-avatar-btn"
+                onClick={onEditProfile}
+                aria-label="Change profile picture"
+              >
+                <Camera size={16} />
+              </button>
+            </div>
+          ) : (
+            <div className="profile-avatar placeholder-avatar">
+              <User size={40} />
+              <button 
+                className="add-avatar-btn"
+                onClick={onEditProfile}
+                aria-label="Add profile picture"
+              >
+                <Camera size={16} />
+              </button>
             </div>
           )}
+          <h3 className="profile-name">{user.name}</h3>
+          <p className="account-status">Active Buyer</p>
+        </div>
 
+        <div className="profile-details-section">
+          <h3 className="section-title">Contact Information</h3>
+          
           <div className="profile-grid">
             <div className="profile-field"> 
-              <span className="field-label">Name:</span> 
-              <span className="field-value">{user.name}</span> 
+              <div className="field-icon">
+                <Mail size={18} />
+              </div>
+              <div className="field-content">
+                <span className="field-label">Email Address</span> 
+                <span className="field-value">{user.email}</span>
+              </div> 
             </div> 
+            
             <div className="profile-field"> 
-              <span className="field-label">Email:</span> 
-              <span className="field-value">{user.email}</span> 
-            </div> 
-            {user.phoneNumber && (
-              <div className="profile-field"> 
-                <span className="field-label">Phone:</span> 
-                <span className="field-value">{user.phoneNumber}</span> 
+              <div className="field-icon">
+                <Phone size={18} />
               </div>
-            )}
-            {user.address && (
-              <div className="profile-field"> 
-                <span className="field-label">Address:</span> 
-                <span className="field-value">{user.address}</span> 
+              <div className="field-content">
+                <span className="field-label">Phone Number</span> 
+                <span className="field-value">
+                  {user.phoneNumber || 
+                    <span className="missing-info">
+                      Not provided <button onClick={onEditProfile} className="add-info-btn">Add</button>
+                    </span>
+                  }
+                </span>
+              </div> 
+            </div>
+            
+            <div className="profile-field"> 
+              <div className="field-icon">
+                <MapPin size={18} />
               </div>
-            )}
+              <div className="field-content">
+                <span className="field-label">Shipping Address</span> 
+                <span className="field-value">
+                  {user.address || 
+                    <span className="missing-info">
+                      Not provided <button onClick={onEditProfile} className="add-info-btn">Add</button>
+                    </span>
+                  }
+                </span>
+              </div> 
+            </div>
           </div>
-        </div> 
-      ) : ( 
-        !errorMsg && <div className="loading">Loading profile...</div> 
-      )} 
+        </div>
+      </div>
     </div> 
   ); 
 }; 
 
 const EditProfileModal = ({ user, onClose, onSave }) => {
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
+    name: user.name || '',
+    email: user.email || '',
     phoneNumber: user.phoneNumber || '',
-    address: user.address || ''
+    address: user.address || '',
+    profilePicture: user.profilePicture || null
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [previewImage, setPreviewImage] = useState(user.profilePicture || null);
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (formData.phoneNumber && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Please enter a valid phone number';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,10 +166,37 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when field is being edited
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+        setFormData(prev => ({
+          ...prev,
+          profilePicture: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
     try {
       const response = await axios.put('/api/buyers/profile', formData, {
         withCredentials: true
@@ -89,54 +204,140 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
       onSave(response.data);
     } catch (error) {
       console.error('Update profile error', error);
+      const serverErrors = error.response?.data?.errors || {};
+      setErrors(prev => ({ ...prev, ...serverErrors }));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="edit-profile-modal">
-        <h2>Edit Profile</h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="edit-profile-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Edit Your Profile</h2>
+          <button className="close-modal-btn" onClick={onClose} aria-label="Close modal">
+            &times;
+          </button>
+        </div>
+        
         <form onSubmit={handleSubmit}>
+          <div className="avatar-upload-section">
+            <div className="avatar-preview">
+              {previewImage ? (
+                <img src={previewImage} alt="Profile preview" />
+              ) : (
+                <div className="avatar-placeholder">
+                  <User size={40} />
+                </div>
+              )}
+            </div>
+            
+            <div className="avatar-upload-controls">
+              <label htmlFor="profile-image" className="upload-btn">
+                <Camera size={16} /> Choose Image
+              </label>
+              <input 
+                type="file" 
+                id="profile-image" 
+                accept="image/*" 
+                onChange={handleImageChange}
+                className="hidden-input"
+              />
+              {previewImage && (
+                <button 
+                  type="button" 
+                  className="remove-image-btn"
+                  onClick={() => {
+                    setPreviewImage(null);
+                    setFormData(prev => ({ ...prev, profilePicture: null }));
+                  }}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+          
           <div className="form-group">
-            <label>Name</label>
+            <label htmlFor="name">Full Name</label>
             <input 
               type="text" 
+              id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              required 
+              placeholder="Enter your full name"
+              className={errors.name ? 'input-error' : ''}
             />
+            {errors.name && <p className="error-text">{errors.name}</p>}
           </div>
+          
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email Address</label>
             <input 
               type="email" 
+              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required 
+              placeholder="Enter your email address"
+              className={errors.email ? 'input-error' : ''}
             />
+            {errors.email && <p className="error-text">{errors.email}</p>}
           </div>
+          
           <div className="form-group">
-            <label>Phone Number</label>
+            <label htmlFor="phoneNumber">Phone Number (optional)</label>
             <input 
               type="tel" 
+              id="phoneNumber"
               name="phoneNumber"
               value={formData.phoneNumber}
               onChange={handleChange}
+              placeholder="Enter your phone number"
+              className={errors.phoneNumber ? 'input-error' : ''}
             />
+            {errors.phoneNumber && <p className="error-text">{errors.phoneNumber}</p>}
           </div>
+          
           <div className="form-group">
-            <label>Address</label>
+            <label htmlFor="address">Shipping Address (optional)</label>
             <textarea 
+              id="address"
               name="address"
               value={formData.address}
               onChange={handleChange}
+              placeholder="Enter your shipping address"
+              rows="3"
+              className={errors.address ? 'input-error' : ''}
             />
+            {errors.address && <p className="error-text">{errors.address}</p>}
           </div>
+          
           <div className="modal-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit">Save Changes</button>
+            <button 
+              type="button" 
+              onClick={onClose} 
+              className="cancel-btn"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              className="save-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="loading-spinner" /> 
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
           </div>
         </form>
       </div>
@@ -148,19 +349,24 @@ const BuyerProfile = () => {
   const [user, setUser] = useState(null); 
   const [errorMsg, setErrorMsg] = useState(''); 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation(); 
  
   useEffect(() => { 
     const fetchProfile = async () => { 
       try { 
+        setIsLoading(true);
         const res = await axios.get('/api/buyers/profile', { 
           withCredentials: true, 
         }); 
-        setUser(res.data); 
+        setUser(res.data);
+        setErrorMsg('');
       } catch (error) { 
         const msg = error.response?.data?.message || 'Failed to load profile'; 
         setErrorMsg(msg); 
-      } 
+      } finally {
+        setIsLoading(false);
+      }
     }; 
  
     fetchProfile(); 
@@ -185,12 +391,16 @@ const BuyerProfile = () => {
       <BuyerSidebar activeTab={getActiveTab()} /> 
        
       <div className="profile-content"> 
-        <div className="profile-actions">
+        <div className="profile-top-bar">
+          <h1 className="welcome-heading">
+            {user ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'}
+          </h1>
           <button 
             onClick={handleLogout} 
             className="logout-btn"
+            aria-label="Logout"
           >
-            <LogOut size={20} /> Logout
+            <LogOut size={20} /> <span>Logout</span>
           </button>
         </div>
 
@@ -199,7 +409,7 @@ const BuyerProfile = () => {
             path="/"  
             element={
               <ProfileInfo 
-                user={user} 
+                user={isLoading ? null : user} 
                 errorMsg={errorMsg} 
                 onEditProfile={() => setIsEditModalOpen(true)}
               />
