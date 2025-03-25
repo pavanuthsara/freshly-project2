@@ -1,7 +1,9 @@
 // backend/controllers/order.controller.js
-import Order from '../models/order.model.js';
 
-// @desc     Create new order
+import Order from '../models/order.model.js';
+import Buyer from '../models/buyer.model.js';
+
+// @desc     Create new order & empty user's cart
 // @method   POST
 // @endpoint /api/v1/orders
 // @access   Private
@@ -17,14 +19,16 @@ const addOrderItems = async (req, res, next) => {
       totalPrice
     } = req.body;
 
+    // 1) Validate order items
     if (!orderItems || orderItems.length === 0) {
       res.statusCode = 400;
       throw new Error('No order items.');
     }
 
+    // 2) Create a new Order document
     const order = new Order({
-      user: req.user._id,
-      orderItems: orderItems.map(item => ({
+      user: req.user._id, // This should match the ID of the logged-in Buyer
+      orderItems: orderItems.map((item) => ({
         ...item,
         product: item.product
       })),
@@ -36,8 +40,18 @@ const addOrderItems = async (req, res, next) => {
       totalPrice
     });
 
+    // 3) Save the newly created order
     const createdOrder = await order.save();
-    res.status(201).json(createdOrder);
+
+    // 4) Empty the cart of the current user (Buyer)
+    const buyer = await Buyer.findById(req.user._id);
+    if (buyer) {
+      buyer.cart = []; // Set cart to empty array
+      await buyer.save(); // Save changes in the DB
+    }
+
+    // 5) Return the newly created order
+    return res.status(201).json(createdOrder);
   } catch (error) {
     next(error);
   }
@@ -177,6 +191,7 @@ const getOrders = async (req, res, next) => {
   }
 };
 
+// Export all controller functions
 export {
   addOrderItems,
   getMyOrders,
