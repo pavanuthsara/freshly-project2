@@ -1,5 +1,6 @@
-import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Settings, Bell, Sprout, Truck } from "lucide-react"
+import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, Truck, CheckSquare, ClipboardList, Bell } from "lucide-react"
 import { useContext, createContext, useState } from "react"
+import { NavLink } from "react-router-dom"
 
 const SidebarContext = createContext()
 
@@ -7,52 +8,52 @@ export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
 
   const sidebarItems = [
-    { icon: <Home />, text: "Home", active: true },
-    { icon: <User />, text: "Profile" },
-    { icon: <Settings />, text: "Settings" },
-    { icon: <Bell />, text: "Notifications", alert: true },
+    { icon: <Home />, text: "Dashboard", path: "/drivers/dashboard" },
+    { icon: <ClipboardList />, text: "Delivery Requests", path: "/drivers/delivery-requests" },
+    { icon: <CheckSquare />, text: "Accepted Requests", path: "/drivers/accepted-requests" },
+    { icon: <User />, text: "Profile", path: "/drivers/profile" },
+    { icon: <Bell />, text: "Notifications", path: "/drivers/notifications", alert: true },
   ];
   
   return (
     <aside className="flex h-screen">
       <nav className="h-full flex flex-col bg-black border-r shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
-        {expanded && (
+          {expanded && (
             <>
-              <Sprout className="h-8 w-8 text-green-100" />
-              <span className="text-green-100 text-xl font-bold ml-3">
+              <Sprout className="h-8 w-8 text-green-500" />
+              <span className="text-white text-xl font-bold ml-3">
                 Freshly.lk
               </span>
             </>
-        
           )}
           <button
             onClick={() => setExpanded((curr) => !curr)}
-            className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100"
+            className="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white"
           >
-            {expanded ? <Truck /> : <Truck />}
+            {expanded ? <ChevronFirst /> : <ChevronLast />}
           </button>
         </div>
 
         <SidebarContext.Provider value={{ expanded }}>
           <ul className="flex-1 px-3">
             {sidebarItems.map((item, index) => (
-                <SidebarItem 
-                
+              <SidebarItem 
                 key={index} 
                 icon={item.icon}
                 text={item.text}
-                active={item.active}
+                path={item.path}
                 alert={item.alert}
-                />
+              />
             ))}
             
-            {children}</ul>
+            {children}
+          </ul>
         </SidebarContext.Provider>
 
-        <div className="border-t flex p-3">
+        <div className="border-t border-white/10 flex p-3">
           <img
-            src="https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true"
+            src="https://ui-avatars.com/api/?background=22c55e&color=ffffff&bold=true"
             alt=""
             className="w-10 h-10 rounded-md"
           />
@@ -63,10 +64,10 @@ export default function Sidebar({ children }) {
           `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold">John Doe</h4>
-              <span className="text-xs text-gray-600">johndoe@gmail.com</span>
+              <h4 className="font-semibold text-white">Yasitha Ransilu</h4>
+              <span className="text-xs text-white/60">yasitha5718@gmail.com</span>
             </div>
-            <MoreVertical size={20} />
+            <MoreVertical size={20} className="text-white/60" />
           </div>
         </div>
       </nav>
@@ -74,21 +75,22 @@ export default function Sidebar({ children }) {
   )
 }
 
-export function SidebarItem({ icon, text, active, alert }) {
+export function SidebarItem({ icon, text, path, alert }) {
   const { expanded } = useContext(SidebarContext)
   
   return (
-    <li
-      className={`
+    <NavLink
+      to={path}
+      className={({ isActive }) => `
         relative flex items-center py-2 px-3 my-1
         font-medium rounded-md cursor-pointer
         transition-colors group
         ${
-          active
-            ? "bg-gradient-to-tr from-lime-500 to-green-400 text-white"
-            : "hover:bg-green-200 text-gray-600"
+          isActive
+            ? "bg-green-400 text-white"
+            : "hover:bg-green-400 text-white"
         }
-    `}
+      `}
     >
       {icon}
       <span
@@ -100,7 +102,7 @@ export function SidebarItem({ icon, text, active, alert }) {
       </span>
       {alert && (
         <div
-          className={`absolute right-2 w-2 h-2 rounded bg-green-400 ${
+          className={`absolute right-2 w-2 h-2 rounded bg-green-500 ${
             expanded ? "" : "top-2"
           }`}
         />
@@ -110,7 +112,7 @@ export function SidebarItem({ icon, text, active, alert }) {
         <div
           className={`
           absolute left-full rounded-md px-2 py-1 ml-6
-          bg-green-100 text-green-800 text-sm
+          bg-green-500 text-white text-sm
           invisible opacity-20 -translate-x-3 transition-all
           group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
       `}
@@ -118,6 +120,6 @@ export function SidebarItem({ icon, text, active, alert }) {
           {text}
         </div>
       )}
-    </li>
+    </NavLink>
   )
 }

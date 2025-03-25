@@ -12,6 +12,7 @@ import Dashboard from './pages/DeliveryPages/Dashboard.jsx';
 import Profile from './pages/DeliveryPages/Profile.jsx';
 import DeliveryRequests from './pages/DeliveryPages/DeliveryRequests.jsx';
 import AcceptedRequests from './pages/DeliveryPages/AcceptedRequests.jsx';
+import DriverNotifications from './pages/DeliveryPages/DriverNotifications.jsx';
 
 // Function to check if the user is authenticated
 const checkAuthentication = () => {
@@ -25,7 +26,17 @@ const App = () => {
   useEffect(() => {
     // Check authentication when the component mounts
     setIsAuthenticated(checkAuthentication());
-  }, []); // This runs only once after the component mounts
+  }, []); 
+
+  // Layout component for authenticated routes
+  const AuthenticatedLayout = ({ children }) => {
+    return (
+      <div className="flex">
+        <Sidebar />
+        <main className="flex-grow">{children}</main>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -39,10 +50,46 @@ const App = () => {
           {/* Protected Routes (Requires Authentication) */}
           {isAuthenticated ? (
             <>
-              <Route path="/drivers/dashboard" element={<Sidebar />} />
-              <Route path="/drivers/profile" element={<Profile />} />
-              <Route path="/drivers/delivery-requests" element={<DeliveryRequests />} />
-              <Route path="/drivers/accepted-requests" element={<AcceptedRequests />} />
+              <Route 
+                path="/drivers/dashboard" 
+                element={
+                  <AuthenticatedLayout>
+                    <Dashboard />
+                  </AuthenticatedLayout>
+                } 
+              />
+              <Route 
+                path="/drivers/profile" 
+                element={
+                  <AuthenticatedLayout>
+                    <Profile />
+                  </AuthenticatedLayout>
+                } 
+              />
+              <Route 
+                path="/drivers/delivery-requests" 
+                element={
+                  <AuthenticatedLayout>
+                    <DeliveryRequests />
+                  </AuthenticatedLayout>
+                } 
+              />
+              <Route 
+                path="/drivers/accepted-requests" 
+                element={
+                  <AuthenticatedLayout>
+                    <AcceptedRequests />
+                  </AuthenticatedLayout>
+                } 
+              />
+               <Route 
+                path="/drivers/notifications" 
+                element={
+                  <AuthenticatedLayout>
+                    <DriverNotifications />
+                  </AuthenticatedLayout>
+                } 
+              />
             </>
           ) : (
             // Redirect unauthenticated users to login
@@ -51,6 +98,7 @@ const App = () => {
               <Route path="/drivers/profile" element={<Navigate to="/drivers/login" />} />
               <Route path="/drivers/delivery-requests" element={<Navigate to="/drivers/login" />} />
               <Route path="/drivers/accepted-requests" element={<Navigate to="/drivers/login" />} />
+              <Route path="/drivers/notifications" element={<Navigate to="/drivers/notifications" />} />
             </>
           )}
         </Routes>
