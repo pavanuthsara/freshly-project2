@@ -8,13 +8,16 @@ import {
   Check,
   AlertCircle,
   Clock,
-  Package 
+  Package,
+  X 
 } from 'lucide-react';
 
+//-----------
 const DeliveryRequests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -50,6 +53,10 @@ const DeliveryRequests = () => {
     fetchPendingRequests();
   }, []);
 
+
+
+  
+
   const handleAcceptRequest = async (deliveryId) => {
     try {
       const token = localStorage.getItem('token');
@@ -65,9 +72,15 @@ const DeliveryRequests = () => {
       setPendingRequests(prevRequests => 
         prevRequests.filter(request => request.deliveryId !== deliveryId)
       );
+
+      // Show success toast
+      showToast(`Delivery #${deliveryId} has been successfully accepted.`);
+
+
     } catch (error) {
       console.error('Failed to accept request', error);
-      alert('Failed to accept request. Please try again.');
+      // Show error toast
+      showToast('Failed to accept request. Please try again.', 'error');
     }
   };
 
@@ -95,6 +108,7 @@ const DeliveryRequests = () => {
   }
 
   return (
+    <>
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="container mx-auto max-w-4xl">
         <h1 className="text-3xl font-bold mb-6 text-green-700 flex items-center">
@@ -111,8 +125,8 @@ const DeliveryRequests = () => {
           <div className="space-y-6">
             {pendingRequests.map((request) => (
               <div 
-                key={request.deliveryId} 
-                className="bg-white border border-gray-100 rounded-lg shadow-md overflow-hidden transition-all hover:shadow-xl"
+              key={request.deliveryId} 
+              className="bg-white border border-gray-100 rounded-lg shadow-md overflow-hidden transition-all hover:shadow-xl"
               >
                 <div className="p-6">
                   {/* Request Header */}
@@ -187,14 +201,14 @@ const DeliveryRequests = () => {
                     <button
                       onClick={() => handleAcceptRequest(request.deliveryId)}
                       className="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600 transition-colors flex items-center"
-                    >
+                      >
                       <Check className="mr-2" size={18} />
                       Accept Request
                     </button>
                     <button
                       className="bg-gray-100 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-200 transition-colors"
                       // TODO: Implement view details functionality
-                    >
+                      >
                       View Details
                     </button>
                   </div>
@@ -205,6 +219,11 @@ const DeliveryRequests = () => {
         )}
       </div>
     </div>
+    
+
+
+
+        </>
   );
 };
 
