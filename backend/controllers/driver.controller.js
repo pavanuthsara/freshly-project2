@@ -174,16 +174,18 @@ const getDriverDetails = asyncHandler(async (req, res) => {
     throw new Error("Driver not found");
   }
 
+  // Ensure a consistent response structure
   res.status(200).json({
-    message: "Driver details retrieved successfully",
+    success: true,
     driver: {
+      _id: driver._id,  // Include ID for reference
       name: driver.name,
       email: driver.email,
-      district: driver.district,
-      contactNumber: driver.contactNumber,
-      vehicleNumber: driver.vehicleNumber,
-      vehicleCapacity: driver.vehicleCapacity,
-    },
+      district: driver.district || 'N/A',
+      contactNumber: driver.contactNumber || 'N/A',
+      vehicleNumber: driver.vehicleNumber || 'N/A',
+      vehicleCapacity: driver.vehicleCapacity || 'N/A',
+    }
   });
 });
 

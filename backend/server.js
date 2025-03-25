@@ -7,6 +7,8 @@ import buyerRoutes from './routes/buyer.routes.js';
 import productRoutes from './routes/product.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import deliveryRequestRoutes from './routes/deliveryRequest.routes.js';
+import driverRoutes from './routes/driver.routes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -15,8 +17,7 @@ import farmerAnalyticsRoutes from './routes/farmerAnalytics.routes.js';
 
 // Load environment variables
 dotenv.config();
-import deliveryRequestRoutes from './routes/deliveryRequest.routes.js';
-import driverRoutes from './routes/driver.routes.js';
+
 
 const app = express();
 

@@ -23,17 +23,35 @@ const protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if the token belongs to a buyer, farmer, or driver
-    if (decoded.userId) {
-      req.user = await Buyer.findById(decoded.userId).select('-password') ||
-                 await Farmer.findById(decoded.userId).select('-password') ||
-                 await Driver.findById(decoded.userId).select('-password');
-    } else {
-      res.status(401);
-      throw new Error('Authentication failed: Invalid token payload.');
+    // Explicitly check each model type
+    let user = null;
+
+    // Check Buyer
+    user = await Buyer.findById(decoded.userId).select('-password');
+    if (user) {
+      user.userType = 'Buyer';
+      req.user = user;
     }
 
-    if (!req.user) {
+    // If not a buyer, check Farmer
+    if (!user) {
+      user = await Farmer.findById(decoded.userId).select('-password');
+      if (user) {
+        user.userType = 'Farmer';
+        req.user = user;
+      }
+    }
+
+    // If not a farmer, check Driver
+    if (!user) {
+      user = await Driver.findById(decoded.userId).select('-password');
+      if (user) {
+        user.userType = 'Driver';
+        req.user = user;
+      }
+    }
+
+    if (!user) {
       res.status(401);
       throw new Error('Authentication failed: User not found.');
     }
