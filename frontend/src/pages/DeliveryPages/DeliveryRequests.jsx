@@ -53,7 +53,7 @@ const DeliveryRequests = () => {
   const handleAcceptRequest = async (deliveryId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/delivery-requests/accept', 
+      await axios.post('/api/deliveryrequest/accept', 
         { deliveryId }, 
         {
           headers: { 
@@ -67,7 +67,7 @@ const DeliveryRequests = () => {
       );
     } catch (error) {
       console.error('Failed to accept request', error);
-      // TODO: Add user-friendly error notification
+      alert('Failed to accept request. Please try again.');
     }
   };
 
