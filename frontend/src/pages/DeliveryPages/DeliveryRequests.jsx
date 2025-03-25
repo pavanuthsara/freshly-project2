@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+
+import { toast } from "react-toastify";  // Import toast from react-toastify
+import "react-toastify/dist/ReactToastify.css";  // Import styles for toast
+
 import axios from 'axios';
 import { 
   Truck, 
@@ -73,8 +77,7 @@ const DeliveryRequests = () => {
         prevRequests.filter(request => request.deliveryId !== deliveryId)
       );
 
-      // Show success toast
-      showToast(`Delivery #${deliveryId} has been successfully accepted.`);
+      toast.success('Accepted !', { position: "top-center" });
 
 
     } catch (error) {
