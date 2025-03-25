@@ -6,7 +6,8 @@ import { registerDriver,
          logoutDriver,
          updateDriver,
          deleteDriver,
-         getDriverDetails} from '../controllers/driver.controller.js';
+         getDriverDetails,
+         } from '../controllers/driver.controller.js';
 
 import { validateDriverRegistration,
          validateDriverLogin } from '../middleware/driverValidator.middleware.js';
@@ -30,5 +31,6 @@ router.put("/profile", protect, updateDriver);
 
 // Route to delete driver account
 router.delete("/profile", protect, deleteDriver);
+
 
 export default router;

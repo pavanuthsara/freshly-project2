@@ -13,7 +13,6 @@ import {
   AlertCircle,
   Clock,
   Package,
-  X 
 } from 'lucide-react';
 
 //-----------
@@ -21,8 +20,38 @@ const DeliveryRequests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [driverVehicleCapacity, setDriverVehicleCapacity] = useState(null);
+  const [currentTotalWeight, setCurrentTotalWeight] = useState(0);
   
 
+//fetching Capacity
+useEffect(() => {
+  const fetchDriverVehicleCapacity = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('/api/deliveryrequest/vehicle-capacity', {
+        headers: { 
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+      
+      setDriverVehicleCapacity(response.data.vehicleCapacity);
+      setCurrentTotalWeight(response.data.currentTotalWeight || 0);
+
+    } catch (error) {
+      console.error('Failed to fetch vehicle capacity', error);
+      showToast('Could not retrieve vehicle capacity', 'error');
+    }
+  };
+
+  fetchDriverVehicleCapacity();
+}, []);
+
+
+
+
+// fetching pending reqs
   useEffect(() => {
     const fetchPendingRequests = async () => {
       try {
@@ -62,10 +91,27 @@ const DeliveryRequests = () => {
   
 
   const handleAcceptRequest = async (deliveryId) => {
+
+    // Find the request based on deliveryId
+  const request = pendingRequests.find(req => req.deliveryId === deliveryId);
+  
+  if (!request) {
+    toast.error("Request not found.");
+    return;
+  }
+    // Compare request weight with vehicle capacity
+    const totalWeightAfterAccepting = currentTotalWeight + request.weight;
+    
+    if (totalWeightAfterAccepting > driverVehicleCapacity) {
+      toast.error(`Cannot accept this request. Total weight (${totalWeightAfterAccepting} kg) would exceed vehicle capacity (${driverVehicleCapacity} kg).`);
+      return;
+    }
+
+
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/api/deliveryrequest/accept', 
-        { deliveryId }, 
+      const response = await axios.post('/api/deliveryrequest/accept', 
+        { deliveryId}, 
         {
           headers: { 
             'Authorization': `Bearer ${token}` 
@@ -74,8 +120,11 @@ const DeliveryRequests = () => {
       );
       
       setPendingRequests(prevRequests => 
-        prevRequests.filter(request => request.deliveryId !== deliveryId)
+        prevRequests.filter(req => req.deliveryId !== deliveryId)
       );
+
+      // Update current total weight
+      setCurrentTotalWeight(response.data.currentTotalWeight);
 
       toast.success('Accepted !', { position: "top-center" });
 
@@ -83,7 +132,8 @@ const DeliveryRequests = () => {
     } catch (error) {
       console.error('Failed to accept request', error);
       // Show error toast
-      showToast('Failed to accept request. Please try again.', 'error');
+      toast.error('Failed to accept !', { position: "top-center" });
+      
     }
   };
 

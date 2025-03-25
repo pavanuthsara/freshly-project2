@@ -1,4 +1,5 @@
 import DeliveryRequest from "../models/deliveryRequest.model.js";
+import Driver from "../models/driver.model.js";
 import AcceptedDeliveryRequest from "../models/acceptedDeliveryRequest.model.js";
 import asyncHandler from "express-async-handler";
 
@@ -26,12 +27,42 @@ const acceptDeliveryRequest = asyncHandler(async (req, res) => {
   const { deliveryId} = req.body;
   const driverId = req.user._id;
 
+  // Find the driver and the delivery request
+  const driver = await Driver.findById(driverId);
   // Find the pending delivery request
   const deliveryRequest = await DeliveryRequest.findOne({ deliveryId, status: "pending" });
+
+  if (!driver) {
+    return res.status(404).json({ message: 'Driver not found' });
+  }
+
 
   if (!deliveryRequest) {
     return res.status(404).json({ message: "Delivery request not found" });
   }
+
+  // Calculate total weight of accepted requests
+  const acceptedRequests = await DeliveryRequest.find({
+    driver: driverId,
+    status: 'ACCEPTED'
+  });
+
+  const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
+
+    // Check if adding this request exceeds vehicle capacity
+    if (currentTotalWeight + deliveryRequest.weight > driver.vehicleCapacity) {
+      return res.status(400).json({ 
+        message: 'Adding this request would exceed vehicle capacity',
+        currentTotalWeight,
+        requestWeight: deliveryRequest.weight,
+        vehicleCapacity: driver.vehicleCapacity
+      });
+    }
+
+
+
+
+
 
   // Create an accepted request
   const acceptedRequest = await AcceptedDeliveryRequest.create({
@@ -118,6 +149,35 @@ const getPendingDeliveryRequests = asyncHandler(async (req, res) => {
 });
  
 
+// capacity calculation with current weight tracking
+const capacityCalculation = asyncHandler(async (req, res) => {
+  try {
+    const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
+
+    // Find the driver by their ID and include capacity
+    const driver = await Driver.findById(driverId).select('vehicleCapacity');
+    
+    if (!driver) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+
+    // Calculate total weight of accepted requests
+    const acceptedRequests = await DeliveryRequest.find({
+      driver: driverId,
+      status: 'ACCEPTED'
+    });
+
+    const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
+
+    res.json({ 
+      vehicleCapacity: driver.vehicleCapacity,
+      currentTotalWeight
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving vehicle capacity' });
+  }
+});
 
 
-export { createDeliveryRequest, acceptDeliveryRequest, getAcceptedRequestsByDriver, getPendingDeliveryRequests};
+
+export { createDeliveryRequest, acceptDeliveryRequest, getAcceptedRequestsByDriver, getPendingDeliveryRequests, capacityCalculation };

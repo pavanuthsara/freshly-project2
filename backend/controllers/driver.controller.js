@@ -189,4 +189,6 @@ const getDriverDetails = asyncHandler(async (req, res) => {
   });
 });
 
-export { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails };
+
+
+export { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails};
