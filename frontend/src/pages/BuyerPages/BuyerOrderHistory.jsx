@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useReactToPrint } from 'react-to-print';
-import { FaSearch, FaPrint, FaEye } from 'react-icons/fa';
+import { FaSearch, FaPrint, FaEye, FaLeaf } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import BuyerSidebar from './BuyerSidebar';
 import './BuyerOrderHistory.css';
@@ -12,6 +12,14 @@ const BuyerOrderHistory = () => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const printComponentRef = useRef();
+
+  // Helper to format currency to LKR
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-LK', {
+      style: 'currency',
+      currency: 'LKR'
+    }).format(amount);
+  };
 
   // Fetch orders on component mount
   useEffect(() => {
@@ -68,6 +76,17 @@ const BuyerOrderHistory = () => {
 
   return (
     <div className="buyer-order-history-container">
+      {/* Decorative leaf elements */}
+      <div className="leaf leaf-1">
+        <FaLeaf size={80} color="#67c27c" />
+      </div>
+      <div className="leaf leaf-2">
+        <FaLeaf size={100} color="#67c27c" />
+      </div>
+      <div className="leaf leaf-3">
+        <FaLeaf size={60} color="#67c27c" />
+      </div>
+      
       <div className="order-history-content">
         <h2>My Order History</h2>
         
@@ -89,7 +108,10 @@ const BuyerOrderHistory = () => {
         </div>
 
         {loading ? (
-          <div className="loading-spinner">Loading...</div>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            Loading your orders...
+          </div>
         ) : error ? (
           <div className="error-message">{error}</div>
         ) : (
@@ -117,7 +139,7 @@ const BuyerOrderHistory = () => {
                       <tr key={order._id}>
                         <td>{order._id}</td>
                         <td>{formatDate(order.createdAt)}</td>
-                        <td>${order.totalPrice.toFixed(2)}</td>
+                        <td>{formatCurrency(order.totalPrice)}</td>
                         <td>
                           {order.isPaid ? (
                             <span className="status-indicator paid">

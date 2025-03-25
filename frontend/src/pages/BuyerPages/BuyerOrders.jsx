@@ -3,8 +3,8 @@ import api from '../../api';
 import { useReactToPrint } from 'react-to-print';
 import { FaSearch, FaPrint, FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import BuyerSidebar from './BuyerSidebar';
-//import './BuyerOrderHistory.css';
+//import BuyerSidebar from './BuyerSidebar';
+import './BuyerOrderHistory.css';
 
 const BuyerOrderHistory = () => {
   const [orders, setOrders] = useState([]);
