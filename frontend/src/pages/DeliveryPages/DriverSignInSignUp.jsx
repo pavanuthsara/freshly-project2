@@ -5,7 +5,6 @@ import "react-toastify/dist/ReactToastify.css";  // Import styles for toast
 import { useNavigate } from "react-router-dom";
 //import api from "../../../api";
 
-
 const DriverSignInSignUp = () => {
 
   const baseURL = "http://localhost:5000";
