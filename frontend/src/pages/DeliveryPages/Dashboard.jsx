@@ -7,7 +7,8 @@ import {
   Clock, 
   AlertCircle, 
   Leaf, 
-  DollarSign 
+  DollarSign,
+  Coins, 
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -75,9 +76,9 @@ const Dashboard = () => {
             value={deliveryStats.pendingDeliveries}
           />
           <StatCard 
-            icon={<DollarSign className="text-green-600" />}
+            icon={<Coins className="text-green-600" />}
             title="Total Earnings"
-            value={`$${deliveryStats.totalEarnings.toFixed(2)}`}
+            value={`LKR ${deliveryStats.totalEarnings.toFixed(2)}`}
           />
         </div>
 

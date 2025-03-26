@@ -39,10 +39,7 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
     }
   
     // all accepted req for driver
-    const acceptedRequests = await AcceptedDeliveryRequest.find({
-      driver: driverId,  // Ensure this matches how you set the driver
-      status: 'accepted'
-    });
+    const acceptedRequests = await AcceptedDeliveryRequest.find({driverId});
   
     const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
   
@@ -80,7 +77,11 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
     // Delete the original request from pending
     await DeliveryRequest.deleteOne({ _id: deliveryRequest._id });
   
-    res.status(201).json(acceptedRequest);
+    res.status(201).json({
+      acceptedRequest,
+      vehicleCapacity : driver.vehicleCapacity,
+      currentTotalWeight : proposedTotalWeight
+  });
   });
 
 // Get Accepted Delivery Request

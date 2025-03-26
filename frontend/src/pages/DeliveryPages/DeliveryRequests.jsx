@@ -45,7 +45,7 @@ useEffect(() => {
 
     } catch (error) {
       console.error('Failed to fetch vehicle capacity', error);
-      showToast('Could not retrieve vehicle capacity', 'error');
+      toast.error('Could not retrieve vehicle capacity');
     }
   };
 
@@ -107,6 +107,7 @@ useEffect(() => {
   
     try {
       const token = localStorage.getItem('token');
+      
       const response = await axios.post('/api/deliveryrequest/accept', 
         { deliveryId }, 
         {
