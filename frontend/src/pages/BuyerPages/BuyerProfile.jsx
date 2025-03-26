@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'; 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; 
 import axios from 'axios'; 
-import { Edit, LogOut, User, Mail, Phone, MapPin, Camera, Loader2 } from 'lucide-react';
+import { Edit, User, Mail, Phone, MapPin, Camera, Loader2 } from 'lucide-react';
 import BuyerSidebar from './BuyerSidebar'; 
 import BuyerOrders from './BuyerOrders';
 import './BuyerProfile.css'; 
@@ -373,14 +373,7 @@ const BuyerProfile = () => {
     fetchProfile(); 
   }, []); 
  
-  const handleLogout = async () => {
-    try {
-      await axios.post('/api/auth/logout', {}, { withCredentials: true });
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout failed', error);
-    }
-  };
+  // Removed the handleLogout function since the logout button is being removed
 
   const getActiveTab = () => { 
     if (!location || !location.pathname) return 'profile';
@@ -397,13 +390,7 @@ const BuyerProfile = () => {
           <h1 className="welcome-heading">
             {user ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'}
           </h1>
-          <button 
-            onClick={handleLogout} 
-            className="logout-btn"
-            aria-label="Logout"
-          >
-            <LogOut size={20} /> <span>Logout</span>
-          </button>
+          {/* Logout button removed from here */}
         </div>
 
         <Routes> 
