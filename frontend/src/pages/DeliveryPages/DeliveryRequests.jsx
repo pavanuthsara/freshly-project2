@@ -15,6 +15,10 @@ import {
   Package,
 } from 'lucide-react';
 
+
+
+
+
 //-----------
 const DeliveryRequests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -47,6 +51,7 @@ useEffect(() => {
 
   fetchDriverVehicleCapacity();
 }, []);
+
 
 
 
@@ -85,6 +90,7 @@ useEffect(() => {
 
     fetchPendingRequests();
   }, []);
+
 
 
 
@@ -147,6 +153,11 @@ useEffect(() => {
       }
     }
   };
+
+
+
+
+  
 
   if (loading) {
     return (
