@@ -22,33 +22,30 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
   });
 
 
-  // 🔹 Accept Delivery Request
-const acceptDeliveryRequest = asyncHandler(async (req, res) => {
-  const { deliveryId} = req.body;
-  const driverId = req.user._id;
-
-  // Find the driver and the delivery request
-  const driver = await Driver.findById(driverId);
-  // Find the pending delivery request
-  const deliveryRequest = await DeliveryRequest.findOne({ deliveryId, status: "pending" });
-
-  if (!driver) {
-    return res.status(404).json({ message: 'Driver not found' });
-  }
-
-
-  if (!deliveryRequest) {
-    return res.status(404).json({ message: "Delivery request not found" });
-  }
-
-  // Calculate total weight of accepted requests
-  const acceptedRequests = await DeliveryRequest.find({
-    driver: driverId,
-    status: 'ACCEPTED'
-  });
-
-  const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
-
+  const acceptDeliveryRequest = asyncHandler(async (req, res) => {
+    const { deliveryId } = req.body;
+    const driverId = req.user._id;
+  
+    // Find the driver and the delivery request
+    const driver = await Driver.findById(driverId);
+    const deliveryRequest = await DeliveryRequest.findOne({ deliveryId, status: "pending" });
+  
+    if (!driver) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+  
+    if (!deliveryRequest) {
+      return res.status(404).json({ message: "Delivery request not found" });
+    }
+  
+    // Calculate total weight of accepted requests
+    const acceptedRequests = await AcceptedDeliveryRequest.find({
+      driver: driverId,  // Ensure this matches how you set the driver
+      status: 'accepted'
+    });
+  
+    const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
+  
     // Check if adding this request exceeds vehicle capacity
     if (currentTotalWeight + deliveryRequest.weight > driver.vehicleCapacity) {
       return res.status(400).json({ 
@@ -58,30 +55,29 @@ const acceptDeliveryRequest = asyncHandler(async (req, res) => {
         vehicleCapacity: driver.vehicleCapacity
       });
     }
-
-
-
-
-
-
-  // Create an accepted request
-  const acceptedRequest = await AcceptedDeliveryRequest.create({
-    deliveryId: deliveryRequest.deliveryId,
-    buyerId: deliveryRequest.buyerId,
-    farmerId: deliveryRequest.farmerId,
-    driverId, // Ensure this is passed in the request body
-    weight: deliveryRequest.weight,
-    pickup: deliveryRequest.pickup,
-    dropOff: deliveryRequest.dropOff,
-    status: "accepted",
+  
+    // Update the delivery request with driver information
+    deliveryRequest.driver = driverId;  // Add this line to set the driver
+    deliveryRequest.status = 'ACCEPTED';
+    await deliveryRequest.save();
+  
+    // Create an accepted request
+    const acceptedRequest = await AcceptedDeliveryRequest.create({
+      deliveryId: deliveryRequest.deliveryId,
+      buyerId: deliveryRequest.buyerId,
+      farmerId: deliveryRequest.farmerId,
+      driverId, 
+      weight: deliveryRequest.weight,
+      pickup: deliveryRequest.pickup,
+      dropOff: deliveryRequest.dropOff,
+      status: "accepted",
+    });
+  
+    // Delete the original request from pending
+    await DeliveryRequest.deleteOne({ _id: deliveryRequest._id });
+  
+    res.status(201).json(acceptedRequest);
   });
-
-  //Delete the original req
-  await DeliveryRequest.deleteOne({ _id: deliveryRequest._id });
-
-  res.status(201).json(acceptedRequest);
-});
- 
 
 // Get Accepted Delivery Request
 const getAcceptedRequestsByDriver = asyncHandler(async (req, res) => {
@@ -162,9 +158,9 @@ const capacityCalculation = asyncHandler(async (req, res) => {
     }
 
     // Calculate total weight of accepted requests
-    const acceptedRequests = await DeliveryRequest.find({
+    const acceptedRequests = await AcceptedDeliveryRequest.find({
       driver: driverId,
-      status: 'ACCEPTED'
+      status: 'accepted'
     });
 
     const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);

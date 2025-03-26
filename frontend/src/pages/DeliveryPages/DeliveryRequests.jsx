@@ -124,7 +124,7 @@ useEffect(() => {
       );
 
       // Update current total weight
-      setCurrentTotalWeight(response.data.currentTotalWeight);
+      setCurrentTotalWeight(prevWeight => prevWeight + request.weight);
 
       toast.success('Accepted !', { position: "top-center" });
 
@@ -132,7 +132,7 @@ useEffect(() => {
     } catch (error) {
       console.error('Failed to accept request', error);
       // Show error toast
-      toast.error('Failed to accept !', { position: "top-center" });
+      toast.error('Failed to accept !', { position: "top-right" });
       
     }
   };
