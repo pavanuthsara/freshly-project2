@@ -3,7 +3,8 @@ import axios from 'axios';
 import { Search, Filter } from 'lucide-react';
 
 const ProductListing = () => {
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(false);
@@ -11,31 +12,61 @@ const ProductListing = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [search, category]);
+  }, []);
+
+  // Apply filtering whenever search or category changes
+  useEffect(() => {
+    applyFilters();
+  }, [search, category, allProducts]);
 
   const fetchProducts = async () => {
     setLoading(true);
     setError('');
     try {
-      let url = `/api/products?search=${search}`;
-      if (category) url = `/api/products/category/${category}`;
-      const { data } = await axios.get(url);
-      if (Array.isArray(data.products)) {
-        setProducts(data.products);
-      } else {
-        setProducts(data);
-      }
+      const { data } = await axios.get('/api/products', {
+        withCredentials: true
+      });
+
+      setAllProducts(data.products || []);
+      setFilteredProducts(data.products || []);
     } catch (error) {
-      setError(error.response?.data.message || 'Failed to fetch products.');
+      console.error('Error fetching products:', error);
+      setError(error.response?.data.message || 'Failed to fetch products');
+      setAllProducts([]);
+      setFilteredProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const applyFilters = () => {
+    let result = allProducts;
+
+    // Filter by category
+    if (category) {
+      result = result.filter(product => 
+        product.category.toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    // Filter by search term
+    if (search.trim()) {
+      result = result.filter(product => 
+        product.name.toLowerCase().includes(search.toLowerCase()) ||
+        product.description.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(result);
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto px-5 py-5 font-sans bg-green-50">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-green-800">All Farmer Products</h1>
+        <h1 className="text-3xl font-bold text-green-800">
+          All Farmer Products 
+          {category && ` - ${category}`}
+        </h1>
       </div>
       
       <div className="flex justify-center gap-4 mb-6">
@@ -58,7 +89,6 @@ const ProductListing = () => {
             <option value="">All Categories</option>
             <option value="Vegetables">Vegetables</option>
             <option value="Fruits">Fruits</option>
-            <option value="Herbs">Herbs</option>
           </select>
           <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={20} />
         </div>
@@ -77,8 +107,8 @@ const ProductListing = () => {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {products.length ? (
-          products.map((product) => (
+        {filteredProducts.length ? (
+          filteredProducts.map((product) => (
             <div 
               key={product._id} 
               className="border border-green-200 rounded-lg shadow-md p-4 text-center bg-white transition-transform duration-300 hover:-translate-y-2 hover:shadow-lg"

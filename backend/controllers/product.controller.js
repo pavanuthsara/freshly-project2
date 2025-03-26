@@ -78,7 +78,7 @@ const getProduct = async (req, res, next) => {
 
 // @desc     Create product
 // @method   POST
-// @endpoint /api/products
+// @endpoint /api/farmerProducts
 // @access   Private (Farmer only)
 const createProduct = async (req, res, next) => {
   try {
@@ -107,7 +107,7 @@ const createProduct = async (req, res, next) => {
 
 // @desc     Update product
 // @method   PUT
-// @endpoint /api/products/:id
+// @endpoint /api/farmerProducts/:id
 // @access   Private (Farmer only)
 const updateProduct = async (req, res, next) => {
   try {
@@ -149,7 +149,7 @@ const updateProduct = async (req, res, next) => {
 
 // @desc     Delete product
 // @method   DELETE
-// @endpoint /api/products/:id
+// @endpoint /api/farmerProducts/:id
 // @access   Private (Farmer only)
 const deleteProduct = async (req, res, next) => {
   try {
@@ -178,7 +178,7 @@ const deleteProduct = async (req, res, next) => {
 
 // @desc     Fetch Farmer's Products
 // @method   GET
-// @endpoint /api/products/farmer/products?limit=2&skip=0
+// @endpoint /api/farmerProducts/products?limit=2&skip=0
 // @access   Private (Farmer only)
 const getFarmerProducts = async (req, res, next) => {
   try {

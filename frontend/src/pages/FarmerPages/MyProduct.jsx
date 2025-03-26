@@ -21,7 +21,7 @@ const ProductSection = ({ farmerData }) => {
           }
         };
 
-        const response = await axios.get('/api/farmer/products', config);
+        const response = await axios.get('/api/farmerProducts', config);
         setProducts(Array.isArray(response.data.data) ? response.data.data : []);
         setIsLoading(false);
       } catch (err) {
@@ -54,7 +54,7 @@ const ProductSection = ({ farmerData }) => {
         image: newProduct.image || '/default-product-image.jpg'
       };
 
-      const response = await axios.post('/api/products', productData, config);
+      const response = await axios.post('/api/farmerProducts', productData, config);
       
       setProducts([...products, response.data.createdProduct]);
       setIsAddProductDialogOpen(false);
@@ -82,7 +82,7 @@ const ProductSection = ({ farmerData }) => {
         image: updatedProduct.image || '/default-product-image.jpg'
       };
 
-      const response = await axios.put(`/api/products/${updatedProduct._id}`, productData, config);
+      const response = await axios.put(`/api/farmerProducts/${updatedProduct._id}`, productData, config);
       
       setProducts(products.map(p => 
         p._id === updatedProduct._id ? response.data.updatedProduct : p
@@ -103,7 +103,7 @@ const ProductSection = ({ farmerData }) => {
           }
         };
 
-        await axios.delete(`/api/products/${id}`, config);
+        await axios.delete(`/api/farmerProducts/${id}`, config);
         
         setProducts(products.filter(product => product._id !== id));
       } catch (err) {

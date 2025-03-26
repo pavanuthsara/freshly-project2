@@ -46,8 +46,8 @@ mongoose
 
 // API Routes
 app.use('/api/buyers', buyerRoutes);
-app.use('/api/products', productRoutes); // Public product routes
-app.use('/api/farmer/products', productRoutes); // Farmer-specific product routes
+app.use('/api/products', productRoutes.publicRoutes); // Public product routes
+app.use('/api/farmerProducts', productRoutes.protectedRoutes); // Farmer-specific product routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/farmer/analytics', farmerAnalyticsRoutes);
