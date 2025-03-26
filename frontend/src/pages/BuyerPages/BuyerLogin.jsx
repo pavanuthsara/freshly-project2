@@ -1,14 +1,14 @@
 import React, { useState } from 'react'; 
 import axios from 'axios'; 
-import { useNavigate } from 'react-router-dom'; 
-import './BuyerLogin.css'; // Import the CSS file
- 
+import { useNavigate, Link } from 'react-router-dom'; 
+import './BuyerLogin.css';
+
 const BuyerLogin = () => { 
   const [formData, setFormData] = useState({ email: '', password: '' }); 
   const [errorMsg, setErrorMsg] = useState(''); 
   const [successMsg, setSuccessMsg] = useState(''); 
   const navigate = useNavigate(); 
- 
+
   const handleChange = (e) => { 
     setFormData(prev => ({ 
       ...prev, 
@@ -17,7 +17,7 @@ const BuyerLogin = () => {
     setErrorMsg(''); 
     setSuccessMsg(''); 
   }; 
- 
+
   const handleSubmit = async (e) => { 
     e.preventDefault(); 
     try { 
@@ -33,14 +33,15 @@ const BuyerLogin = () => {
       setErrorMsg(message); 
     } 
   }; 
- 
+
   return ( 
     <div className="buyer-login-container"> 
       <h2>Buyer Login</h2> 
+
       <form className="buyer-login-form" onSubmit={handleSubmit}> 
         {errorMsg && <p className="error-message">{errorMsg}</p>} 
         {successMsg && <p className="success-message">{successMsg}</p>} 
- 
+
         <div className="form-group"> 
           <label>Email:</label> 
           <input 
@@ -52,7 +53,7 @@ const BuyerLogin = () => {
             required 
           /> 
         </div> 
- 
+
         <div className="form-group"> 
           <label>Password:</label> 
           <input 
@@ -64,11 +65,17 @@ const BuyerLogin = () => {
             required 
           /> 
         </div> 
- 
+
         <button className="login-button" type="submit">Login</button> 
+
+        <div className="register-link">
+          <p>
+            Don't have an account? <Link to="/buyer/register">Register here</Link>
+          </p>
+        </div>
       </form> 
     </div> 
   ); 
 }; 
- 
+
 export default BuyerLogin;

@@ -95,3 +95,20 @@
     top: 1rem; /* Slightly reduced top positioning for mobile */
   }
 }
+
+.register-link {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.register-link a {
+  color: #027368;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+  color: #028b74;
+}
