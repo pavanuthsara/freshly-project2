@@ -1,0 +1,49 @@
+.buyer-register-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  }
+  
+  .buyer-register-form .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .buyer-register-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .buyer-register-form input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .register-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .register-button:hover {
+    background-color: #2980b9;
+  }
+  
+  .error-message {
+    color: #e74c3c;
+  }
+  
+  .success-message {
+    color: #2ecc71;
+  }
+  

@@ -8,7 +8,7 @@ import Header from './components/Header';
 // Buyer Pages
 import HomePage from './pages/HomePage';
 import BuyerLogin from './pages/BuyerPages/BuyerLogin';
-import BuyerRegister from './pages/BuyerPages/RegisterPage';
+import BuyerRegister from './pages/BuyerPages/BuyerRegister';
 import BuyerProfile from './pages/BuyerPages/BuyerProfile';
 import ProductListPage from './pages/BuyerPages/ProductListPage';
 import CartPage from './pages/BuyerPages/CartPage';
