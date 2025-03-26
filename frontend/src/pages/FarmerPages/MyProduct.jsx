@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
 import axios from 'axios';
+import { Plus, Edit, Trash2, Eye, User, ShoppingCart } from 'lucide-react';
+import ProductListing from './ProductListing';
 
 const ProductSection = ({ farmerData }) => {
-  const [products, setProducts] = useState([]); // Initialize as an empty array
+  const [products, setProducts] = useState([]);
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeView, setActiveView] = useState('myProducts');
 
-  // Fetch farmer's products when component mounts
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Get the JWT token from localStorage or your auth context
-        const token = localStorage.getItem('farmerToken'); // Adjust this based on your auth mechanism
-
+        const token = localStorage.getItem('farmerToken');
         const config = {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -23,20 +22,17 @@ const ProductSection = ({ farmerData }) => {
         };
 
         const response = await axios.get('/api/farmer/products', config);
-        // Ensure response.data.data is an array, fallback to empty array
         setProducts(Array.isArray(response.data.data) ? response.data.data : []);
         setIsLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch products');
         setIsLoading(false);
-        // Set products to an empty array in case of error
         setProducts([]);
       }
     };
 
     fetchProducts();
   }, []);
-
 
   const handleAddProduct = async (newProduct) => {
     try {
@@ -48,7 +44,6 @@ const ProductSection = ({ farmerData }) => {
         }
       };
 
-      // Prepare product data for backend
       const productData = {
         name: newProduct.name,
         category: newProduct.category,
@@ -56,12 +51,11 @@ const ProductSection = ({ farmerData }) => {
         quantity: newProduct.quantity,
         certification: newProduct.certification,
         description: newProduct.description || 'No description',
-        image: newProduct.image || '/default-product-image.jpg' // Add a default image path
+        image: newProduct.image || '/default-product-image.jpg'
       };
 
       const response = await axios.post('/api/products', productData, config);
       
-      // Add the newly created product to the state
       setProducts([...products, response.data.createdProduct]);
       setIsAddProductDialogOpen(false);
     } catch (err) {
@@ -79,7 +73,6 @@ const ProductSection = ({ farmerData }) => {
         }
       };
 
-      // Prepare updated product data for backend
       const productData = {
         name: updatedProduct.name,
         category: updatedProduct.category,
@@ -91,7 +84,6 @@ const ProductSection = ({ farmerData }) => {
 
       const response = await axios.put(`/api/products/${updatedProduct._id}`, productData, config);
       
-      // Update the product in the state
       setProducts(products.map(p => 
         p._id === updatedProduct._id ? response.data.updatedProduct : p
       ));
@@ -113,7 +105,6 @@ const ProductSection = ({ farmerData }) => {
 
         await axios.delete(`/api/products/${id}`, config);
         
-        // Remove the product from the state
         setProducts(products.filter(product => product._id !== id));
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to delete product');
@@ -121,84 +112,135 @@ const ProductSection = ({ farmerData }) => {
     }
   };
 
-  // Loading and error states
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-green-600">Loading products...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        {error}
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-green-800">My Products</h1>
-        <button 
-          onClick={() => setIsAddProductDialogOpen(true)}
-          className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-        >
-          <Plus className="mr-2" /> Add Product
-        </button>
+    <div className="container mx-auto px-4 py-8">
+      {/* Header with Farmer Profile and Navigation */}
+      <div className="flex justify-between items-center mb-8">
+        <div className="flex items-center space-x-4">
+          <div className="bg-green-100 p-3 rounded-full">
+            <User className="text-green-700" size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-green-800">
+              {farmerData.name || 'Farmer Profile'}
+            </h1>
+            <p className="text-green-600">{farmerData.email}</p>
+          </div>
+        </div>
+        
+        {/* Quick Action Buttons */}
+        <div className="flex space-x-4">
+          <button className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+            <ShoppingCart className="mr-2" size={20} /> My Orders
+          </button>
+        </div>
       </div>
 
-      {/* Products Table */}
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
-        {!products || products.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No products yet. Click "Add Product" to get started!
+      {/* Product Management Section */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-green-800">
+            {activeView === 'myProducts' ? 'My Products' : 'All Products'}
+          </h2>
+          <div className="flex space-x-4">
+            {/* View Toggle */}
+            <div className="flex bg-green-100 rounded-lg p-1">
+              <button
+                onClick={() => setActiveView('myProducts')}
+                className={`px-4 py-2 rounded-lg transition-colors duration-300 ${
+                  activeView === 'myProducts' 
+                    ? 'bg-green-600 text-white' 
+                    : 'text-green-700 hover:bg-green-200'
+                }`}
+              >
+                My Products
+              </button>
+              <button
+                onClick={() => setActiveView('allProducts')}
+                className={`px-4 py-2 rounded-lg transition-colors duration-300 flex items-center ${
+                  activeView === 'allProducts' 
+                    ? 'bg-green-600 text-white' 
+                    : 'text-green-700 hover:bg-green-200'
+                }`}
+              >
+                <Eye className="mr-2" /> All Products
+              </button>
+            </div>
+
+            {/* Add Product Button */}
+            {activeView === 'myProducts' && (
+              <button 
+                onClick={() => setIsAddProductDialogOpen(true)}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                <Plus className="mr-2" /> Add Product
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Conditional Rendering based on View */}
+        {activeView === 'myProducts' ? (
+          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <p className="text-green-600">Loading products...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                {error}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                No products yet. Click "Add Product" to get started!
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-green-100 border-b">
+                  <tr>
+                    <th className="p-3 text-left text-green-700">Name</th>
+                    <th className="p-3 text-left text-green-700">Category</th>
+                    <th className="p-3 text-left text-green-700">Price</th>
+                    <th className="p-3 text-left text-green-700">Quantity</th>
+                    <th className="p-3 text-left text-green-700">Certification</th>
+                    <th className="p-3 text-left text-green-700">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product._id} className="border-b hover:bg-green-50">
+                      <td className="p-3">{product.name}</td>
+                      <td className="p-3">{product.category}</td>
+                      <td className="p-3">LKR {product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className="p-3">{product.quantity} kg</td>
+                      <td className="p-3">{product.certification}</td>
+                      <td className="p-3">
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => setEditingProduct(product)}
+                            className="flex items-center px-2 py-1 text-green-600 border border-green-600 rounded hover:bg-green-50"
+                          >
+                            <Edit size={16} className="mr-1" /> Edit
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteProduct(product._id)}
+                            className="flex items-center px-2 py-1 text-red-600 border border-red-600 rounded hover:bg-red-50"
+                          >
+                            <Trash2 size={16} className="mr-1" /> Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-green-100 border-b">
-              <tr>
-                <th className="p-3 text-left text-green-700">Name</th>
-                <th className="p-3 text-left text-green-700">Category</th>
-                <th className="p-3 text-left text-green-700">Price</th>
-                <th className="p-3 text-left text-green-700">Quantity</th>
-                <th className="p-3 text-left text-green-700">Certification</th>
-                <th className="p-3 text-left text-green-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-            {(products || []).map((product) => (
-                <tr key={product._id} className="border-b hover:bg-green-50">
-                  <td className="p-3">{product.name}</td>
-                  <td className="p-3">{product.category}</td>
-                  <td className="p-3">LKR{product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td className="p-3">{product.quantity} kg</td>
-                  <td className="p-3">{product.certification}</td>
-                  <td className="p-3">
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => setEditingProduct(product)}
-                        className="flex items-center px-2 py-1 text-green-600 border border-green-600 rounded hover:bg-green-50"
-                      >
-                        <Edit size={16} className="mr-1" /> Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteProduct(product._id)}
-                        className="flex items-center px-2 py-1 text-red-600 border border-red-600 rounded hover:bg-red-50"
-                      >
-                        <Trash2 size={16} className="mr-1" /> Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ProductListing />
         )}
       </div>
-      
+
       {/* Add/Edit Product Modal */}
       {(isAddProductDialogOpen || editingProduct) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -240,19 +282,18 @@ const ProductSection = ({ farmerData }) => {
   );
 };
 
+// ProductForm component (same as in previous implementation)
 const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
 
-  // Validation functions
+  // Validation and form handling methods (same as previous implementation)
   const validateName = (name) => {
-    // Allow only letters, numbers, spaces, and specific allowed characters
     const nameRegex = /^[a-zA-Z\s]+$/;
     return nameRegex.test(name);
   };
 
   const validateDescription = (description) => {
-    // Allow letters, numbers, spaces, and limited punctuation
     const descriptionRegex = /^[a-zA-Z0-9\s.,!?()-]+$/;
     return descriptionRegex.test(description);
   };
@@ -260,62 +301,52 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const handleNameChange = (e) => {
     const newName = e.target.value;
     
-    // Clear previous name error if validation passes
     if (validateName(newName) || newName === '') {
       const newErrors = { ...errors };
       delete newErrors.name;
       setErrors(newErrors);
     } else {
-      // Set error for invalid characters
       setErrors(prev => ({
         ...prev, 
         name: 'Name can only contain letters and spaces'
       }));
     }
 
-    // Update form data
     setFormData({...formData, name: newName});
   };
 
   const handleDescriptionChange = (e) => {
     const newDescription = e.target.value;
     
-    // Clear previous description error if validation passes
     if (validateDescription(newDescription) || newDescription === '') {
       const newErrors = { ...errors };
       delete newErrors.description;
       setErrors(newErrors);
     } else {
-      // Set error for invalid characters
       setErrors(prev => ({
         ...prev, 
         description: 'Description can only contain letters, numbers, spaces, and basic punctuation'
       }));
     }
 
-    // Update form data
     setFormData({...formData, description: newDescription});
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validate all fields before submission
     const validationErrors = {};
 
-    // Name validation
     if (!formData.name) {
       validationErrors.name = 'Product name is required';
     } else if (!validateName(formData.name)) {
       validationErrors.name = 'Name can only contain letters, numbers, spaces, apostrophes, periods, and hyphens';
     }
 
-    // Description validation (if provided)
     if (formData.description && !validateDescription(formData.description)) {
       validationErrors.description = 'Description can only contain letters, numbers, spaces, and basic punctuation';
     }
 
-    // Price and quantity validations
     if (!formData.category) {
       validationErrors.category = 'Category is required';
     }
@@ -328,19 +359,18 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       validationErrors.quantity = 'Quantity must be greater than zero';
     }
 
-    // If there are validation errors, set them and prevent submission
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
 
-    // Clear any previous errors and submit
     setErrors({});
     onSubmit(formData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form fields remain the same as in previous implementation */}
       <div>
         <label className="block text-green-700 mb-2">Product Name</label>
         <input 
@@ -354,6 +384,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
         {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
       
+      {/* Remaining form fields with similar structure */}
       <div>
         <label className="block text-green-700 mb-2">Description</label>
         <textarea 
@@ -366,7 +397,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
-      {/* Rest of the form remains the same, with added error handling for other fields */}
+      {/* Category, Price, Quantity, Certification inputs */}
       <div>
         <label className="block text-green-700 mb-2">Category</label>
         <input 
@@ -374,7 +405,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
           value={formData.category}
           onChange={(e) => {
             setFormData({...formData, category: e.target.value});
-            // Clear category error if a value is entered
             if (e.target.value) {
               const newErrors = { ...errors };
               delete newErrors.category;
@@ -399,7 +429,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
             onChange={(e) => {
               const newPrice = parseFloat(e.target.value) || 0;
               setFormData({...formData, price: newPrice});
-              // Clear price error if valid
               if (newPrice > 0) {
                 const newErrors = { ...errors };
                 delete newErrors.price;
@@ -421,7 +450,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
             onChange={(e) => {
               const newQuantity = parseInt(e.target.value) || 0;
               setFormData({...formData, quantity: newQuantity});
-              // Clear quantity error if valid
               if (newQuantity > 0) {
                 const newErrors = { ...errors };
                 delete newErrors.quantity;
