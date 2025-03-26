@@ -7,7 +7,7 @@ const Header = ({ user, setUser, cartItems = [] }) => {
   const navigate = useNavigate();
 
   const logoutHandler = () => {
-    setUser(null); // clear user
+    setUser(null);
     navigate('/login');
   };
 
