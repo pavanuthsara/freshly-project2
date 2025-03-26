@@ -1,8 +1,9 @@
 .buyer-sidebar {
   width: 270px;
-  background: linear-gradient(135deg, #2e7d32 0%, #4CAF50 100%);
+  /* Updated gradient for more vibrant green look */
+  background: linear-gradient(135deg, #1b5e20 0%, #4CAF50 100%);
   min-height: 100vh;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
   padding: 1.5rem 0;
   position: relative;
   overflow: hidden;
@@ -44,7 +45,7 @@
   left: 0;
   width: 40px;
   height: 3px;
-  background-color: #66BB6A;
+  background-color: #A5D6A7; /* Lighter green for better contrast */
   border-radius: 3px;
 }
 
@@ -73,7 +74,7 @@
   display: flex;
   align-items: center;
   padding: 0.9rem 1.5rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9); /* Increased opacity for better readability */
   text-decoration: none;
   transition: all 0.3s ease;
   border-radius: 0 50px 50px 0;
@@ -89,13 +90,13 @@
   left: 0;
   width: 3px;
   height: 100%;
-  background-color: #8bc34a;
+  background-color: #A5D6A7; /* Lighter accent color */
   transform: scaleY(0);
   transition: transform 0.3s ease;
 }
 
 .sidebar-nav a:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.15); /* Slightly more visible hover state */
   color: #ffffff;
 }
 
@@ -104,7 +105,7 @@
 }
 
 .sidebar-nav a.active-link {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.2); /* More visible active state */
   color: #ffffff;
   font-weight: 600;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
@@ -117,14 +118,14 @@
 /* Icons styling */
 .menu-icon {
   margin-right: 12px;
-  color: #66BB6A;
+  color: #A5D6A7; /* Lighter icon color for better contrast */
   font-size: 1.2rem;
   transition: all 0.3s ease;
 }
 
 .sidebar-nav li a:hover .menu-icon,
 .sidebar-nav li a.active-link .menu-icon {
-  color: #81C784;
+  color: #ffffff; /* White icon on hover/active for better visibility */
   transform: scale(1.2);
 }
 
@@ -134,7 +135,7 @@
 }
 
 .sidebar-nav a.active-link::after {
-  box-shadow: 0 0 8px #66BB6A;
+  box-shadow: 0 0 8px #A5D6A7;
 }
 
 /* Responsive adjustments */
@@ -146,9 +147,9 @@
 
 /* Add smooth animations for state changes */
 @keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(102, 187, 106, 0.5); }
-  50% { box-shadow: 0 0 20px rgba(102, 187, 106, 0.8); }
-  100% { box-shadow: 0 0 5px rgba(102, 187, 106, 0.5); }
+  0% { box-shadow: 0 0 5px rgba(165, 214, 167, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(165, 214, 167, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(165, 214, 167, 0.5); }
 }
 
 .sidebar-nav a.active-link:hover {
