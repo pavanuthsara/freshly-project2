@@ -1,10 +1,10 @@
-import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, Truck, CheckSquare, ClipboardList, Bell } from "lucide-react"
+import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, Truck, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react"
 import { useContext, createContext, useState } from "react"
 import { NavLink } from "react-router-dom"
 
 const SidebarContext = createContext()
 
-export default function Sidebar({ children }) {
+export default function Sidebar({ children, onLogout }) {
   const [expanded, setExpanded] = useState(true)
 
   const sidebarItems = [
@@ -13,12 +13,11 @@ export default function Sidebar({ children }) {
     { icon: <CheckSquare />, text: "Accepted Requests", path: "/drivers/accepted-requests" },
     { icon: <User />, text: "Profile", path: "/drivers/profile" },
     { icon: <Bell />, text: "Notifications", path: "/drivers/notifications", alert: true },
+    { icon: <LogOut />, text: "Logout", path: "#logout" }, // Added logout item
   ];
   
   return (
-    
     <aside className="flex h-screen">
-      
       <nav className="h-full flex flex-col bg-black border-r shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
           {expanded && (
@@ -34,11 +33,10 @@ export default function Sidebar({ children }) {
             className="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white"
           >
             {expanded ? <ChevronFirst /> : <ChevronLast />}
-            
           </button>
         </div>
 
-        <SidebarContext.Provider value={{ expanded }}>
+        <SidebarContext.Provider value={{ expanded, onLogout }}>
           <ul className="flex-1 px-3">
             {sidebarItems.map((item, index) => (
               <SidebarItem 
@@ -79,50 +77,91 @@ export default function Sidebar({ children }) {
 }
 
 export function SidebarItem({ icon, text, path, alert }) {
-  const { expanded } = useContext(SidebarContext)
-  
-  return (
-    <NavLink
-      to={path}
-      className={({ isActive }) => `
-        relative flex items-center py-2 px-3 my-1
-        font-medium rounded-md cursor-pointer
-        transition-colors group
-        ${
-          isActive
-            ? "bg-green-400 text-white"
-            : "hover:bg-green-400 text-white"
-        }
-      `}
-    >
-      {icon}
-      <span
-        className={`overflow-hidden transition-all ${
-          expanded ? "w-52 ml-3" : "w-0"
-        }`}
-      >
-        {text}
-      </span>
-      {alert && (
-        <div
-          className={`absolute right-2 w-2 h-2 rounded bg-green-500 ${
-            expanded ? "" : "top-2"
-          }`}
-        />
-      )}
+  const { expanded, onLogout } = useContext(SidebarContext)
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
 
-      {!expanded && (
-        <div
-          className={`
-          absolute left-full rounded-md px-2 py-1 ml-6
-          bg-green-500 text-white text-sm
-          invisible opacity-20 -translate-x-3 transition-all
-          group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-      `}
+  const handleClick = (e) => {
+    if (path === "#logout") {
+      e.preventDefault();
+      setIsLogoutDialogOpen(true);
+    }
+  }
+
+  const confirmLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+    setIsLogoutDialogOpen(false);
+  }
+
+  return (
+    <>
+      <NavLink
+        to={path}
+        onClick={handleClick}
+        className={({ isActive }) => `
+          relative flex items-center py-2 px-3 my-1
+          font-medium rounded-md cursor-pointer
+          transition-colors group
+          ${
+            isActive
+              ? "bg-green-400 text-white"
+              : "hover:bg-green-400 text-white"
+          }
+        `}
+      >
+        {icon}
+        <span
+          className={`overflow-hidden transition-all ${
+            expanded ? "w-52 ml-3" : "w-0"
+          }`}
         >
           {text}
+        </span>
+        {alert && (
+          <div
+            className={`absolute right-2 w-2 h-2 rounded bg-green-500 ${
+              expanded ? "" : "top-2"
+            }`}
+          />
+        )}
+
+        {!expanded && (
+          <div
+            className={`
+            absolute left-full rounded-md px-2 py-1 ml-6
+            bg-green-500 text-white text-sm
+            invisible opacity-20 -translate-x-3 transition-all
+            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+        `}
+          >
+            {text}
+          </div>
+        )}
+      </NavLink>
+
+      {isLogoutDialogOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Are you sure you want to logout?</h2>
+            <p className="mb-6 text-gray-600">You will be redirected to the login page.</p>
+            <div className="flex justify-end space-x-2">
+              <button 
+                onClick={() => setIsLogoutDialogOpen(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmLogout}
+                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </NavLink>
+    </>
   )
 }
