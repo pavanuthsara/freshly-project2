@@ -30,7 +30,6 @@ const Login = ({ onLoginSuccess }) => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Login Successful!');
         if (onLoginSuccess) {
           onLoginSuccess(data);
         }

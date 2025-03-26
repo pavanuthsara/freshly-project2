@@ -242,13 +242,100 @@ const ProductSection = ({ farmerData }) => {
 
 const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState(initialData);
+  const [errors, setErrors] = useState({});
+
+  // Validation functions
+  const validateName = (name) => {
+    // Allow only letters, numbers, spaces, and specific allowed characters
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    return nameRegex.test(name);
+  };
+
+  const validateDescription = (description) => {
+    // Allow letters, numbers, spaces, and limited punctuation
+    const descriptionRegex = /^[a-zA-Z0-9\s.,!?()-]+$/;
+    return descriptionRegex.test(description);
+  };
+
+  const handleNameChange = (e) => {
+    const newName = e.target.value;
+    
+    // Clear previous name error if validation passes
+    if (validateName(newName) || newName === '') {
+      const newErrors = { ...errors };
+      delete newErrors.name;
+      setErrors(newErrors);
+    } else {
+      // Set error for invalid characters
+      setErrors(prev => ({
+        ...prev, 
+        name: 'Name can only contain letters and spaces'
+      }));
+    }
+
+    // Update form data
+    setFormData({...formData, name: newName});
+  };
+
+  const handleDescriptionChange = (e) => {
+    const newDescription = e.target.value;
+    
+    // Clear previous description error if validation passes
+    if (validateDescription(newDescription) || newDescription === '') {
+      const newErrors = { ...errors };
+      delete newErrors.description;
+      setErrors(newErrors);
+    } else {
+      // Set error for invalid characters
+      setErrors(prev => ({
+        ...prev, 
+        description: 'Description can only contain letters, numbers, spaces, and basic punctuation'
+      }));
+    }
+
+    // Update form data
+    setFormData({...formData, description: newDescription});
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.category || formData.price <= 0 || formData.quantity <= 0) {
-      alert("Please fill all fields with valid values!");
+    
+    // Validate all fields before submission
+    const validationErrors = {};
+
+    // Name validation
+    if (!formData.name) {
+      validationErrors.name = 'Product name is required';
+    } else if (!validateName(formData.name)) {
+      validationErrors.name = 'Name can only contain letters, numbers, spaces, apostrophes, periods, and hyphens';
+    }
+
+    // Description validation (if provided)
+    if (formData.description && !validateDescription(formData.description)) {
+      validationErrors.description = 'Description can only contain letters, numbers, spaces, and basic punctuation';
+    }
+
+    // Price and quantity validations
+    if (!formData.category) {
+      validationErrors.category = 'Category is required';
+    }
+
+    if (formData.price <= 0) {
+      validationErrors.price = 'Price must be greater than zero';
+    }
+
+    if (formData.quantity <= 0) {
+      validationErrors.quantity = 'Quantity must be greater than zero';
+    }
+
+    // If there are validation errors, set them and prevent submission
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
+
+    // Clear any previous errors and submit
+    setErrors({});
     onSubmit(formData);
   };
 
@@ -259,30 +346,48 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
         <input 
           type="text"
           value={formData.name}
-          onChange={(e) => setFormData({...formData, name: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onChange={handleNameChange}
+          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
+            ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
           required 
         />
+        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
+      
       <div>
         <label className="block text-green-700 mb-2">Description</label>
         <textarea 
           value={formData.description || ''}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onChange={handleDescriptionChange}
+          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
+            ${errors.description ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
           rows="3"
         />
+        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
+
+      {/* Rest of the form remains the same, with added error handling for other fields */}
       <div>
         <label className="block text-green-700 mb-2">Category</label>
         <input 
           type="text"
           value={formData.category}
-          onChange={(e) => setFormData({...formData, category: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onChange={(e) => {
+            setFormData({...formData, category: e.target.value});
+            // Clear category error if a value is entered
+            if (e.target.value) {
+              const newErrors = { ...errors };
+              delete newErrors.category;
+              setErrors(newErrors);
+            }
+          }}
+          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
+            ${errors.category ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
           required 
         />
+        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
       </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-green-700 mb-2">Price (LKR)</label>
@@ -291,10 +396,21 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
             step="0.01"
             min="0.01"
             value={formData.price}
-            onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={(e) => {
+              const newPrice = parseFloat(e.target.value) || 0;
+              setFormData({...formData, price: newPrice});
+              // Clear price error if valid
+              if (newPrice > 0) {
+                const newErrors = { ...errors };
+                delete newErrors.price;
+                setErrors(newErrors);
+              }
+            }}
+            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
+              ${errors.price ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
             required 
           />
+          {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
         <div>
           <label className="block text-green-700 mb-2">Quantity (kg)</label>
@@ -302,12 +418,24 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
             type="number" 
             min="1"
             value={formData.quantity}
-            onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            onChange={(e) => {
+              const newQuantity = parseInt(e.target.value) || 0;
+              setFormData({...formData, quantity: newQuantity});
+              // Clear quantity error if valid
+              if (newQuantity > 0) {
+                const newErrors = { ...errors };
+                delete newErrors.quantity;
+                setErrors(newErrors);
+              }
+            }}
+            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
+              ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
             required 
           />
+          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
         </div>
       </div>
+
       <div>
         <label className="block text-green-700 mb-2">Certification</label>
         <select 
@@ -319,6 +447,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
           <option value="GAP">GAP</option>
         </select>
       </div>
+      
       <div>
         <label className="block text-green-700 mb-2">Image URL (Optional)</label>
         <input 
@@ -328,6 +457,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
           className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
         />
       </div>
+      
       <div className="flex space-x-4">
         <button 
           type="submit" 
