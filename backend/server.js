@@ -12,19 +12,25 @@ import { fileURLToPath } from 'url';
 import farmerAnalyticsRoutes from './routes/farmerAnalytics.route.js';
 import farmerRoutes from './routes/farmer.routes.js';
 import cors from 'cors';
+import deliveryRequestRoutes from './routes/deliveryRequest.route.js';
+import driverRoutes from './routes/driver.route.js';
 
 // Load environment variables
 dotenv.config();
-import deliveryRequestRoutes from './routes/deliveryRequest.route.js';
-import driverRoutes from './routes/driver.route.js';
 
 const app = express();
 
 // Middleware to parse JSON and cookies
 app.use(express.json());
-
-
 app.use(cookieParser());
+
+// Enhanced CORS configuration
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Connect to MongoDB
 mongoose
@@ -38,19 +44,14 @@ mongoose
     process.exit(1);
   });
 
-  app.use(cors({
-    origin: true, // or specify your frontend URL
-    credentials: true // this is crucial for cookies
-  }));
-
-// Routes
+// API Routes
 app.use('/api/buyers', buyerRoutes);
-app.use('/api/products', productRoutes);
+app.use('/api/products', productRoutes); // Public product routes
+app.use('/api/farmer/products', productRoutes); // Farmer-specific product routes
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/farmer', farmerAnalyticsRoutes);
-app.use('/api/farmers',farmerRoutes)
-
+app.use('/api/farmer/analytics', farmerAnalyticsRoutes);
+app.use('/api/farmers', farmerRoutes);
 app.use('/api/deliveryrequest', deliveryRequestRoutes);
 app.use('/api/drivers', driverRoutes);
 

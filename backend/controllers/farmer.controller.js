@@ -1,6 +1,7 @@
 import Farmer from '../models/farmer.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 // @desc     Register a farmer
 // @method   POST
@@ -145,8 +146,6 @@ const getAllFarmers = async (req, res, next) => {
   }
 };
 
-import mongoose from 'mongoose';
-
 const deleteFarmer = async (req, res, next) => {
   try {
     const farmerId = req.params.id;
@@ -185,4 +184,80 @@ const deleteFarmer = async (req, res, next) => {
   }
 };
 
-export { registerFarmer, loginFarmer, getAllFarmers , deleteFarmer };
+// @desc     Get farmer profile
+// @method   GET
+// @endpoint /api/farmers/profile
+// @access   Private
+const getFarmerProfile = async (req, res, next) => {
+  try {
+    // req.farmer is set by the farmerProtect middleware
+    const farmer = await Farmer.findById(req.farmer._id).select('-password');
+
+    if (!farmer) {
+      res.statusCode = 404;
+      throw new Error('Farmer not found.');
+    }
+
+    res.status(200).json({
+      success: true,
+      farmer,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc     Update farmer profile
+// @method   PUT
+// @endpoint /api/farmers/profile
+// @access   Private
+const updateFarmerProfile = async (req, res, next) => {
+  try {
+    const { name, phone, farmAddress } = req.body;
+
+    // Find the farmer
+    const farmer = await Farmer.findById(req.farmer._id);
+
+    if (!farmer) {
+      res.statusCode = 404;
+      throw new Error('Farmer not found.');
+    }
+
+    // Update fields
+    farmer.name = name || farmer.name;
+    farmer.phone = phone || farmer.phone;
+    
+    // Update farm address if provided
+    if (farmAddress) {
+      farmer.farmAddress.streetNo = farmAddress.streetNo || farmer.farmAddress.streetNo;
+      farmer.farmAddress.city = farmAddress.city || farmer.farmAddress.city;
+      farmer.farmAddress.district = farmAddress.district || farmer.farmAddress.district;
+    }
+
+    // Save updated farmer
+    await farmer.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      farmer: {
+        _id: farmer._id,
+        name: farmer.name,
+        email: farmer.email,
+        phone: farmer.phone,
+        farmAddress: farmer.farmAddress
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { 
+  registerFarmer, 
+  loginFarmer, 
+  getAllFarmers, 
+  deleteFarmer,
+  getFarmerProfile,
+  updateFarmerProfile
+};

@@ -6,6 +6,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getFarmerProducts
 } from '../controllers/product.controller.js';
 import { farmerProtect } from '../middleware/farmer.middleware.js';
 
@@ -21,5 +22,7 @@ router.use(farmerProtect); // Apply farmerProtect middleware to all routes below
 router.post('/', createProduct); // Create a product
 router.put('/:id', updateProduct); // Update a product
 router.delete('/:id', deleteProduct); // Delete a product
+router.get("/", getFarmerProducts); // Requires authentication
+
 
 export default router;

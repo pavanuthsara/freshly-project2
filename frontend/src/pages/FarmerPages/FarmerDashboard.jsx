@@ -1,71 +1,83 @@
 import React, { useState } from 'react';
 import { 
-  Sprout, 
   LayoutDashboard, 
-  Users, 
-  Calendar, 
-  BarChart3, 
-  Settings, 
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight
+  Package, 
+  User, 
+  AlertOctagon, 
+  BarChart, 
+  HelpCircle, 
+  LogOut 
 } from 'lucide-react';
 
-function FarmerDashboard() {
-  const [isExpanded, setIsExpanded] = useState(true);
+// Import sections
+import ProductSection from './pages/FarmerPages/MyProduct';
+import ProfileSection from './pages/FarmerPages/MyProfile';
 
-  const menuItems = [
-    { icon: Sprout, label: 'My Products' },
-    { icon: Users, label: 'My Profile' },
-    { icon: Calendar, label: 'Complaints' },
-    { icon: BarChart3, label: 'Analytics' },,
-    { icon: HelpCircle, label: 'Help Bot' },
+const FarmerDashboard = ({ farmerData, onLogout }) => {
+  const [activeSection, setActiveSection] = useState('products');
+
+  const sidebarItems = [
+    { name: 'My Products', icon: Package, section: 'products' },
+    { name: 'My Profile', icon: User, section: 'profile' },
+    { name: 'Complaints', icon: AlertOctagon, section: 'complaints' },
+    { name: 'Analytics', icon: BarChart, section: 'analytics' },
+    { name: 'Help Bot', icon: HelpCircle, section: 'help' }
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div 
-        className={`w-64 bg-green-800 min-h-screen p-4 transition-all duration-300 ease-in-out relative`}
-      >
-        {/* Logo Section */}
-        <div className="flex items-center mb-8">
-          <Sprout className="h-8 w-8 text-green-100" />
-          {isExpanded && (
-            <span className="text-green-100 text-xl font-bold ml-3">
-              Freshly.lk
-            </span>
-          )}
-        </div>
-
-        {/* Navigation Items */}
+    <div className="flex h-screen bg-green-50">
+      {/* Sidebar Navigation */}
+      <div className="w-64 bg-green-600 text-white p-4">
+        <div className="text-2xl font-bold mb-8">Freshly.lk</div>
         <nav className="space-y-2">
-          {menuItems.map((item, index) => (
-            <a
-              key={index}
-              href="#"
-              className={`
-                flex items-center px-3 py-3 rounded-lg
-                text-green-100 hover:bg-green-700 transition-colors
-                ${index === 0 ? 'bg-green-700' : ''}
-              `}
+          {sidebarItems.map(({ name, icon: Icon, section }) => (
+            <button
+              key={section}
+              onClick={() => setActiveSection(section)}
+              className={`w-full flex items-center p-2 rounded ${
+                activeSection === section 
+                  ? 'bg-green-700' 
+                  : 'hover:bg-green-500'
+              }`}
             >
-              <item.icon className="h-6 w-6" />
-              {isExpanded && (
-                <span className="ml-3 font-medium">{item.label}</span>
-              )}
-            </a>
+              <Icon className="mr-2" size={20} />
+              {name}
+            </button>
           ))}
+          <button
+            onClick={onLogout}
+            className="w-full flex items-center p-2 rounded hover:bg-green-500 mt-4"
+          >
+            <LogOut className="mr-2" size={20} />
+            Logout
+          </button>
         </nav>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        <h1 className="text-2xl font-semibold text-gray-800">Welcome to Freshly.lk farmer's dashboard</h1>
-        <p className="text-gray-600 mt-2">Select an option from the navigation menu to get started.</p>
+      {/* Main Content Area */}
+      <div className="flex-1 p-8 overflow-y-auto">
+        {activeSection === 'products' && (
+          <ProductSection farmerData={farmerData} />
+        )}
+
+        {activeSection === 'profile' && (
+          <ProfileSection farmerData={farmerData} />
+        )}
+
+        {activeSection === 'complaints' && (
+          <div className="text-3xl font-bold text-green-800">Complaints Section</div>
+        )}
+
+        {activeSection === 'analytics' && (
+          <div className="text-3xl font-bold text-green-800">Analytics Section</div>
+        )}
+
+        {activeSection === 'help' && (
+          <div className="text-3xl font-bold text-green-800">Help Bot Section</div>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default FarmerDashboard;

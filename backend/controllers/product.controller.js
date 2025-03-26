@@ -120,7 +120,7 @@ const updateProduct = async (req, res, next) => {
     }
 
     // Check if the product belongs to the authenticated farmer
-    if (product.farmer.toString() !== req.farmer._id.toString()) {
+    if (product.farmer.id.toString() !== req.farmer._id.toString()) {
       res.statusCode = 403;
       throw new Error('Not authorized to update this product.');
     }
@@ -162,7 +162,7 @@ const deleteProduct = async (req, res, next) => {
     }
 
     // Check if the product belongs to the authenticated farmer
-    if (product.farmer.toString() !== req.farmer._id.toString()) {
+    if (product.farmer.id.toString() !== req.farmer._id.toString()) {
       res.statusCode = 403;
       throw new Error('Not authorized to delete this product.');
     }
@@ -176,11 +176,61 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+// @desc     Fetch Farmer's Products
+// @method   GET
+// @endpoint /api/products/farmer/products?limit=2&skip=0
+// @access   Private (Farmer only)
+const getFarmerProducts = async (req, res, next) => {
+  try {
+    // Ensure we have the farmer from middleware
+    if (!req.farmer.id || !req.farmer._id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const farmerId = req.farmer._id;
+    
+    // Build query object
+    const query = { 
+      'farmer.id': farmerId // This must match your schema
+    };
+
+    // Add search filter if provided
+    if (req.query.search) {
+      query.name = { $regex: req.query.search, $options: 'i' };
+    }
+
+    // Count total products for this farmer
+    const total = await Product.countDocuments(query);
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get products
+    const products = await Product.find(query)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: products
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getProducts,
   getProductsByCategory,
   getProduct,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getFarmerProducts
 };
