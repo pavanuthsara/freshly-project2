@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Clock,
   Package,
+  Filter
 } from 'lucide-react';
 
 
@@ -22,12 +23,19 @@ import {
 //-----------
 const DeliveryRequests = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [originalRequests, setOriginalRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const [driverVehicleCapacity, setDriverVehicleCapacity] = useState(null);
   const [currentTotalWeight, setCurrentTotalWeight] = useState(0);
   
+
+  // Weight Filter States
+  const [weightFilter, setWeightFilter] = useState({
+    value: '',
+    condition: 'greaterThan'
+  });
 
 //fetching Capacity
 useEffect(() => {
@@ -72,7 +80,9 @@ useEffect(() => {
           : (response.data.data || []);
 
         setPendingRequests(requestsData);
+        setOriginalRequests(requestsData);
         setLoading(false);
+
       } catch (error) {
         console.error('Failed to fetch pending requests', error);
         
@@ -91,6 +101,40 @@ useEffect(() => {
     fetchPendingRequests();
   }, []);
 
+
+
+
+
+    // Weight Filtering Function
+    const applyWeightFilter = () => {
+      if (!weightFilter.value) {
+        // If no filter value, reset to original requests
+        setPendingRequests(originalRequests);
+        return;
+      }
+  
+      const filteredRequests = originalRequests.filter(request => {
+        const filterValue = parseFloat(weightFilter.value);
+        
+        if (isNaN(filterValue)) {
+          toast.error('Please enter a valid weight');
+          return true; // Show all requests if invalid input
+        }
+  
+        switch(weightFilter.condition) {
+          case 'greaterThan':
+            return request.weight > filterValue;
+          case 'lessThan':
+            return request.weight < filterValue;
+          case 'equalTo':
+            return request.weight === filterValue;
+          default:
+            return true;
+        }
+      });
+  
+      setPendingRequests(filteredRequests);
+    };
 
 
 
@@ -190,6 +234,70 @@ useEffect(() => {
         <h1 className="text-3xl font-bold mb-6 text-green-700 flex items-center">
           <Truck className="mr-3" /> Delivery Requests
         </h1>
+
+
+
+         {/* Weight Filter Section */}
+         <div className="mb-6 bg-white shadow-md rounded-lg p-4 flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Filter className="text-green-500" />
+            <label htmlFor="weightFilter" className="font-semibold text-gray-700">
+              Filter by Weight
+            </label>
+          </div>
+          
+          <select 
+            value={weightFilter.condition}
+            onChange={(e) => setWeightFilter(prev => ({
+              ...prev, 
+              condition: e.target.value
+            }))}
+            className="border rounded px-2 py-1"
+          >
+            <option value="greaterThan">Greater Than</option>
+            <option value="lessThan">Less Than</option>
+            <option value="equalTo">Equal To</option>
+          </select>
+          
+          <input 
+            type="number" 
+            placeholder="Enter weight (kg)"
+            value={weightFilter.value}
+            onChange={(e) => setWeightFilter(prev => ({
+              ...prev, 
+              value: e.target.value
+            }))}
+            className="border rounded px-2 py-1 w-32"
+          />
+          
+          <button 
+            onClick={applyWeightFilter}
+            className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
+          >
+            Apply Filter
+          </button>
+
+
+            {/*reset button */}
+          <button 
+            onClick={() => {
+            // Reset filter values
+            setWeightFilter({
+               value: '',
+               condition: 'greaterThan'
+            });
+            // Restore original requests
+            setPendingRequests(originalRequests);
+             }}
+             className="bg-gray-500 text-white px-4 py-1 rounded hover:bg-gray-600"
+             >
+             Reset
+            </button>
+
+        </div>
+
+
+
 
         {pendingRequests.length === 0 ? (
           <div className="bg-white shadow-md rounded-lg p-8 text-center">
