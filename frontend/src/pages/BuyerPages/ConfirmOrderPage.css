@@ -221,3 +221,19 @@
       margin-top: 0.5rem;
     }
   }
+
+  .pdf-btn {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .pdf-btn:hover {
+    background-color: #2980b9;
+  }
+  
