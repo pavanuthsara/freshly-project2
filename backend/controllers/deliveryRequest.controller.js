@@ -38,7 +38,7 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Delivery request not found" });
     }
   
-    // Calculate total weight of accepted requests
+    // all accepted req for driver
     const acceptedRequests = await AcceptedDeliveryRequest.find({
       driver: driverId,  // Ensure this matches how you set the driver
       status: 'accepted'
@@ -46,19 +46,23 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
   
     const currentTotalWeight = acceptedRequests.reduce((total, request) => total + request.weight, 0);
   
+    // Check if TOTAL weight (including new request) exceeds vehicle capacity
+    const proposedTotalWeight = currentTotalWeight + deliveryRequest.weight;
+
     // Check if adding this request exceeds vehicle capacity
-    if (currentTotalWeight + deliveryRequest.weight > driver.vehicleCapacity) {
+    if (proposedTotalWeight > driver.vehicleCapacity) {
       return res.status(400).json({ 
         message: 'Adding this request would exceed vehicle capacity',
         currentTotalWeight,
-        requestWeight: deliveryRequest.weight,
+        newRequestWeight: deliveryRequest.weight,
+        proposedTotalWeight,
         vehicleCapacity: driver.vehicleCapacity
       });
     }
   
     // Update the delivery request with driver information
     deliveryRequest.driver = driverId;  // Add this line to set the driver
-    deliveryRequest.status = 'ACCEPTED';
+    deliveryRequest.status = 'accepted';
     await deliveryRequest.save();
   
     // Create an accepted request

@@ -91,27 +91,18 @@ useEffect(() => {
   
 
   const handleAcceptRequest = async (deliveryId) => {
-
     // Find the request based on deliveryId
-  const request = pendingRequests.find(req => req.deliveryId === deliveryId);
-  
-  if (!request) {
-    toast.error("Request not found.");
-    return;
-  }
-    // Compare request weight with vehicle capacity
-    const totalWeightAfterAccepting = currentTotalWeight + request.weight;
+    const request = pendingRequests.find(req => req.deliveryId === deliveryId);
     
-    if (totalWeightAfterAccepting > driverVehicleCapacity) {
-      toast.error(`Cannot accept this request. Total weight (${totalWeightAfterAccepting} kg) would exceed vehicle capacity (${driverVehicleCapacity} kg).`);
+    if (!request) {
+      toast.error("Request not found.");
       return;
     }
-
-
+  
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/deliveryrequest/accept', 
-        { deliveryId}, 
+        { deliveryId }, 
         {
           headers: { 
             'Authorization': `Bearer ${token}` 
@@ -119,21 +110,41 @@ useEffect(() => {
         }
       );
       
+      // Fetch updated vehicle capacity after successful acceptance
+      const capacityResponse = await axios.get('/api/deliveryrequest/vehicle-capacity', {
+        headers: { 
+          'Authorization': `Bearer ${token}` 
+        }
+      });
+  
+      // Update local state
       setPendingRequests(prevRequests => 
         prevRequests.filter(req => req.deliveryId !== deliveryId)
       );
-
-      // Update current total weight
-      setCurrentTotalWeight(prevWeight => prevWeight + request.weight);
-
-      toast.success('Accepted !', { position: "top-center" });
-
-
+  
+      // Update vehicle capacity and current total weight from backend response
+      setDriverVehicleCapacity(capacityResponse.data.vehicleCapacity);
+      setCurrentTotalWeight(capacityResponse.data.currentTotalWeight);
+  
+      toast.success('Request Accepted!', { position: "top-center" });
+  
     } catch (error) {
       console.error('Failed to accept request', error);
-      // Show error toast
-      toast.error('Failed to accept !', { position: "top-right" });
       
+      // Detailed error handling
+      if (error.response?.status === 400) {
+        const errorData = error.response.data;
+        toast.error(
+          `Cannot accept request. Total weight (${errorData.proposedTotalWeight} kg) ` +
+          `would exceed vehicle capacity (${errorData.vehicleCapacity} kg).`, 
+          { 
+            position: "top-right",
+            autoClose: 5000 // Longer toast to read full message
+          }
+        );
+      } else {
+        toast.error('Failed to accept request', { position: "top-right" });
+      }
     }
   };
 
