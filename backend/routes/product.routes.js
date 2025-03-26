@@ -13,7 +13,7 @@ import { farmerProtect } from '../middleware/farmer.middleware.js';
 const router = express.Router();
 
 // Public routes (no authentication required)
-router.get('/', getProducts); // Get all products
+//router.get('/', getProducts); // Get all products
 router.get('/category/:category', getProductsByCategory); // Get products by category
 router.get('/:id', getProduct); // Get a single product
 

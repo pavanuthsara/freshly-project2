@@ -22,7 +22,7 @@ const ProductSection = ({ farmerData }) => {
           }
         };
 
-        const response = await axios.get('/api/farmer/products/', config);
+        const response = await axios.get('/api/farmer/products', config);
         // Ensure response.data.data is an array, fallback to empty array
         setProducts(Array.isArray(response.data.data) ? response.data.data : []);
         setIsLoading(false);
