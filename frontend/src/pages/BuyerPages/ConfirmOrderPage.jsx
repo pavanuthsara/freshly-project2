@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import jsPDF from 'jspdf'; // PDF
+import html2canvas from 'html2canvas'; // PDF
 import './ConfirmOrderPage.css';
 
 const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartItems }) => {
   const navigate = useNavigate();
+  const pageRef = useRef(); // PDF
 
-  // Debug: Log props received
   useEffect(() => {
     console.log('ConfirmOrderPage received:');
     console.log('- cartItems:', cartItems);
@@ -14,7 +16,6 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     console.log('- paymentMethod:', paymentMethod);
   }, [cartItems, shippingAddress, paymentMethod]);
 
-  // Check if required data is available
   if (!shippingAddress || !paymentMethod || !cartItems.length) {
     return (
       <div className="confirm-order-page">
@@ -22,28 +23,21 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
           <h2>Missing Information</h2>
           <p>Please complete the previous steps before confirming your order.</p>
           <div className="action-buttons">
-            {!cartItems.length && (
-              <button onClick={() => navigate('/cart')}>Go to Cart</button>
-            )}
-            {!shippingAddress && (
-              <button onClick={() => navigate('/buyer/shipping')}>Go to Shipping</button>
-            )}
-            {!paymentMethod && (
-              <button onClick={() => navigate('/buyer/payment')}>Go to Payment</button>
-            )}
+            {!cartItems.length && <button onClick={() => navigate('/cart')}>Go to Cart</button>}
+            {!shippingAddress && <button onClick={() => navigate('/buyer/shipping')}>Go to Shipping</button>}
+            {!paymentMethod && <button onClick={() => navigate('/buyer/payment')}>Go to Payment</button>}
           </div>
         </div>
       </div>
     );
   }
 
-  // Calculate totals
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.qty * (item.product?.price || 0),
     0
   );
-  const taxPrice = subtotal * 0.1; // 10% tax
-  const shippingPrice = subtotal > 1000 ? 0 : 150; // Free shipping over 1000
+  const taxPrice = subtotal * 0.1;
+  const shippingPrice = subtotal > 1000 ? 0 : 150;
   const totalPrice = subtotal + taxPrice + shippingPrice;
 
   const placeOrder = async () => {
@@ -70,11 +64,8 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
 
       await axios.post('/api/orders', payload, { withCredentials: true });
       alert('✅ Order placed successfully!');
-      
-      // Clear cart and localStorage
       setCartItems([]);
       localStorage.removeItem('cartItems');
-      
       navigate('/buyer/profile');
     } catch (err) {
       console.error('Order error:', err);
@@ -82,7 +73,6 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     }
   };
 
-  // Get payment method display text
   const getPaymentMethodDisplay = () => {
     if (typeof paymentMethod === 'object') {
       if (paymentMethod.method === 'Credit Card') {
@@ -93,8 +83,35 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     return paymentMethod;
   };
 
+  // PDF: Download function
+  const downloadPDF = async () => {
+    const element = pageRef.current;
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    if (imgHeight > pageHeight) {
+      let heightLeft = imgHeight - pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+    }
+
+    pdf.save('Order_Confirmation.pdf');
+  };
+
   return (
-    <div className="confirm-order-page">
+    <div className="confirm-order-page" ref={pageRef}> {/* PDF */}
       <div className="confirm-order-container">
         <h2>Review Your Order</h2>
         
@@ -172,6 +189,9 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
           </button>
           <button className="back-btn" onClick={() => navigate('/buyer/payment')}>
             Back to Payment
+          </button>
+          <button className="pdf-btn" onClick={downloadPDF}> {/* PDF */}
+            Download PDF
           </button>
         </div>
       </div>
