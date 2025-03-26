@@ -16,7 +16,9 @@ export default function Sidebar({ children }) {
   ];
   
   return (
+    
     <aside className="flex h-screen">
+      
       <nav className="h-full flex flex-col bg-black border-r shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
           {expanded && (
@@ -32,6 +34,7 @@ export default function Sidebar({ children }) {
             className="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white"
           >
             {expanded ? <ChevronFirst /> : <ChevronLast />}
+            
           </button>
         </div>
 

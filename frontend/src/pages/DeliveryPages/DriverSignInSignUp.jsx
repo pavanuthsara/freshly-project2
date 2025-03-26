@@ -26,11 +26,93 @@ const DriverSignInSignUp = () => {
     password: ''
   });
 
+
+  // Validation Helper Functions
+  const validateName = (name) => {
+    // Only letters, spaces, and hyphens allowed
+    const nameRegex = /^[a-zA-Z\s-]+$/;
+    return nameRegex.test(name);
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    // At least 8 characters
+    // Must include: 
+    // - At least 1 lowercase letter
+    // - At least 1 uppercase letter
+    // - At least 1 number
+    // - At least 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+    return passwordRegex.test(password);
+};
+
+const validateNIC = (nic) => {
+  // Allow either:
+  // 1. Exactly 12 numbers, or
+  // 2. 9 numbers followed by an optional 'v' (case-insensitive)
+  const nicRegex = /^(\d{12}|(\d{9}[vV]?))$/;
+  return nicRegex.test(nic);
+};
+
+  const validateContactNumber = (phone) => {
+    // Validates phone number with optional country code
+    const phoneRegex = /^(\+\d{1,3}[- ]?)?\d{10}$/;
+    return phoneRegex.test(phone);
+  };
+
+  const validateVehicleNumber = (vehicleNumber) => {
+    // Allows 2-4 letters followed by 4 numbers
+    const vehicleRegex = /^[A-Z]{2,4}\d{4}$/;
+    return vehicleRegex.test(vehicleNumber);
+};
+
+
+
+
   const handleSignUpChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+
+    // Specific input sanitization
+    switch(name) {
+      case 'name':
+        // Remove any non-letter characters except spaces and hyphens
+        processedValue = value.replace(/[^a-zA-Z\s-]/g, '');
+        break;
+      case 'district':
+        // Remove any numbers or special characters
+        processedValue = value.replace(/[^a-zA-Z\s]/g, '');
+        break;
+      case 'NIC':
+          // For 9-digit NIC, allow numbers and V at the end
+          // For 12-digit NIC, only allow numbers
+          if (value.length <= 9) {
+              processedValue = value.replace(/[^0-9vV]/g, '').replace(/v/g, 'V');
+          } else {
+              processedValue = value.replace(/[^0-9]/g, '');
+          }
+          break;
+      case 'contactNumber':
+        // Only allow numbers and plus sign
+        processedValue = value.replace(/[^0-9+]/g, '');
+        break;
+      case 'vehicleNumber':
+        // Convert to uppercase for vehicle registration
+        processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        break;
+      case 'vehicleCapacity':
+        // Only allow numbers
+        processedValue = value.replace(/[^0-9]/g, '');
+        break;
+    }
+
     setSignUpData({
       ...signUpData,
-      [name]: value
+      [name]: processedValue
     });
   };
 
@@ -45,63 +127,101 @@ const DriverSignInSignUp = () => {
   const handleSignUpSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate if password and confirmPassword match
+    // Comprehensive Validation
+    if (!validateName(signUpData.name)) {
+      toast.error("Please enter a valid name (letters only).", { position: "top-right" });
+      return;
+    }
+
+    if (!validateEmail(signUpData.email)) {
+      toast.error("Please enter a valid email address.", { position: "top-right" });
+      return;
+    }
+
+    if (!validatePassword(signUpData.password)) {
+      toast.error("Password must be at least 1 character with one uppercase, one lowercase, and one number.", { position: "top-right" });
+      return;
+    }
+
     if (signUpData.password !== signUpData.confirmPassword) {
       toast.error("Passwords do not match!", { position: "top-right" });
       return;
     }
 
-    // Validate password length
-    if (signUpData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long.", { position: "top-right" });
+    if (!validateNIC(signUpData.NIC)) {
+      toast.error("Please enter a valid NIC number.", { position: "top-right" });
+      return;
+    }
+
+    if (!validateContactNumber(signUpData.contactNumber)) {
+      toast.error("Please enter a valid contact number.", { position: "top-right" });
+      return;
+    }
+
+    if (!validateVehicleNumber(signUpData.vehicleNumber)) {
+      toast.error("Please enter a valid vehicle number (e.g., ABCD3456).", { position: "top-right" });
+      return;
+    }
+
+    if (parseInt(signUpData.vehicleCapacity) < 100 || parseInt(signUpData.vehicleCapacity) > 30000) {
+      toast.error("Vehicle capacity must be between 100 and 30000.", { position: "top-right" });
       return;
     }
 
     try {
       const response = await axios.post(`${baseURL}/api/drivers/register`, signUpData);
       toast.success('Registration successful!', { position: "top-right" });
-      //
+      
       // Reset the signup form after successful registration
-    setSignUpData({
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      district: '',
-      NIC: '',
-      contactNumber: '',
-      vehicleNumber: '',
-      vehicleCapacity: ''
-    });
+      setSignUpData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        district: '',
+        NIC: '',
+        contactNumber: '',
+        vehicleNumber: '',
+        vehicleCapacity: ''
+      });
 
-    // Switch to Sign In panel
-    setIsRightPanelActive(false);
+      // Switch to Sign In panel
+      setIsRightPanelActive(false);
     } catch (error) {
       toast.error(error.response.data.message || 'Registration failed', { position: "top-right" });
-      // Handle registration error
     }
   };
 
   const handleSignInSubmit = async (e) => {
     e.preventDefault();
+
+    // Email validation for sign-in
+    if (!validateEmail(signInData.email)) {
+      toast.error("Please enter a valid email address.", { position: "top-right" });
+      return;
+    }
+
+    // Password length check for sign-in
+    if (signInData.password.length < 6) {
+      toast.error("Password must be at least 6 characters long.", { position: "top-right" });
+      return;
+    }
+
     try {
       const response = await axios.post(`${baseURL}/api/drivers/login`, signInData);
       
-      
-       // Save the token in localStorage and redirect to dashboard
-       localStorage.setItem("token", response.data.token);
+      // Save the token in localStorage and redirect to dashboard
+      localStorage.setItem("token", response.data.token);
 
-        // Set the token in cookie
+      // Set the token in cookie
       document.cookie = `jwt=${response.data.token}; path=/; max-age=86400`; // 24 hours expiry
-
 
       toast.success('Login successful!', { position: "top-right" });
 
-       navigate('/drivers/dashboard');  // Redirect to the dashboard after successful login
+      navigate('/drivers/dashboard');  // Redirect to the dashboard after successful login
 
     } catch (error) {
       toast.error(error.response.data.message || 'Login failed', { position: "top-right" });
-      // Handle login error
     }
   };
 
@@ -126,7 +246,7 @@ const DriverSignInSignUp = () => {
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="NIC" value={signUpData.NIC} onChange={handleSignUpChange} placeholder="NIC" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="contactNumber" value={signUpData.contactNumber} onChange={handleSignUpChange} placeholder="Contact Number" required />
             <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="text" name="vehicleNumber" value={signUpData.vehicleNumber} onChange={handleSignUpChange} placeholder="Vehicle Number" required />
-            <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="number" name="vehicleCapacity" value={signUpData.vehicleCapacity} onChange={handleSignUpChange} placeholder="Vehicle Capacity" required min="100" />
+            <input className="w-full p-2 mt-2 bg-gray-200 rounded" type="number" name="vehicleCapacity" value={signUpData.vehicleCapacity} onChange={handleSignUpChange} placeholder="Vehicle Capacity in KG" required min="100" />
 
             <button className="mt-4 px-6 py-2 text-white bg-green-500 rounded-full" type="submit">Sign Up</button>
           </form>
