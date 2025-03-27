@@ -6,7 +6,8 @@ import {
   AlertOctagon, 
   BarChart, 
   HelpCircle, 
-  LogOut 
+  LogOut,
+  Sprout
 } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import './App.css';
@@ -29,10 +30,13 @@ function FarmerDashboard({ farmerData, onLogout }) {
   ];
 
   return (
-    <div className="flex h-screen bg-green-50">
+    <div className="flex h-screen bg-white">
       {/* Sidebar Navigation */}
-      <div className="w-64 bg-green-600 text-white p-4">
-        <div className="text-2xl font-bold mb-8">Freshly.lk</div>
+      <div className="w-64 bg-black text-white p-4">
+      <div className="flex items-center text-2xl font-bold mb-8 space-x-2">
+      <Sprout className="text-green-400" /> 
+      <span>Freshly.lk</span>
+    </div>
         <nav className="space-y-2">
           {sidebarItems.map(({ name, icon: Icon, section }) => (
             <button
@@ -40,8 +44,8 @@ function FarmerDashboard({ farmerData, onLogout }) {
               onClick={() => setActiveSection(section)}
               className={`w-full flex items-center p-2 rounded ${
                 activeSection === section 
-                  ? 'bg-green-700' 
-                  : 'hover:bg-green-500'
+                  ? 'bg-green-500' 
+                  : 'hover:bg-green-400'
               }`}
             >
               <Icon className="mr-2" size={20} />

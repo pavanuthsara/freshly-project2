@@ -400,22 +400,14 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       {/* Category, Price, Quantity, Certification inputs */}
       <div>
         <label className="block text-green-700 mb-2">Category</label>
-        <input 
-          type="text"
+        <select 
           value={formData.category}
-          onChange={(e) => {
-            setFormData({...formData, category: e.target.value});
-            if (e.target.value) {
-              const newErrors = { ...errors };
-              delete newErrors.category;
-              setErrors(newErrors);
-            }
-          }}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
-            ${errors.category ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
-          required 
-        />
-        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+          onChange={(e) => setFormData({...formData, category: e.target.value})}
+          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="Organic">Vegetables</option>
+          <option value="GAP">Fruits</option>
+        </select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

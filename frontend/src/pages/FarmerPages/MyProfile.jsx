@@ -163,8 +163,6 @@ const ProfileSection = () => {
       </div>
     );
   };
-
-  // Rest of the component remains the same as in the original code...
   // (Loading and error handling, return statement, etc.)
 
   if (loading) {
