@@ -5,18 +5,18 @@ import './Header.css';
 
 const Header = ({ user, setUser, cartItems = [] }) => {
   const navigate = useNavigate();
-
+  
   const logoutHandler = () => {
     setUser(null); // clear user
     navigate('/login');
   };
-
+  
   return (
     <header className="header">
       <div className="logo">
         <Link to="/">Freshly.lk</Link>
       </div>
-
+      
       <div className="nav">
         <Link to="/cart" className="nav-item">
           <FaShoppingCart />
@@ -26,16 +26,15 @@ const Header = ({ user, setUser, cartItems = [] }) => {
             </span>
           )}
         </Link>
-
+        
         {user ? (
           <>
-            <span className="username">Hi, {user.name}</span>
             <button className="logout-btn" onClick={logoutHandler}>
               Logout
             </button>
           </>
         ) : (
-          <Link to="/login" className="nav-item">
+          <Link to="/login" className="login-btn">
             <FaUser style={{ marginRight: '5px' }} />
             Login
           </Link>

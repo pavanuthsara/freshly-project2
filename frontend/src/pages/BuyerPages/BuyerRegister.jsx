@@ -9,9 +9,22 @@ const BuyerRegister = () => {
     email: '',
     password: '',
   });
+
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const navigate = useNavigate();
+
+  const validateName = (name) => /^[^@!]+$/.test(name.trim()) && name.trim().length >= 3;
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+    return passwordRegex.test(password);
+  };
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -24,6 +37,24 @@ const BuyerRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateName(formData.name)) {
+      setErrorMsg('Name must be at least 3 characters and cannot contain @ or ! signs.');
+      return;
+    }
+
+    if (!validateEmail(formData.email)) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    if (!validatePassword(formData.password)) {
+      setErrorMsg(
+        'Password must be at least 8 characters, including an uppercase letter, a number, and a special character (!@#$%^&*).'
+      );
+      return;
+    }
+
     try {
       const response = await register(formData.name, formData.email, formData.password);
       setSuccessMsg(response.data.message);

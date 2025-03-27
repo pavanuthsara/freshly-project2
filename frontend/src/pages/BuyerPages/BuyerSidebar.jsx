@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FaUser, FaShoppingBag, FaHome, FaSignOutAlt } from 'react-icons/fa';
+import { FaUser, FaShoppingBag, FaHome, FaSignOutAlt, FaBook } from 'react-icons/fa';
 import './BuyerSidebar.css';
 
 const BuyerSidebar = ({ activeTab }) => {
@@ -25,6 +25,14 @@ const BuyerSidebar = ({ activeTab }) => {
               className={({ isActive }) => (isActive || activeTab === 'orders' ? 'active-link' : '')}
             >
               <FaShoppingBag className="menu-icon" /> My Orders
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/products?category=books"
+              className={({ isActive }) => (isActive ? 'active-link' : '')}
+            >
+              <FaBook className="menu-icon" /> Shop Now
             </NavLink>
           </li>
           <li>
