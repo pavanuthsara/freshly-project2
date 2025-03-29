@@ -197,7 +197,7 @@ const validateNIC = (nic) => {
 
     // Email validation for sign-in
     if (!validateEmail(signInData.email)) {
-      toast.error("Please enter a valid email address.", { position: "top-right" });
+      toast.error("Please enter a valid email address or password.", { position: "top-right" });
       return;
     }
 
