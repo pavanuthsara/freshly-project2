@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Edit, Trash2, Eye, User, ShoppingCart } from 'lucide-react';
 import ProductListing from './ProductListing';
+import ProductReportGenerator from './ProductReportGenerator';
+
 
 const ProductSection = ({ farmerData }) => {
   const [products, setProducts] = useState([]);
@@ -169,12 +171,15 @@ const ProductSection = ({ farmerData }) => {
 
             {/* Add Product Button */}
             {activeView === 'myProducts' && (
-              <button 
-                onClick={() => setIsAddProductDialogOpen(true)}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                <Plus className="mr-2" /> Add Product
-              </button>
+              <>
+                <button 
+                  onClick={() => setIsAddProductDialogOpen(true)}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  <Plus className="mr-2" /> Add Product
+                </button>
+                <ProductReportGenerator />
+              </>
             )}
           </div>
         </div>
