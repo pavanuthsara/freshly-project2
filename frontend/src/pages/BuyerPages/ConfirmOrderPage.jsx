@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import jsPDF from 'jspdf'; // PDF
-import html2canvas from 'html2canvas'; // PDF
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import './ConfirmOrderPage.css';
 
 const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartItems }) => {
   const navigate = useNavigate();
-  const pageRef = useRef(); // PDF
+  const pageRef = useRef();
 
   useEffect(() => {
     console.log('ConfirmOrderPage received:');
@@ -16,6 +16,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     console.log('- paymentMethod:', paymentMethod);
   }, [cartItems, shippingAddress, paymentMethod]);
 
+  // Prevent access if required data is missing
   if (!shippingAddress || !paymentMethod || !cartItems.length) {
     return (
       <div className="confirm-order-page">
@@ -32,10 +33,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     );
   }
 
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + item.qty * (item.product?.price || 0),
-    0
-  );
+  const subtotal = cartItems.reduce((acc, item) => acc + item.qty * (item.product?.price || 0), 0);
   const taxPrice = subtotal * 0.1;
   const shippingPrice = subtotal > 1000 ? 0 : 150;
   const totalPrice = subtotal + taxPrice + shippingPrice;
@@ -62,7 +60,29 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
 
       console.log('Placing order with payload:', payload);
 
-      await axios.post('/api/orders', payload, { withCredentials: true });
+      const { data } = await axios.post('/api/orders', payload, { withCredentials: true });
+
+      // Save order ID for payment session
+      localStorage.setItem('latestOrderId', data._id);
+
+      // ⛔ Don't clear cart yet if using Stripe
+      if (
+        typeof paymentMethod === 'object' &&
+        paymentMethod.method === 'Credit Card' &&
+        paymentMethod.provider === 'stripe'
+      ) {
+        const stripeRes = await axios.post(
+          'http://localhost:5000/api/payment/create-checkout-session',
+          { orderId: data._id },
+          { withCredentials: true }
+        );
+
+        // Redirect to Stripe Checkout
+        window.location.href = stripeRes.data.url;
+        return;
+      }
+
+      // For other methods, proceed to final confirmation page
       alert('✅ Order placed successfully!');
       setCartItems([]);
       localStorage.removeItem('cartItems');
@@ -75,35 +95,32 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
 
   const getPaymentMethodDisplay = () => {
     if (typeof paymentMethod === 'object') {
-      if (paymentMethod.method === 'Credit Card') {
-        return `${paymentMethod.method} (${paymentMethod.provider || 'Stripe'})`;
-      }
-      return paymentMethod.method;
+      return paymentMethod.method === 'Credit Card'
+        ? `${paymentMethod.method} (${paymentMethod.provider || 'Stripe'})`
+        : paymentMethod.method;
     }
     return paymentMethod;
   };
 
-  // PDF: Download function
   const downloadPDF = async () => {
     const element = pageRef.current;
     const canvas = await html2canvas(element, { scale: 2 });
     const imgData = canvas.toDataURL('image/png');
-
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
+
+    const imgWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
     let position = 0;
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    if (imgHeight > pageHeight) {
-      let heightLeft = imgHeight - pageHeight;
+
+    if (imgHeight > pdf.internal.pageSize.getHeight()) {
+      let heightLeft = imgHeight - pdf.internal.pageSize.getHeight();
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        heightLeft -= pdf.internal.pageSize.getHeight();
       }
     }
 
@@ -111,10 +128,10 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   };
 
   return (
-    <div className="confirm-order-page" ref={pageRef}> {/* PDF */}
+    <div className="confirm-order-page" ref={pageRef}>
       <div className="confirm-order-container">
         <h2>Review Your Order</h2>
-        
+
         <div className="order-sections">
           <div className="order-section">
             <h3>Shipping</h3>
@@ -126,14 +143,14 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
               </p>
             </div>
           </div>
-          
+
           <div className="order-section">
             <h3>Payment Method</h3>
             <div className="section-content">
               <p>{getPaymentMethodDisplay()}</p>
             </div>
           </div>
-          
+
           <div className="order-section">
             <h3>Order Items</h3>
             <div className="section-content">
@@ -159,7 +176,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
               </ul>
             </div>
           </div>
-          
+
           <div className="order-section">
             <h3>Order Summary</h3>
             <div className="section-content">
@@ -182,17 +199,11 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
             </div>
           </div>
         </div>
-        
+
         <div className="order-actions">
-          <button className="place-order-btn" onClick={placeOrder}>
-            Place Order
-          </button>
-          <button className="back-btn" onClick={() => navigate('/buyer/payment')}>
-            Back to Payment
-          </button>
-          <button className="pdf-btn" onClick={downloadPDF}> {/* PDF */}
-            Download PDF
-          </button>
+          <button className="place-order-btn" onClick={placeOrder}>Place Order</button>
+          <button className="back-btn" onClick={() => navigate('/buyer/shipping')}>Back to Shipping</button>
+          <button className="pdf-btn" onClick={downloadPDF}>Download PDF</button>
         </div>
       </div>
     </div>

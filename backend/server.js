@@ -1,3 +1,5 @@
+// backend/server.js
+
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -5,54 +7,73 @@ import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import Stripe from 'stripe';
 
 import buyerRoutes from './routes/Buyer.routes.js';
 import productRoutes from './routes/product.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
-import cartRoutes from './routes/cart.routes.js'; // ✅ NEW
+import cartRoutes from './routes/cart.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
+import { stripeWebhook } from './controllers/stripeWebhookController.js';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
+// Get __dirname for ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, './.env') });
+console.log('✅ Loaded STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'Yes (key found)' : 'No (key missing)');
 
 const app = express();
 
-// Enable CORS for requests from your frontend
+// Stripe webhook MUST come before express.json()
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
+
+// Test endpoint to verify Stripe connection
+app.get('/api/payment/test', async (req, res) => {
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2022-11-15',
+    });
+    await stripe.paymentMethods.list({ limit: 3 });
+    res.json({ success: true, message: 'Stripe connection working' });
+  } catch (error) {
+    console.error('Stripe test error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Standard middlewares
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Allow this origin
-    credentials: true, // Allow cookies to be sent
+    origin: 'http://localhost:5173', // Allow frontend
+    credentials: true,
   })
 );
-
-// Middleware to parse JSON and cookies
-app.use(express.json());
+app.use(express.json()); // Body parser (after webhook)
 app.use(cookieParser());
 
-// Connect to MongoDB
+// MongoDB Connection
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err.message);
     process.exit(1);
   });
 
-// API Routes
+// Routes
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/cart', cartRoutes); // ✅ NEW: Cart route
+app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
 
-// Serve uploads folder statically
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Serve uploads
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Health check
@@ -60,7 +81,7 @@ app.get('/', (req, res) => {
   res.send('🚀 API is running...');
 });
 
-// Error handling middleware
+// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 

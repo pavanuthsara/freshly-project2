@@ -1,10 +1,28 @@
 import React, { useEffect, useState } from 'react'; 
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; 
 import axios from 'axios'; 
-import { Edit, User, Mail, Phone, MapPin, Camera, Loader2 } from 'lucide-react';
+import { Edit, User, Mail, Phone, MapPin, Camera, Loader2, CheckCircle } from 'lucide-react';
 import BuyerSidebar from './BuyerSidebar'; 
 import BuyerOrders from './BuyerOrders';
 import './BuyerProfile.css'; 
+
+// Success notification component for payment success
+const SuccessNotification = ({ orderId, onClose }) => {
+  return (
+    <div className="success-notification">
+      <div className="success-icon">
+        <CheckCircle size={24} color="#10b981" />
+      </div>
+      <div className="success-content">
+        <h4>Payment Successful!</h4>
+        <p>Your order #{orderId} has been placed and is being processed.</p>
+      </div>
+      <button className="close-notification" onClick={onClose} aria-label="Close notification">
+        &times;
+      </button>
+    </div>
+  );
+};
 
 const ProfileInfo = ({ user, errorMsg, onEditProfile }) => { 
   if (errorMsg) {
@@ -351,7 +369,14 @@ const BuyerProfile = () => {
   const [errorMsg, setErrorMsg] = useState(''); 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const location = useLocation(); 
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [successOrderId, setSuccessOrderId] = useState(null);
+  const location = useLocation();
+  
+  // Parse query parameters
+  const queryParams = new URLSearchParams(location.search);
+  const paymentSuccess = queryParams.get('success');
+  const orderId = queryParams.get('orderId');
  
   useEffect(() => { 
     const fetchProfile = async () => { 
@@ -373,7 +398,23 @@ const BuyerProfile = () => {
     fetchProfile(); 
   }, []); 
  
-  // Removed the handleLogout function since the logout button is being removed
+  // Check for payment success parameters
+  useEffect(() => {
+    if (paymentSuccess === 'true' && orderId) {
+      setShowPaymentSuccess(true);
+      setSuccessOrderId(orderId);
+      
+      // Clear the URL params after showing notification
+      window.history.replaceState({}, document.title, '/buyer/profile');
+      
+      // Auto-hide notification after 8 seconds
+      const timer = setTimeout(() => {
+        setShowPaymentSuccess(false);
+      }, 8000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [paymentSuccess, orderId]);
 
   const getActiveTab = () => { 
     if (!location || !location.pathname) return 'profile';
@@ -384,13 +425,20 @@ const BuyerProfile = () => {
   return ( 
     <div className="buyer-profile-container"> 
       <BuyerSidebar activeTab={getActiveTab()} /> 
+      
+      {/* Payment Success Notification */}
+      {showPaymentSuccess && (
+        <SuccessNotification 
+          orderId={successOrderId} 
+          onClose={() => setShowPaymentSuccess(false)} 
+        />
+      )}
        
       <div className="profile-content"> 
         <div className="profile-top-bar">
           <h1 className="welcome-heading">
             {user ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'}
           </h1>
-          {/* Logout button removed from here */}
         </div>
 
         <Routes> 

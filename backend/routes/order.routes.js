@@ -1,4 +1,3 @@
-// backend/routes/order.routes.js
 import express from 'express';
 import { protect } from '../middleware/authMiddleware.js';
 import {
@@ -15,6 +14,7 @@ import { param, check, body } from 'express-validator';
 
 const router = express.Router();
 
+// ✅ Cleaned up validators with clearer string checks
 const validator = {
   getOrderById: [
     param('id')
@@ -65,9 +65,14 @@ const validator = {
     check('shippingAddress.country')
       .notEmpty()
       .withMessage('Country is required'),
+
+    // ✅ Ensure paymentMethod is a string
     check('paymentMethod')
       .notEmpty()
-      .withMessage('Payment method is required'),
+      .withMessage('Payment method is required')
+      .isString()
+      .withMessage('Payment method must be a string'),
+
     check('itemsPrice')
       .notEmpty()
       .withMessage('Items price is required')
@@ -91,7 +96,7 @@ const validator = {
   ]
 };
 
-// Routes
+// ✅ Routes
 router
   .route('/')
   .post(validator.addOrderItems, validateRequest, protect, addOrderItems)
