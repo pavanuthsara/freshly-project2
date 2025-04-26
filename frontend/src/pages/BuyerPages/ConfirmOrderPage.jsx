@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import './ConfirmOrderPage.css';
+// Removed CSS import
 
 const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartItems }) => {
   const navigate = useNavigate();
@@ -19,14 +19,35 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   // Prevent access if required data is missing
   if (!shippingAddress || !paymentMethod || !cartItems.length) {
     return (
-      <div className="confirm-order-page">
-        <div className="error-container">
-          <h2>Missing Information</h2>
-          <p>Please complete the previous steps before confirming your order.</p>
-          <div className="action-buttons">
-            {!cartItems.length && <button onClick={() => navigate('/cart')}>Go to Cart</button>}
-            {!shippingAddress && <button onClick={() => navigate('/buyer/shipping')}>Go to Shipping</button>}
-            {!paymentMethod && <button onClick={() => navigate('/buyer/payment')}>Go to Payment</button>}
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
+        <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold text-red-700 mb-4">Missing Information</h2>
+          <p className="text-red-600 mb-6">Please complete the previous steps before confirming your order.</p>
+          <div className="flex flex-wrap gap-3">
+            {!cartItems.length && 
+              <button 
+                onClick={() => navigate('/cart')}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+              >
+                Go to Cart
+              </button>
+            }
+            {!shippingAddress && 
+              <button 
+                onClick={() => navigate('/buyer/shipping')}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+              >
+                Go to Shipping
+              </button>
+            }
+            {!paymentMethod && 
+              <button 
+                onClick={() => navigate('/buyer/payment')}
+                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+              >
+                Go to Payment
+              </button>
+            }
           </div>
         </div>
       </div>
@@ -128,15 +149,16 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   };
 
   return (
-    <div className="confirm-order-page" ref={pageRef}>
-      <div className="confirm-order-container">
-        <h2>Review Your Order</h2>
+    <div className="container mx-auto px-4 py-8 max-w-3xl" ref={pageRef}>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Review Your Order</h2>
 
-        <div className="order-sections">
-          <div className="order-section">
-            <h3>Shipping</h3>
-            <div className="section-content">
-              <p className="address">
+        <div className="space-y-6">
+          {/* Shipping Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h3 className="text-lg font-medium text-gray-700 mb-3">Shipping</h3>
+            <div className="text-gray-600">
+              <p>
                 {shippingAddress.address}, <br />
                 {shippingAddress.city}, {shippingAddress.postalCode}, <br />
                 {shippingAddress.country}
@@ -144,31 +166,39 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
             </div>
           </div>
 
-          <div className="order-section">
-            <h3>Payment Method</h3>
-            <div className="section-content">
+          {/* Payment Method Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h3 className="text-lg font-medium text-gray-700 mb-3">Payment Method</h3>
+            <div className="text-gray-600">
               <p>{getPaymentMethodDisplay()}</p>
             </div>
           </div>
 
-          <div className="order-section">
-            <h3>Order Items</h3>
-            <div className="section-content">
-              <ul className="order-items-list">
+          {/* Order Items Section */}
+          <div className="border-b border-gray-200 pb-4">
+            <h3 className="text-lg font-medium text-gray-700 mb-3">Order Items</h3>
+            <div>
+              <ul className="divide-y divide-gray-200">
                 {cartItems.map((item) => (
-                  <li key={item.product?._id || item._id} className="order-item">
-                    <div className="item-image">
+                  <li key={item.product?._id || item._id} className="py-3 flex items-center">
+                    <div className="w-16 h-16 mr-4 flex-shrink-0">
                       {item.product?.image ? (
-                        <img src={item.product.image} alt={item.product.name} />
+                        <img 
+                          src={item.product.image} 
+                          alt={item.product.name} 
+                          className="w-full h-full object-cover rounded"
+                        />
                       ) : (
-                        <div className="placeholder-image">No Image</div>
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded text-xs text-gray-500">
+                          No Image
+                        </div>
                       )}
                     </div>
-                    <div className="item-details">
-                      <span className="item-name">{item.product?.name || 'Product'}</span>
-                      <span className="item-quantity">Qty: {item.qty}</span>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800">{item.product?.name || 'Product'}</p>
+                      <p className="text-sm text-gray-500">Qty: {item.qty}</p>
                     </div>
-                    <div className="item-price">
+                    <div className="text-right font-medium">
                       Rs. {(item.qty * (item.product?.price || 0)).toFixed(2)}
                     </div>
                   </li>
@@ -177,33 +207,55 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
             </div>
           </div>
 
-          <div className="order-section">
-            <h3>Order Summary</h3>
-            <div className="section-content">
-              <div className="summary-row">
-                <span>Items:</span>
-                <span>Rs. {subtotal.toFixed(2)}</span>
+          {/* Order Summary Section */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-700 mb-3">Order Summary</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Items:</span>
+                <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
               </div>
-              <div className="summary-row">
-                <span>Shipping:</span>
-                <span>{shippingPrice > 0 ? `Rs. ${shippingPrice.toFixed(2)}` : 'Free'}</span>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Shipping:</span>
+                <span className="font-medium">
+                  {shippingPrice > 0 ? `Rs. ${shippingPrice.toFixed(2)}` : 'Free'}
+                </span>
               </div>
-              <div className="summary-row">
-                <span>Tax:</span>
-                <span>Rs. {taxPrice.toFixed(2)}</span>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tax:</span>
+                <span className="font-medium">Rs. {taxPrice.toFixed(2)}</span>
               </div>
-              <div className="summary-row total">
-                <span>Total:</span>
-                <span>Rs. {totalPrice.toFixed(2)}</span>
+              <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                <span className="font-bold text-gray-900">Total:</span>
+                <span className="font-bold text-gray-900">Rs. {totalPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="order-actions">
-          <button className="place-order-btn" onClick={placeOrder}>Place Order</button>
-          <button className="back-btn" onClick={() => navigate('/buyer/shipping')}>Back to Shipping</button>
-          <button className="pdf-btn" onClick={downloadPDF}>Download PDF</button>
+        <div className="mt-8 space-y-3">
+          <button 
+            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition-colors font-medium"
+            onClick={placeOrder}
+          >
+            Place Order
+          </button>
+          
+          <div className="flex space-x-3">
+            <button 
+              className="flex-1 border border-gray-300 py-2 rounded hover:bg-gray-50 transition-colors text-gray-700"
+              onClick={() => navigate('/buyer/shipping')}
+            >
+              Back to Shipping
+            </button>
+            
+            <button 
+              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
+              onClick={downloadPDF}
+            >
+              Download PDF
+            </button>
+          </div>
         </div>
       </div>
     </div>

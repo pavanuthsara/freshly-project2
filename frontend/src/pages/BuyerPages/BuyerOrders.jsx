@@ -3,8 +3,7 @@ import api from '../../api';
 import { useReactToPrint } from 'react-to-print';
 import { FaSearch, FaPrint, FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-//import BuyerSidebar from './BuyerSidebar';
-import './BuyerOrderHistory.css';
+// Removed BuyerSidebar import since it's already in the parent layout
 
 const BuyerOrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -20,7 +19,13 @@ const BuyerOrderHistory = () => {
         setLoading(true);
         // Updated endpoint to match backend routing
         const res = await api.get('/orders/my-orders');
-        setOrders(res.data);
+        
+        // Sort orders by date (newest first)
+        const sortedOrders = [...res.data].sort((a, b) => 
+          new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        
+        setOrders(sortedOrders);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load orders');
@@ -53,111 +58,114 @@ const BuyerOrderHistory = () => {
     });
   };
 
-  // Get status color
-  const getStatusColor = (status) => {
+  // Get status class for Tailwind
+  const getStatusClass = (status) => {
     switch (status) {
       case 'Pending':
-        return '#f0ad4e';
+        return 'bg-yellow-500';
       case 'Processing':
-        return '#5bc0de';
+        return 'bg-blue-400';
       case 'Shipped':
-        return '#428bca';
+        return 'bg-blue-600';
       case 'Delivered':
-        return '#5cb85c';
+        return 'bg-green-500';
       case 'Cancelled':
-        return '#d9534f';
+        return 'bg-red-500';
       default:
-        return '#777';
+        return 'bg-gray-500';
     }
   };
 
   return (
-    <div className="buyer-order-history-container">
-      <div className="order-history-content">
-        <h2>My Order History</h2>
-
-        <div className="order-actions">
-          <div className="search-container">
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search by order ID, status, or date..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">My Order History</h1>
+      
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div className="relative w-full md:w-auto flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <FaSearch className="text-gray-400" />
           </div>
-
-          <button className="print-button" onClick={handlePrint}>
-            <FaPrint /> Print
-          </button>
+          <input
+            type="text"
+            placeholder="Search by status or date..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
         </div>
+        
+        <button 
+          className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-green-700 transition-colors w-full md:w-auto justify-center"
+          onClick={handlePrint}
+        >
+          <FaPrint className="mr-2" /> Print
+        </button>
+      </div>
 
-        {loading ? (
-          <div className="loading-spinner">Loading...</div>
-        ) : error ? (
-          <div className="error-message">{error}</div>
-        ) : (
-          <>
-            {filteredOrders.length === 0 ? (
-              <div className="no-orders-message">
-                {searchTerm
-                  ? 'No orders match your search.'
-                  : 'You have no orders yet.'}
-              </div>
-            ) : (
-              <div className="orders-table-container" ref={printComponentRef}>
-                <table className="orders-table">
-                  <thead>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600 mr-3"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700 rounded-md">{error}</div>
+      ) : (
+        <>
+          {filteredOrders.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center text-gray-500">
+              {searchTerm ? 'No orders match your search.' : 'You have no orders yet.'}
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" ref={printComponentRef}>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th>Order ID</th>
-                      <th>Date</th>
-                      <th>Total</th>
-                      <th>Paid</th>
-                      <th>Delivered</th>
-                      <th>Status</th>
-                      <th>Actions</th>
+                      {/* Order ID column removed as requested */}
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivered</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="bg-white divide-y divide-gray-200">
                     {filteredOrders.map((order) => (
-                      <tr key={order._id}>
-                        <td>{order._id}</td>
-                        <td>{formatDate(order.createdAt)}</td>
-                        <td>${order.totalPrice.toFixed(2)}</td>
-                        <td>
+                      <tr key={order._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(order.createdAt)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${order.totalPrice.toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {order.isPaid ? (
-                            <span className="status-indicator paid">
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                               {formatDate(order.paidAt)}
                             </span>
                           ) : (
-                            <span className="status-indicator not-paid">
-                              Not Paid
-                            </span>
+                            <span className="text-red-600 bg-red-100 px-2 py-1 rounded-full text-xs">Not Paid</span>
                           )}
                         </td>
-                        <td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {order.isDelivered ? (
-                            <span className="status-indicator delivered">
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">
                               {formatDate(order.deliveredAt)}
                             </span>
                           ) : (
-                            <span className="status-indicator not-delivered">
-                              Not Delivered
-                            </span>
+                            <span className="text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs">Not Delivered</span>
                           )}
                         </td>
-                        <td>
-                          <span
-                            className="order-status"
-                            style={{ backgroundColor: getStatusColor(order.status) }}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span 
+                            className={`${getStatusClass(order.status)} text-white px-2 py-1 rounded-full text-xs`}
                           >
                             {order.status}
                           </span>
                         </td>
-                        <td>
-                          <Link to={`/order/${order._id}`} className="view-details-button">
-                            <FaEye /> Details
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Link 
+                            to={`/order/${order._id}`} 
+                            className="text-green-600 hover:text-green-700 flex items-center"
+                          >
+                            <FaEye className="mr-1" /> Details
                           </Link>
                         </td>
                       </tr>
@@ -165,10 +173,10 @@ const BuyerOrderHistory = () => {
                   </tbody>
                 </table>
               </div>
-            )}
-          </>
-        )}
-      </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

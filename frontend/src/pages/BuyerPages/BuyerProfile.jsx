@@ -4,21 +4,26 @@ import axios from 'axios';
 import { Edit, User, Mail, Phone, MapPin, Camera, Loader2, CheckCircle } from 'lucide-react';
 import BuyerSidebar from './BuyerSidebar'; 
 import BuyerOrders from './BuyerOrders';
-import './BuyerProfile.css'; 
 
 // Success notification component for payment success
 const SuccessNotification = ({ orderId, onClose }) => {
   return (
-    <div className="success-notification">
-      <div className="success-icon">
-        <CheckCircle size={24} color="#10b981" />
+    <div className="fixed top-4 right-4 z-50 flex items-center bg-white rounded-lg shadow-lg p-4 border-l-4 border-green-500 max-w-md">
+      <div className="shrink-0 mr-3">
+        <CheckCircle size={24} className="text-green-500" />
       </div>
-      <div className="success-content">
-        <h4>Payment Successful!</h4>
-        <p>Your order #{orderId} has been placed and is being processed.</p>
+      <div className="flex-1 mr-2">
+        <h4 className="font-medium text-gray-900">Payment Successful!</h4>
+        <p className="text-sm text-gray-600">Your order #{orderId} has been placed and is being processed.</p>
       </div>
-      <button className="close-notification" onClick={onClose} aria-label="Close notification">
-        &times;
+      <button 
+        className="text-gray-400 hover:text-gray-600 transition-colors" 
+        onClick={onClose} 
+        aria-label="Close notification"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+        </svg>
       </button>
     </div>
   );
@@ -27,11 +32,14 @@ const SuccessNotification = ({ orderId, onClose }) => {
 const ProfileInfo = ({ user, errorMsg, onEditProfile }) => { 
   if (errorMsg) {
     return (
-      <div className="error-container">
-        <div className="error-message">
-          <h3>Something went wrong</h3>
-          <p>{errorMsg}</p>
-          <button onClick={() => window.location.reload()} className="retry-btn">
+      <div className="flex items-center justify-center h-64 bg-red-50 rounded-lg p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-red-700 mb-2">Something went wrong</h3>
+          <p className="text-red-600 mb-4">{errorMsg}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
+          >
             Try Again
           </button>
         </div>
@@ -41,102 +49,99 @@ const ProfileInfo = ({ user, errorMsg, onEditProfile }) => {
   
   if (!user) {
     return (
-      <div className="loading-container">
-        <Loader2 size={32} className="loading-spinner" />
-        <p>Loading your profile...</p>
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2 size={32} className="text-green-600 animate-spin mb-3" />
+        <p className="text-gray-600">Loading your profile...</p>
       </div>
     );
   }
   
   return ( 
-    <div className="profile-info-container"> 
-      <div className="profile-header">
-        <h2>Buyer Profile</h2>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200"> 
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+        <h2 className="text-xl font-medium text-gray-800">Buyer Profile</h2>
         <button 
           onClick={onEditProfile} 
-          className="edit-profile-btn"
+          className="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
           aria-label="Edit profile"
         >
-          <Edit size={20} /> <span>Edit Profile</span>
+          <Edit size={16} className="mr-2" />
+          Edit Profile
         </button>
       </div>
       
-      <div className="profile-content-wrapper">
-        <div className="profile-avatar-section">
+      <div className="p-6">
+        <div className="flex flex-col items-center mb-6">
           {user.profilePicture ? (
-            <div className="profile-avatar">
-              <img 
-                src={user.profilePicture} 
-                alt={`${user.name}'s profile`} 
-                className="avatar-image" 
-              />
-              <button 
-                className="change-avatar-btn"
-                onClick={onEditProfile}
-                aria-label="Change profile picture"
-              >
-                <Camera size={16} />
-              </button>
-            </div>
+            <img 
+              src={user.profilePicture} 
+              alt={`${user.name}'s profile`} 
+              className="w-24 h-24 rounded-full object-cover bg-green-100" 
+            />
           ) : (
-            <div className="profile-avatar placeholder-avatar">
-              <User size={40} />
-              <button 
-                className="add-avatar-btn"
-                onClick={onEditProfile}
-                aria-label="Add profile picture"
-              >
-                <Camera size={16} />
-              </button>
+            <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+              <User size={28} className="text-green-600" />
             </div>
           )}
-          <h3 className="profile-name">{user.name}</h3>
-          <p className="account-status">Active Buyer</p>
+          <h3 className="text-xl font-medium text-gray-800 mt-4">{user.name}</h3>
+          <div className="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full mt-2">Active Buyer</div>
         </div>
 
-        <div className="profile-details-section">
-          <h3 className="section-title">Contact Information</h3>
+        <div className="mt-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-4 border-b border-gray-200 pb-2">Contact Information</h3>
           
-          <div className="profile-grid">
-            <div className="profile-field"> 
-              <div className="field-icon">
+          <div className="space-y-4">
+            <div className="flex items-start"> 
+              <div className="text-green-600 mr-3 pt-1">
                 <Mail size={18} />
               </div>
-              <div className="field-content">
-                <span className="field-label">Email Address</span> 
-                <span className="field-value">{user.email}</span>
+              <div>
+                <div className="text-sm font-medium text-gray-500">Email Address</div> 
+                <div className="text-gray-800">{user.email}</div>
               </div> 
             </div> 
             
-            <div className="profile-field"> 
-              <div className="field-icon">
+            <div className="flex items-start"> 
+              <div className="text-green-600 mr-3 pt-1">
                 <Phone size={18} />
               </div>
-              <div className="field-content">
-                <span className="field-label">Phone Number</span> 
-                <span className="field-value">
-                  {user.phoneNumber || 
-                    <span className="missing-info">
-                      Not provided <button onClick={onEditProfile} className="add-info-btn">Add</button>
-                    </span>
-                  }
-                </span>
+              <div>
+                <div className="text-sm font-medium text-gray-500">Phone Number</div> 
+                {user.phoneNumber ? (
+                  <div className="text-gray-800">{user.phoneNumber}</div>
+                ) : (
+                  <div className="flex items-center">
+                    <span className="text-gray-400 mr-2">Not provided</span>
+                    <button 
+                      onClick={onEditProfile} 
+                      className="text-green-600 hover:text-green-700 text-sm font-medium"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
               </div> 
             </div>
             
-            <div className="profile-field"> 
-              <div className="field-icon">
+            <div className="flex items-start"> 
+              <div className="text-green-600 mr-3 pt-1">
                 <MapPin size={18} />
               </div>
-              <div className="field-content">
-                <span className="field-label">Shipping Address</span> 
-                <span className="field-value">
-                  {user.address || 
-                    <span className="missing-info">
-                      Not provided <button onClick={onEditProfile} className="add-info-btn">Add</button>
-                    </span>
-                  }
-                </span>
+              <div>
+                <div className="text-sm font-medium text-gray-500">Shipping Address</div> 
+                {user.address ? (
+                  <div className="text-gray-800">{user.address}</div>
+                ) : (
+                  <div className="flex items-center">
+                    <span className="text-gray-400 mr-2">Not provided</span>
+                    <button 
+                      onClick={onEditProfile} 
+                      className="text-green-600 hover:text-green-700 text-sm font-medium"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
               </div> 
             </div>
           </div>
@@ -231,42 +236,48 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="edit-profile-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Edit Your Profile</h2>
-          <button className="close-modal-btn" onClick={onClose} aria-label="Close modal">
-            &times;
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center bg-green-600 text-white px-6 py-4">
+          <h2 className="text-xl font-semibold">Edit Your Profile</h2>
+          <button className="text-white hover:text-green-100" onClick={onClose} aria-label="Close modal">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
         
-        <form onSubmit={handleSubmit}>
-          <div className="avatar-upload-section">
-            <div className="avatar-preview">
+        <form onSubmit={handleSubmit} className="p-6">
+          <div className="flex flex-col items-center mb-6">
+            <div className="mb-4">
               {previewImage ? (
-                <img src={previewImage} alt="Profile preview" />
+                <img 
+                  src={previewImage} 
+                  alt="Profile preview" 
+                  className="w-24 h-24 rounded-full object-cover border-4 border-green-100"
+                />
               ) : (
-                <div className="avatar-placeholder">
-                  <User size={40} />
+                <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
+                  <User size={40} className="text-green-600" />
                 </div>
               )}
             </div>
             
-            <div className="avatar-upload-controls">
-              <label htmlFor="profile-image" className="upload-btn">
-                <Camera size={16} /> Choose Image
+            <div className="flex items-center space-x-3">
+              <label htmlFor="profile-image" className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer flex items-center">
+                <Camera size={16} className="mr-1" /> Choose Image
               </label>
               <input 
                 type="file" 
                 id="profile-image" 
                 accept="image/*" 
                 onChange={handleImageChange}
-                className="hidden-input"
+                className="hidden"
               />
               {previewImage && (
                 <button 
                   type="button" 
-                  className="remove-image-btn"
+                  className="text-red-600 hover:text-red-700 text-sm font-medium"
                   onClick={() => {
                     setPreviewImage(null);
                     setFormData(prev => ({ ...prev, profilePicture: null }));
@@ -278,79 +289,81 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
             </div>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="name">Full Name</label>
-            <input 
-              type="text" 
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter your full name"
-              className={errors.name ? 'input-error' : ''}
-            />
-            {errors.name && <p className="error-text">{errors.name}</p>}
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input 
+                type="text" 
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                className={`w-full px-3 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+              />
+              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            </div>
+            
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <input 
+                type="email" 
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email address"
+                className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+              />
+              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+            </div>
+            
+            <div>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Phone Number (optional)</label>
+              <input 
+                type="tel" 
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                placeholder="Enter your phone number"
+                className={`w-full px-3 py-2 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+              />
+              {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>}
+            </div>
+            
+            <div>
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Shipping Address (optional)</label>
+              <textarea 
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Enter your shipping address"
+                rows="3"
+                className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+              />
+              {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address}</p>}
+            </div>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <input 
-              type="email" 
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter your email address"
-              className={errors.email ? 'input-error' : ''}
-            />
-            {errors.email && <p className="error-text">{errors.email}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="phoneNumber">Phone Number (optional)</label>
-            <input 
-              type="tel" 
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              className={errors.phoneNumber ? 'input-error' : ''}
-            />
-            {errors.phoneNumber && <p className="error-text">{errors.phoneNumber}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="address">Shipping Address (optional)</label>
-            <textarea 
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              placeholder="Enter your shipping address"
-              rows="3"
-              className={errors.address ? 'input-error' : ''}
-            />
-            {errors.address && <p className="error-text">{errors.address}</p>}
-          </div>
-          
-          <div className="modal-actions">
+          <div className="flex justify-end space-x-3 mt-6">
             <button 
               type="button" 
               onClick={onClose} 
-              className="cancel-btn"
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
               disabled={isSubmitting}
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="save-btn"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors flex items-center justify-center min-w-[120px]"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 size={16} className="loading-spinner" /> 
+                  <Loader2 size={16} className="animate-spin mr-2" /> 
                   Saving...
                 </>
               ) : (
@@ -423,7 +436,7 @@ const BuyerProfile = () => {
   };
  
   return ( 
-    <div className="buyer-profile-container"> 
+    <div className="flex bg-green-50 min-h-screen"> 
       <BuyerSidebar activeTab={getActiveTab()} /> 
       
       {/* Payment Success Notification */}
@@ -434,9 +447,9 @@ const BuyerProfile = () => {
         />
       )}
        
-      <div className="profile-content"> 
-        <div className="profile-top-bar">
-          <h1 className="welcome-heading">
+      <div className="flex-1 p-6"> 
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">
             {user ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'}
           </h1>
         </div>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './CartPage.css';
 
 const CartPage = ({ cartItems, setCartItems }) => {
   const navigate = useNavigate();
@@ -141,164 +140,146 @@ const CartPage = ({ cartItems, setCartItems }) => {
     navigate('/products');
   };
 
-  return (
-    <div className="cart-page-container">
-      <div className="cart-page-header">
-        <h2>Your Shopping Cart</h2>
-        <p>{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart</p>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin h-8 w-8 border-4 border-green-600 border-t-transparent rounded-full mr-2"></div>
+        <p>Loading your cart...</p>
       </div>
+    );
+  }
 
-      {loading && <div className="cart-loader">Loading your cart...</div>}
-      
-      {error && <div className="cart-error">{error}</div>}
-
-      {!loading && cartItems.length === 0 ? (
-        <div className="empty-cart">
-          <div className="empty-cart-icon">🛒</div>
-          <h3>Your cart is empty</h3>
-          <p>Add some products to your cart and come back!</p>
-          <button className="continue-shopping-btn" onClick={continueShopping}>
-            Continue Shopping
-          </button>
+  return (
+    <div className="container mx-auto px-8 py-4">
+      {error && (
+        <div className="bg-red-50 text-red-600 p-3 mb-4 rounded">
+          {error}
         </div>
-      ) : (
-        !loading && (
-          <div className="cart-content">
-            <div className="cart-items">
-              <table className="cart-table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cartItems.map((item) => (
-                    <tr key={item.product?._id || item._id} className="cart-item-row">
-                      {item.product ? (
-                        <>
-                          <td className="product-cell">
-                            <div className="product-info">
-                              <img
-                                src={item.product.image}
-                                alt={item.product.name}
-                                className="cart-img"
-                              />
-                              <div className="product-details">
-                                <h4>{item.product.name}</h4>
-                                <span className="product-category">{item.product.category}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="price-cell">Rs. {item.product.price.toFixed(2)}</td>
-                          <td className="quantity-cell">
-                            <div className="quantity-control">
-                              <button 
-                                className="quantity-btn" 
-                                onClick={() => updateQty(item.product._id, Math.max(1, item.qty - 1))}
-                                disabled={item.qty <= 1}
-                              >
-                                −
-                              </button>
-                              <input
-                                type="number"
-                                min="1"
-                                value={item.qty}
-                                onChange={(e) => updateQty(item.product._id, e.target.value)}
-                                className="quantity-input"
-                              />
-                              <button 
-                                className="quantity-btn"
-                                onClick={() => updateQty(item.product._id, item.qty + 1)}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </td>
-                          <td className="total-cell">
-                            Rs. {(item.qty * item.product.price).toFixed(2)}
-                          </td>
-                          <td className="action-cell">
-                            <button
-                              onClick={() => removeFromCart(item.product._id)}
-                              className="remove-btn"
-                              title="Remove item"
-                            >
-                              <span>×</span>
-                            </button>
-                          </td>
-                        </>
-                      ) : (
-                        <td colSpan="5" className="unavailable-product">
-                          <div className="unavailable-message">
-                            <span className="warning-icon">⚠️</span>
-                            <span>Product no longer available</span>
-                            <button 
-                              onClick={() => removeFromCart(item._id)}
-                              className="remove-unavailable-btn"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      )}
+      
+      <div className="w-full">
+        {/* Cart items */}
+        <div className="mb-8">
+          <table className="w-full">
+            <tbody>
+              {cartItems.map((item) => (
+                <tr key={item.product?._id || item._id} className="border-b">
+                  <td className="py-4 flex items-start">
+                    <img 
+                      src={item.product?.image} 
+                      alt={item.product?.name}
+                      className="w-16 h-16 object-cover mr-4"
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{item.product?.name}</span>
+                      <span className="text-xs bg-gray-100 inline-block px-2 py-1 mt-1 text-gray-600 rounded">
+                        {item.product?.category}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-right">Rs. {item.product?.price.toFixed(2)}</td>
+                  <td className="py-4">
+                    <div className="flex items-center justify-center">
+                      <button 
+                        onClick={() => updateQty(item.product?._id, Math.max(1, item.qty - 1))}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="text"
+                        value={item.qty}
+                        onChange={(e) => updateQty(item.product?._id, e.target.value)}
+                        className="w-8 h-8 text-center border-t border-b border-gray-300"
+                      />
+                      <button
+                        onClick={() => updateQty(item.product?._id, item.qty + 1)}
+                        className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                  <td className="py-4 text-right">Rs. {(item.product?.price * item.qty).toFixed(2)}</td>
+                  <td className="py-4 text-center">
+                    <button
+                      onClick={() => removeFromCart(item.product?._id)}
+                      className="text-gray-400 hover:text-red-500 text-xl"
+                    >
+                      ×
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Order summary */}
+        <div className="max-w-md ml-auto">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+          
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Subtotal:</span>
+              <span className="text-right">Rs. {subtotal.toFixed(2)}</span>
             </div>
-
-            <div className="cart-sidebar">
-              <div className="order-summary">
-                <h3>Order Summary</h3>
-                <div className="summary-row">
-                  <span>Subtotal:</span>
-                  <span>Rs. {subtotal.toFixed(2)}</span>
-                </div>
-                <div className="summary-row">
-                  <span>Estimated Tax:</span>
-                  <span>Rs. {tax.toFixed(2)}</span>
-                </div>
-                <div className="summary-row">
-                  <span>Shipping:</span>
-                  <span>{shipping > 0 ? `Rs. ${shipping.toFixed(2)}` : 'Free'}</span>
-                </div>
-                {shipping > 0 && (
-                  <div className="free-shipping-message">
-                    Add Rs. {(1000 - subtotal).toFixed(2)} more for free shipping
-                  </div>
-                )}
-                <div className="summary-divider"></div>
-                <div className="summary-row total">
-                  <span>Total:</span>
-                  <span>Rs. {total.toFixed(2)}</span>
-                </div>
-                <button
-                  onClick={handleCheckout}
-                  className="checkout-btn"
-                  disabled={cartItems.length === 0}
-                >
-                  Proceed to Checkout
-                </button>
-                <button className="continue-shopping-btn" onClick={continueShopping}>
-                  Continue Shopping
-                </button>
+            
+            <div className="flex justify-between items-center">
+              <span>Estimated Tax:</span>
+              <span className="text-right">Rs. {tax.toFixed(2)}</span>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span>Shipping:</span>
+              <span className="text-right">Rs. {shipping.toFixed(2)}</span>
+            </div>
+            
+            {shipping > 0 && (
+              <div className="bg-green-50 text-green-600 text-sm p-2 rounded">
+                Add Rs. {(1000 - subtotal).toFixed(2)} more for free shipping
               </div>
-              
-              <div className="promo-box">
-                <h4>Have a Promo Code?</h4>
-                <div className="promo-input">
-                  <input type="text" placeholder="Enter your code" />
-                  <button>Apply</button>
-                </div>
+            )}
+            
+            <div className="border-t border-gray-200 pt-4 mt-2">
+              <div className="flex justify-between items-center font-bold">
+                <span>Total:</span>
+                <span className="text-right">Rs. {total.toFixed(2)}</span>
               </div>
             </div>
           </div>
-        )
-      )}
+          
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleCheckout}
+              className="w-full bg-green-600 text-white py-2 rounded"
+            >
+              Proceed to Checkout
+            </button>
+            
+            <button
+              onClick={continueShopping}
+              className="w-full border border-gray-300 py-2 rounded text-gray-700"
+            >
+              Continue Shopping
+            </button>
+          </div>
+          
+          <div className="mt-6">
+            <h3 className="font-medium mb-2">Have a Promo Code?</h3>
+            <div className="flex">
+              <input
+                type="text"
+                placeholder="Enter your code"
+                className="flex-grow border border-gray-300 rounded-l px-3 py-2 focus:outline-none"
+              />
+              <button className="bg-gray-800 text-white px-4 py-2 rounded-r">
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

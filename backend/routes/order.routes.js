@@ -109,3 +109,4 @@ router.put('/:id/deliver', validator.updateOrderToDeliver, validateRequest, prot
 router.put('/:id/status', validator.updateOrderStatus, validateRequest, protect, updateOrderStatus);
 
 export default router;
+  
