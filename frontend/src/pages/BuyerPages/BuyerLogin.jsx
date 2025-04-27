@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, AlertCircle, CheckCircle, User, Facebook, Eye, EyeOff } from 'lucide-react';
 
 const BuyerLogin = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   
   const validateEmail = (email) => {
@@ -59,30 +61,35 @@ const BuyerLogin = () => {
     }
   };
   
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
-        <div className="bg-gradient-to-r from-green-600 to-green-700 py-6">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transform transition-all duration-300">
+        <div className="bg-gradient-to-r from-green-600 to-green-700 py-8">
+          <div className="flex justify-center mb-3">
+            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+              <User className="h-8 w-8 text-white" />
+            </div>
+          </div>
           <h2 className="text-2xl font-bold text-center text-white">Welcome Back</h2>
-          <p className="text-center text-green-100">Sign in to your buyer account</p>
+          <p className="text-center text-green-100 mt-1">Sign in to your buyer account</p>
         </div>
         
         <div className="p-8">
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             {errorMsg && (
-              <div className="bg-red-50 text-red-700 p-3 rounded-lg border-l-4 border-red-600 flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
+              <div className="bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3">
+                <AlertCircle className="h-5 w-5 flex-shrink-0" />
                 <p className="text-sm font-medium">{errorMsg}</p>
               </div>
             )}
             
             {successMsg && (
-              <div className="bg-green-50 text-green-700 p-3 rounded-lg border-l-4 border-green-600 flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              <div className="bg-green-50 text-green-700 p-4 rounded-lg border-l-4 border-green-600 flex items-center space-x-3">
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
                 <p className="text-sm font-medium">{successMsg}</p>
               </div>
             )}
@@ -91,9 +98,7 @@ const BuyerLogin = () => {
               <label className="block text-sm font-medium text-gray-700">Email Address</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
+                  <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
                   type="email"
@@ -102,7 +107,7 @@ const BuyerLogin = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                 />
               </div>
             </div>
@@ -110,32 +115,41 @@ const BuyerLogin = () => {
             <div className="space-y-2">
               <div className="flex justify-between">
                 <label className="block text-sm font-medium text-gray-700">Password</label>
-                <a href="#" className="text-xs font-medium text-green-600 hover:text-green-500">Forgot password?</a>
+                <a href="#" className="text-xs font-medium text-green-600 hover:text-green-500 transition">Forgot password?</a>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                  <Lock className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                 />
+                <button 
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
-              <p className="text-xs text-gray-500">Password must be at least 8 characters with at least one uppercase letter and one number.</p>
+              <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters with at least one uppercase letter and one number.</p>
             </div>
             
             <div className="flex items-center">
               <input
                 type="checkbox"
                 id="remember"
-                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded transition"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                 Remember me
@@ -143,7 +157,7 @@ const BuyerLogin = () => {
             </div>
             
             <button
-              className={`w-full py-2 px-4 rounded-lg text-white font-medium transition-all duration-200 ${
+              className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 ${
                 isLoading 
                   ? 'bg-green-500 cursor-not-allowed' 
                   : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
@@ -163,18 +177,21 @@ const BuyerLogin = () => {
             </button>
           </form>
           
-          <div className="mt-6 flex flex-col space-y-4">
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-3 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <button className="py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center">
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              <button 
+                type="button"
+                className="py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-center"
+              >
                 <svg className="h-5 w-5 mr-2" fill="#4285F4" viewBox="0 0 24 24">
                   <path d="M12.545 10.239v3.821h5.445c-0.212 1.205-0.88 2.227-1.879 2.916l0.003 0.003 2.901 2.252c1.696-1.564 2.745-3.874 2.745-6.619 0-0.645-0.061-1.266-0.164-1.868l-0.008-0.046h-9.043z"></path>
                   <path d="M5.265 14.278l-0.53 0.202-1.88 1.462c1.198 2.364 3.653 3.978 6.478 3.978 0.001 0 0.002 0 0.003 0h-0c1.863 0 3.438-0.615 4.585-1.674l-0.001 0.001-2.901-2.252c-0.814 0.542-1.813 0.864-2.886 0.864-0.002 0-0.005 0-0.007 0h0c-2.281 0-4.214-1.52-4.91-3.6l-0.010-0.036z"></path>
@@ -183,19 +200,20 @@ const BuyerLogin = () => {
                 </svg>
                 Google
               </button>
-              <button className="py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center">
-                <svg className="h-5 w-5 mr-2" fill="#1877F2" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385h-3.047v-3.47h3.047v-2.642c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686 0.235 2.686 0.235v2.953h-1.514c-1.491 0-1.956 0.925-1.956 1.874v2.25h3.328l-0.532 3.47h-2.796v8.385c5.737-0.901 10.125-5.864 10.125-11.854z"></path>
-                </svg>
+              <button 
+                type="button"
+                className="py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-center"
+              >
+                <Facebook className="h-5 w-5 mr-2 text-blue-600" />
                 Facebook
               </button>
             </div>
           </div>
           
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account? 
-              <Link to="/buyer/register" className="ml-1 font-medium text-green-600 hover:text-green-500 hover:underline">
+              <Link to="/buyer/register" className="ml-1 font-medium text-green-600 hover:text-green-500 hover:underline transition">
                 Create an account
               </Link>
             </p>
