@@ -1,3 +1,5 @@
+// backend/models/order.model.js
+
 import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema(
@@ -44,12 +46,54 @@ const orderSchema = new mongoose.Schema(
     paidAt: { type: Date },
     isDelivered: { type: Boolean, required: true, default: false },
     deliveredAt: { type: Date },
-
-    // ✅ Optional status field for managing order states
+    
+    // Order status field
     status: {
       type: String,
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'],
       default: 'Pending'
+    },
+    
+    // Refund fields
+    refundRequested: {
+      type: Boolean,
+      default: false
+    },
+    refundRequestedAt: {
+      type: Date
+    },
+    refundStatus: {
+      type: String,
+      enum: ['None', 'Pending', 'Processing', 'Approved', 'Rejected'],
+      default: 'None'
+    },
+    refundReason: {
+      type: String
+    },
+    refundProcessedAt: {
+      type: Date
+    },
+    refundAmount: {
+      type: Number,
+      default: 0.0
+    },
+    
+    // Cancellation fields
+    isCancelled: {
+      type: Boolean,
+      default: false
+    },
+    cancelledAt: {
+      type: Date
+    },
+    cancellationReason: {
+      type: String
+    },
+    
+    // Optional admin notes
+    adminNotes: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
     }
   },
   {
@@ -57,5 +101,15 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Add indexes for better query performance
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ status: 1 });
+orderSchema.index({ refundStatus: 1 });
+orderSchema.index({ isPaid: 1 });
+orderSchema.index({ isDelivered: 1 });
+orderSchema.index({ refundRequested: 1 });
+orderSchema.index({ isCancelled: 1 });
+
 const Order = mongoose.model('Order', orderSchema);
+
 export default Order;

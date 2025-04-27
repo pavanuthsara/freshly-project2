@@ -15,6 +15,7 @@ import CartPage from './pages/BuyerPages/CartPage';
 import ShippingPage from './pages/BuyerPages/ShippingPage';
 import PaymentPage from './pages/BuyerPages/PaymentPage';
 import ConfirmOrderPage from './pages/BuyerPages/ConfirmOrderPage';
+import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -43,6 +44,9 @@ function App() {
           
           <Route path="/products" element={<ProductListPage cartItems={cartItems} setCartItems={setCartItems} />} />
           <Route path="/cart" element={<CartPage cartItems={cartItems} setCartItems={setCartItems} />} />
+          
+          {/* Order Details route for viewing order details and refund/cancel functionality */}
+          <Route path="/order/:id" element={<BuyerOrderDetails />} />
           
           {/* ✅ New Buyer Checkout Routes */}
           <Route
@@ -83,4 +87,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; 

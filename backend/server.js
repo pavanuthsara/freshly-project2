@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import Stripe from 'stripe';
+import fs from 'fs';
 
 import buyerRoutes from './routes/Buyer.routes.js';
 import productRoutes from './routes/product.routes.js';
@@ -26,6 +27,20 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, './.env') });
 console.log('✅ Loaded STRIPE_SECRET_KEY:', process.env.STRIPE_SECRET_KEY ? 'Yes (key found)' : 'No (key missing)');
+
+// Ensure uploads directories exist
+const uploadsDir = path.join(__dirname, '/uploads');
+const refundEvidenceDir = path.join(__dirname, '/uploads/refund-evidence');
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+  console.log('✅ Created uploads directory');
+}
+
+if (!fs.existsSync(refundEvidenceDir)) {
+  fs.mkdirSync(refundEvidenceDir);
+  console.log('✅ Created refund evidence directory');
+}
 
 const app = express();
 
@@ -69,11 +84,12 @@ mongoose
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/v1/orders', orderRoutes); // Support both API versions
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
 
-// Serve uploads
+// Serve uploads - include refund evidence
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Health check
@@ -81,12 +97,21 @@ app.get('/', (req, res) => {
   res.send('🚀 API is running...');
 });
 
+// System info endpoint
+app.get('/api/info', (req, res) => {
+  res.json({
+    version: '1.0.0',
+    features: ['orders', 'payments', 'refunds'],
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT} → http://localhost:${PORT}`);
 });

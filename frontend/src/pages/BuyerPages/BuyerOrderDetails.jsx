@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaArrowLeft, FaMoneyBillWave, FaBan, FaCheck, FaTimes } from 'react-icons/fa';
-import BuyerSidebar from '../../components/BuyerSidebar';
+import BuyerSidebar from './BuyerSidebar';
 
 const BuyerOrderDetails = () => {
   const { id } = useParams();
@@ -26,13 +26,12 @@ const BuyerOrderDetails = () => {
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [cancelError, setCancelError] = useState('');
 
-  // Fetch order details - CORRECTED API PATH
+  // Fetch order details
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         setLoading(true);
-        // Changed from /api/v1/orders/:id to /api/orders/:id
-        const { data } = await axios.get(`/api/orders/${id}`, {
+        const { data } = await axios.get(`/api/v1/orders/${id}`, {
           withCredentials: true
         });
         setOrder(data);
@@ -77,7 +76,7 @@ const BuyerOrderDetails = () => {
            order.status !== 'Refunded';
   };
 
-  // Handle cancel order - CORRECTED API PATH
+  // Handle cancel order
   const handleCancelOrder = async () => {
     if (!cancelReason) {
       setCancelError('Please provide a reason for cancellation');
@@ -88,8 +87,7 @@ const BuyerOrderDetails = () => {
       setSubmittingCancel(true);
       setCancelError('');
 
-      // Changed from /api/v1/orders/:id/status to /api/orders/:id/status
-      await axios.put(`/api/orders/${id}/status`, {
+      await axios.put(`/api/v1/orders/${id}/status`, {
         status: 'Cancelled',
         reason: cancelReason
       }, {
@@ -112,7 +110,7 @@ const BuyerOrderDetails = () => {
     }
   };
 
-  // Handle refund request - CORRECTED API PATH
+  // Handle refund request
   const handleRefundRequest = async () => {
     if (!refundReason) {
       setRefundError('Please provide a reason for refund');
@@ -123,8 +121,7 @@ const BuyerOrderDetails = () => {
       setSubmittingRefund(true);
       setRefundError('');
 
-      // Changed from /api/v1/orders/:id/refund-request to /api/orders/:id/refund-request
-      await axios.post(`/api/orders/${id}/refund-request`, {
+      await axios.post(`/api/v1/orders/${id}/refund-request`, {
         reason: refundReason,
         items: order.orderItems // Request refund for all items
       }, {
