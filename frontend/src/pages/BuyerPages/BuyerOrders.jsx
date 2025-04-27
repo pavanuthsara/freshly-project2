@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api';
-import { useReactToPrint } from 'react-to-print';
-import { FaSearch, FaPrint, FaEye } from 'react-icons/fa';
+import { FaSearch, FaEye } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 // Removed BuyerSidebar import since it's already in the parent layout
 
@@ -10,7 +9,6 @@ const BuyerOrderHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const printComponentRef = useRef();
 
   // Fetch orders on component mount
   useEffect(() => {
@@ -35,12 +33,6 @@ const BuyerOrderHistory = () => {
 
     fetchOrders();
   }, []);
-
-  // Print functionality
-  const handlePrint = useReactToPrint({
-    content: () => printComponentRef.current,
-    documentTitle: 'Order History',
-  });
 
   // Filter orders based on search term
   const filteredOrders = orders.filter((order) =>
@@ -93,13 +85,6 @@ const BuyerOrderHistory = () => {
             className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
         </div>
-        
-        <button 
-          className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-green-700 transition-colors w-full md:w-auto justify-center"
-          onClick={handlePrint}
-        >
-          <FaPrint className="mr-2" /> Print
-        </button>
       </div>
 
       {loading ? (
@@ -116,7 +101,7 @@ const BuyerOrderHistory = () => {
               {searchTerm ? 'No orders match your search.' : 'You have no orders yet.'}
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" ref={printComponentRef}>
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -134,7 +119,7 @@ const BuyerOrderHistory = () => {
                     {filteredOrders.map((order) => (
                       <tr key={order._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(order.createdAt)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">${order.totalPrice.toFixed(2)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">Rs. {order.totalPrice.toFixed(2)}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           {order.isPaid ? (
                             <span className="text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs">

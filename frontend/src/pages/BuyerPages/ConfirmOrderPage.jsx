@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-// Removed CSS import
+import { FaDownload, FaArrowLeft, FaCheck, FaShieldAlt } from 'react-icons/fa';
 
 const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartItems }) => {
   const navigate = useNavigate();
@@ -19,35 +19,37 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   // Prevent access if required data is missing
   if (!shippingAddress || !paymentMethod || !cartItems.length) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold text-red-700 mb-4">Missing Information</h2>
-          <p className="text-red-600 mb-6">Please complete the previous steps before confirming your order.</p>
-          <div className="flex flex-wrap gap-3">
-            {!cartItems.length && 
-              <button 
-                onClick={() => navigate('/cart')}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-              >
-                Go to Cart
-              </button>
-            }
-            {!shippingAddress && 
-              <button 
-                onClick={() => navigate('/buyer/shipping')}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-              >
-                Go to Shipping
-              </button>
-            }
-            {!paymentMethod && 
-              <button 
-                onClick={() => navigate('/buyer/payment')}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
-              >
-                Go to Payment
-              </button>
-            }
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-10">
+        <div className="container mx-auto px-4 py-8 max-w-3xl">
+          <div className="bg-white rounded-lg shadow-md border-l-4 border-red-500 p-6">
+            <h2 className="text-xl font-bold text-red-700 mb-4">Missing Information</h2>
+            <p className="text-red-600 mb-6">Please complete the previous steps before confirming your order.</p>
+            <div className="flex flex-wrap gap-3">
+              {!cartItems.length && 
+                <button 
+                  onClick={() => navigate('/cart')}
+                  className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors"
+                >
+                  Go to Cart
+                </button>
+              }
+              {!shippingAddress && 
+                <button 
+                  onClick={() => navigate('/buyer/shipping')}
+                  className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors"
+                >
+                  Go to Shipping
+                </button>
+              }
+              {!paymentMethod && 
+                <button 
+                  onClick={() => navigate('/buyer/payment')}
+                  className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition-colors"
+                >
+                  Go to Payment
+                </button>
+              }
+            </div>
           </div>
         </div>
       </div>
@@ -149,112 +151,151 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl" ref={pageRef}>
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Review Your Order</h2>
-
-        <div className="space-y-6">
-          {/* Shipping Section */}
-          <div className="border-b border-gray-200 pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-3">Shipping</h3>
-            <div className="text-gray-600">
-              <p>
-                {shippingAddress.address}, <br />
-                {shippingAddress.city}, {shippingAddress.postalCode}, <br />
-                {shippingAddress.country}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-10">
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Progress indicator */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium">1</div>
+              <span className="text-sm font-medium text-teal-600 mt-1">Cart</span>
             </div>
-          </div>
-
-          {/* Payment Method Section */}
-          <div className="border-b border-gray-200 pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-3">Payment Method</h3>
-            <div className="text-gray-600">
-              <p>{getPaymentMethodDisplay()}</p>
+            <div className="flex-1 h-1 mx-4 bg-teal-600"></div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium">2</div>
+              <span className="text-sm font-medium text-teal-600 mt-1">Delivery</span>
             </div>
-          </div>
-
-          {/* Order Items Section */}
-          <div className="border-b border-gray-200 pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-3">Order Items</h3>
-            <div>
-              <ul className="divide-y divide-gray-200">
-                {cartItems.map((item) => (
-                  <li key={item.product?._id || item._id} className="py-3 flex items-center">
-                    <div className="w-16 h-16 mr-4 flex-shrink-0">
-                      {item.product?.image ? (
-                        <img 
-                          src={item.product.image} 
-                          alt={item.product.name} 
-                          className="w-full h-full object-cover rounded"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded text-xs text-gray-500">
-                          No Image
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-800">{item.product?.name || 'Product'}</p>
-                      <p className="text-sm text-gray-500">Qty: {item.qty}</p>
-                    </div>
-                    <div className="text-right font-medium">
-                      Rs. {(item.qty * (item.product?.price || 0)).toFixed(2)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex-1 h-1 mx-4 bg-teal-600"></div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium">3</div>
+              <span className="text-sm font-medium text-teal-600 mt-1">Payment</span>
             </div>
-          </div>
-
-          {/* Order Summary Section */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-700 mb-3">Order Summary</h3>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Items:</span>
-                <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping:</span>
-                <span className="font-medium">
-                  {shippingPrice > 0 ? `Rs. ${shippingPrice.toFixed(2)}` : 'Free'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tax:</span>
-                <span className="font-medium">Rs. {taxPrice.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-                <span className="font-bold text-gray-900">Total:</span>
-                <span className="font-bold text-gray-900">Rs. {totalPrice.toFixed(2)}</span>
-              </div>
+            <div className="flex-1 h-1 mx-4 bg-teal-600"></div>
+            <div className="flex flex-col items-center">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-medium">4</div>
+              <span className="text-sm font-medium text-teal-600 mt-1">Confirm</span>
             </div>
           </div>
         </div>
-
-        <div className="mt-8 space-y-3">
-          <button 
-            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 transition-colors font-medium"
-            onClick={placeOrder}
-          >
-            Place Order
-          </button>
+        
+        <div className="bg-white rounded-lg shadow-md border border-teal-100 overflow-hidden" ref={pageRef}>
+          <div className="bg-teal-600 py-4 px-6">
+            <h2 className="text-xl font-bold text-white">Review Your Order</h2>
+          </div>
           
-          <div className="flex space-x-3">
-            <button 
-              className="flex-1 border border-gray-300 py-2 rounded hover:bg-gray-50 transition-colors text-gray-700"
-              onClick={() => navigate('/buyer/shipping')}
-            >
-              Back to Shipping
-            </button>
-            
-            <button 
-              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
-              onClick={downloadPDF}
-            >
-              Download PDF
-            </button>
+          <div className="p-6">
+            <div className="space-y-6">
+              {/* Shipping Section */}
+              <div className="border-b border-gray-200 pb-4">
+                <h3 className="text-lg font-medium text-gray-700 mb-3">Shipping Address</h3>
+                <div className="bg-gray-50 p-3 rounded-md text-gray-600">
+                  <p>
+                    {shippingAddress.address}, <br />
+                    {shippingAddress.city}, {shippingAddress.postalCode}, <br />
+                    {shippingAddress.country}
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment Method Section */}
+              <div className="border-b border-gray-200 pb-4">
+                <h3 className="text-lg font-medium text-gray-700 mb-3">Payment Method</h3>
+                <div className="bg-gray-50 p-3 rounded-md text-gray-600">
+                  <p>{getPaymentMethodDisplay()}</p>
+                </div>
+              </div>
+
+              {/* Order Items Section */}
+              <div className="border-b border-gray-200 pb-4">
+                <h3 className="text-lg font-medium text-gray-700 mb-3">Order Items</h3>
+                <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+                  <ul className="divide-y divide-gray-200">
+                    {cartItems.map((item) => (
+                      <li key={item.product?._id || item._id} className="py-3 px-4 flex items-center hover:bg-gray-50">
+                        <div className="w-16 h-16 mr-4 flex-shrink-0">
+                          {item.product?.image ? (
+                            <img 
+                              src={item.product.image} 
+                              alt={item.product.name} 
+                              className="w-full h-full object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded text-xs text-gray-500">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">{item.product?.name || 'Product'}</p>
+                          <p className="text-sm text-gray-500">Qty: {item.qty}</p>
+                        </div>
+                        <div className="text-right font-medium">
+                          Rs. {(item.qty * (item.product?.price || 0)).toFixed(2)}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Order Summary Section */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-700 mb-3">Order Summary</h3>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Items:</span>
+                      <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Shipping:</span>
+                      <span className="font-medium">
+                        {shippingPrice > 0 ? `Rs. ${shippingPrice.toFixed(2)}` : 'Free'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tax:</span>
+                      <span className="font-medium">Rs. {taxPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-300 pt-2 mt-2">
+                      <span className="font-bold text-gray-900">Total:</span>
+                      <span className="font-bold text-teal-700">Rs. {totalPrice.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Security notice */}
+              <div className="flex items-center justify-center text-sm text-gray-600 bg-teal-50 p-3 rounded-md border-l-4 border-teal-400">
+                <FaShieldAlt className="text-teal-600 mr-2" />
+                <span>Your order information is secure and encrypted</span>
+              </div>
+            </div>
+
+            <div className="mt-8 space-y-3">
+              <button 
+                className="w-full bg-teal-600 text-white py-3 rounded-md hover:bg-teal-700 transition-colors font-medium flex items-center justify-center"
+                onClick={placeOrder}
+              >
+                <FaCheck className="mr-2" /> Place Order
+              </button>
+              
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                <button 
+                  className="sm:flex-1 border border-gray-300 py-2 rounded-md hover:bg-gray-50 transition-colors text-gray-700 flex items-center justify-center"
+                  onClick={() => navigate('/buyer/payment')}
+                >
+                  <FaArrowLeft className="mr-2" /> Back to Payment
+                </button>
+                
+                <button 
+                  className="sm:flex-1 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 transition-colors flex items-center justify-center"
+                  onClick={downloadPDF}
+                >
+                  <FaDownload className="mr-2" /> Download PDF
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
