@@ -17,7 +17,7 @@ export default function Sidebar({ children, user }) {
   ];
 
   return (
-    <aside className="flex h-screen">
+    <aside className="flex h-screen fixed top-0 left-0">
       <nav className="h-full flex flex-col bg-black border-r shadow-sm">
         <div className="p-4 pb-2 flex justify-between items-center">
           {expanded && (
