@@ -16,23 +16,23 @@ import DriverNotifications from './pages/DeliveryPages/DriverNotifications.jsx';
 
 // Function to check if the user is authenticated
 const checkAuthentication = () => {
-  const token = document.cookie.split('; ').find(row => row.startsWith('jwt='));
-  return token ? true : false;
+  const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='));
+  return !!token;
 };
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check authentication when the component mounts
     setIsAuthenticated(checkAuthentication());
-  }, []); 
+  }, []);
 
   // Layout component for authenticated routes
   const AuthenticatedLayout = ({ children }) => {
     return (
       <div className="flex">
-        <Sidebar />
+        <Sidebar user={user} />
         <main className="flex-grow">{children}</main>
       </div>
     );
@@ -45,7 +45,10 @@ const App = () => {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/drivers/login" element={<DriverSignInSignUp />} />
+          <Route
+            path="/drivers/login"
+            element={<DriverSignInSignUp setUser={setUser} setIsAuthenticated={setIsAuthenticated} />}
+          />
           
           {/* Protected Routes (Requires Authentication) */}
           {isAuthenticated ? (
@@ -82,7 +85,7 @@ const App = () => {
                   </AuthenticatedLayout>
                 } 
               />
-               <Route 
+              <Route 
                 path="/drivers/notifications" 
                 element={
                   <AuthenticatedLayout>
@@ -92,13 +95,12 @@ const App = () => {
               />
             </>
           ) : (
-            // Redirect unauthenticated users to login
             <>
               <Route path="/drivers/dashboard" element={<Navigate to="/drivers/login" />} />
               <Route path="/drivers/profile" element={<Navigate to="/drivers/login" />} />
               <Route path="/drivers/delivery-requests" element={<Navigate to="/drivers/login" />} />
               <Route path="/drivers/accepted-requests" element={<Navigate to="/drivers/login" />} />
-              <Route path="/drivers/notifications" element={<Navigate to="/drivers/notifications" />} />
+              <Route path="/drivers/notifications" element={<Navigate to="/drivers/login" />} />
             </>
           )}
         </Routes>

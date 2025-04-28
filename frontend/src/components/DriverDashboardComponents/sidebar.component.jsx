@@ -1,11 +1,11 @@
-import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, Truck, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react"
-import { useContext, createContext, useState } from "react"
-import { NavLink } from "react-router-dom"
+import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { logoutDriver } from "../../handlers/driverauthHandler";
 
-const SidebarContext = createContext()
-
-export default function Sidebar({ children, onLogout }) {
-  const [expanded, setExpanded] = useState(true)
+export default function Sidebar({ children, user }) {
+  const [expanded, setExpanded] = useState(true);
+  const navigate = useNavigate();
 
   const sidebarItems = [
     { icon: <Home />, text: "Dashboard", path: "/drivers/dashboard" },
@@ -13,9 +13,9 @@ export default function Sidebar({ children, onLogout }) {
     { icon: <CheckSquare />, text: "Accepted Requests", path: "/drivers/accepted-requests" },
     { icon: <User />, text: "Profile", path: "/drivers/profile" },
     { icon: <Bell />, text: "Notifications", path: "/drivers/notifications", alert: true },
-    { icon: <LogOut />, text: "Logout", path: "#logout" }, // Added logout item
+    { icon: <LogOut />, text: "Logout", path: "#logout" },
   ];
-  
+
   return (
     <aside className="flex h-screen">
       <nav className="h-full flex flex-col bg-black border-r shadow-sm">
@@ -36,21 +36,19 @@ export default function Sidebar({ children, onLogout }) {
           </button>
         </div>
 
-        <SidebarContext.Provider value={{ expanded, onLogout }}>
-          <ul className="flex-1 px-3">
-            {sidebarItems.map((item, index) => (
-              <SidebarItem 
-                key={index} 
-                icon={item.icon}
-                text={item.text}
-                path={item.path}
-                alert={item.alert}
-              />
-            ))}
-            
-            {children}
-          </ul>
-        </SidebarContext.Provider>
+        <ul className="flex-1 px-3">
+          {sidebarItems.map((item, index) => (
+            <SidebarItem 
+              key={index} 
+              icon={item.icon}
+              text={item.text}
+              path={item.path}
+              alert={item.alert}
+              navigate={navigate}
+            />
+          ))}
+          {children}
+        </ul>
 
         <div className="border-t border-white/10 flex p-3">
           <img
@@ -62,37 +60,36 @@ export default function Sidebar({ children, onLogout }) {
             className={`
               flex justify-between items-center
               overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
-          `}
+            `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold text-white">Yasitha Ransilu</h4>
-              <span className="text-xs text-white/60">yasitha5718@gmail.com</span>
+              <h4 className="font-semibold text-white">{user?.name || 'Driver'}</h4>
+              <span className="text-xs text-white/60">{user?.email || 'email@example.com'}</span>
             </div>
             <MoreVertical size={20} className="text-white/60" />
           </div>
         </div>
       </nav>
     </aside>
-  )
+  );
 }
 
-export function SidebarItem({ icon, text, path, alert }) {
-  const { expanded, onLogout } = useContext(SidebarContext)
-  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+function SidebarItem({ icon, text, path, alert, navigate }) {
+  const [expanded] = useState(true); // Expanded state managed by parent
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleClick = (e) => {
     if (path === "#logout") {
       e.preventDefault();
       setIsLogoutDialogOpen(true);
     }
-  }
+  };
 
-  const confirmLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
+  const confirmLogout = async () => {
+    console.log('Confirming logout...');
+    await logoutDriver(navigate);
     setIsLogoutDialogOpen(false);
-  }
+  };
 
   return (
     <>
@@ -125,15 +122,14 @@ export function SidebarItem({ icon, text, path, alert }) {
             }`}
           />
         )}
-
         {!expanded && (
           <div
             className={`
-            absolute left-full rounded-md px-2 py-1 ml-6
-            bg-green-500 text-white text-sm
-            invisible opacity-20 -translate-x-3 transition-all
-            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-        `}
+              absolute left-full rounded-md px-2 py-1 ml-6
+              bg-green-500 text-white text-sm
+              invisible opacity-20 -translate-x-3 transition-all
+              group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+            `}
           >
             {text}
           </div>
@@ -163,5 +159,5 @@ export function SidebarItem({ icon, text, path, alert }) {
         </div>
       )}
     </>
-  )
+  );
 }
