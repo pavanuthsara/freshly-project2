@@ -88,25 +88,35 @@ const validateNIC = (nic) => {
         processedValue = value.replace(/[^a-zA-Z\s]/g, '');
         break;
       case 'NIC':
-          // For 9-digit NIC, allow numbers and V at the end
-          // For 12-digit NIC, only allow numbers
-          if (value.length <= 9) {
-              processedValue = value.replace(/[^0-9vV]/g, '').replace(/v/g, 'V');
+          // Allow only numbers, limit to 12 digits
+        processedValue = value.replace(/[^0-9]/g, '').slice(0, 12);
+        break;
+      case 'contactNumber':
+        // Allow only numbers, limit to 12 digits
+        processedValue = value.replace(/[^0-9]/g, '').slice(0, 10);
+        break;
+        case 'vehicleNumber':
+          // Remove all non-alphanumeric characters and convert to uppercase
+          processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          // If only letters (no numbers yet), allow up to 3 letters
+          if (!/\d/.test(processedValue)) {
+            processedValue = processedValue.slice(0, 3);
           } else {
-              processedValue = value.replace(/[^0-9]/g, '');
+            // Once numbers are detected, extract 2-3 letters and up to 4 numbers
+            const letters = processedValue.match(/[A-Z]{0,3}/)?.[0] || '';
+            const numbers = processedValue.match(/\d{0,4}$/)?.[0] || '';
+            // Ensure 2 or 3 letters followed by up to 4 numbers
+            if (letters.length >= 2 && letters.length <= 3) {
+              processedValue = letters + numbers;
+            } else {
+              // If letters are invalid (<2 or >3), keep only valid part
+              processedValue = letters.slice(0, 3) + numbers;
+            }
           }
           break;
-      case 'contactNumber':
-        // Only allow numbers and plus sign
-        processedValue = value.replace(/[^0-9+]/g, '');
-        break;
-      case 'vehicleNumber':
-        // Convert to uppercase for vehicle registration
-        processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        break;
       case 'vehicleCapacity':
         // Only allow numbers
-        processedValue = value.replace(/[^0-9]/g, '');
+        processedValue = value.replace(/[^0-9]/g, '').slice(0, 5); // Limit to 4 digits
         break;
     }
 
