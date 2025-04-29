@@ -58,14 +58,14 @@ const loginDriver = async (req, res, next) => {
     const driver = await Driver.findOne({ email });
     if (!driver) {
       res.statusCode = 404;
-      throw new Error('Invalid email address. Please check your email and try again.');
+      throw new Error('Invalid email address or password. Please try again.');
     }
 
     // Compare the entered password with the stored hashed password
     const match = await bcrypt.compare(password, driver.password);
     if (!match) {
       res.statusCode = 401;
-      throw new Error('Invalid password. Please check your password and try again.');
+      throw new Error('Invalid email address or password. Please try again.');
     }
 
     // Generate and send JWT token

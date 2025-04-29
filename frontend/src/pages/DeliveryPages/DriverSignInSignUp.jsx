@@ -81,11 +81,11 @@ const validateNIC = (nic) => {
     switch(name) {
       case 'name':
         // Remove any non-letter characters except spaces and hyphens
-        processedValue = value.replace(/[^a-zA-Z\s-]/g, '');
+        processedValue = value.replace(/[^a-zA-Z\s-]/g, '').slice(0, 100);
         break;
       case 'district':
         // Remove any numbers or special characters
-        processedValue = value.replace(/[^a-zA-Z\s]/g, '');
+        processedValue = value.replace(/[^a-zA-Z\s]/g, '').slice(0, 25);
         break;
       case 'NIC':
           // Allow only numbers, limit to 12 digits
