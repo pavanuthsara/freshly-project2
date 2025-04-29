@@ -3,8 +3,8 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, User, Facebook, Eye, EyeOff } from 'lucide-react';
 
-const BuyerLogin = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const BuyerLogin = ({ setUser }) => {
+  const [formData, setFormData] = useState({ email: '', password: '', remember: false });
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -21,9 +21,11 @@ const BuyerLogin = () => {
   };
   
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     }));
     setErrorMsg('');
     setSuccessMsg('');
@@ -51,7 +53,17 @@ const BuyerLogin = () => {
         formData,
         { withCredentials: true }
       );
+      
+      // Update the user state with the response data
+      setUser({
+        userId: response.data.userId,
+        name: response.data.name,
+        email: response.data.email
+      });
+      
       setSuccessMsg(response.data.message);
+      
+      // Redirect after successful login - keeping original destination
       setTimeout(() => navigate('/buyer/profile'), 1000);
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed.';
@@ -149,6 +161,9 @@ const BuyerLogin = () => {
               <input
                 type="checkbox"
                 id="remember"
+                name="remember"
+                checked={formData.remember}
+                onChange={handleChange}
                 className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded transition"
               />
               <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
