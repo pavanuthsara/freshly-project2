@@ -5,6 +5,16 @@ import autoTable from 'jspdf-autotable';
 // Placeholder logo
 const logoUrl = '../src/assets/freshly-logo.png';
 
+// Company details (replace with actual details)
+const companyDetails = {
+  name: 'Freshly.lk',
+  address: '123 Green Harvest Road, Colombo 00700, Sri Lanka',
+  email: 'support@freshly.lk',
+  phone: '+94 11 234 5678',
+  website: 'www.freshly.lk',
+  tagline: 'Delivering Freshness Across Sri Lanka',
+};
+
 export const generatePDF = (user, deliveryStats, recentDeliveries) => {
   console.log('generatePDF called with:', { user, deliveryStats, recentDeliveries });
 
@@ -24,32 +34,71 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     console.log('jsPDF initialized');
 
+    // Generate a simple report ID (e.g., based on timestamp)
+    const reportId = `FR-${Date.now()}`;
+
     // Cover Page
-    doc.setFontSize(24);
-    doc.setTextColor(34, 197, 94); // Freshly.lk green
+    // Company Header
     doc.setFont('helvetica', 'bold');
-    doc.text('Freshly.lk Driver Report', 20, 50, { align: 'left' });
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Prepared for: ${user?.name || 'Driver'}`, 20, 65);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 75);
+    doc.setFontSize(20);
+    doc.setTextColor(34, 197, 94); // Freshly.lk green
+    doc.text(companyDetails.name, 20, 20);
     doc.setFontSize(12);
-    doc.text('Delivering Freshness Across Sri Lanka', 20, 90);
+    doc.setTextColor(100);
+    doc.text(companyDetails.tagline, 20, 28);
+
+    // Company Logo
     try {
-      doc.addImage(logoUrl, 'PNG', 150, 20, 40, 40); // Logo at top-right
+      doc.addImage(logoUrl, 'PNG', 160, 15, 30, 30); // Logo at top-right
     } catch (imgError) {
       console.warn('Failed to load logo:', imgError);
       doc.setFontSize(12);
-      doc.text('Freshly.lk', 150, 30); // Fallback text if logo fails
+      doc.setTextColor(100);
+      doc.text('Freshly.lk', 160, 25); // Fallback text
     }
+
+    // Company Contact Info
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(50);
+    doc.text(companyDetails.address, 20, 40);
+    doc.text(`Email: ${companyDetails.email}`, 20, 46);
+    doc.text(`Phone: ${companyDetails.phone}`, 20, 52);
+    doc.text(`Website: ${companyDetails.website}`, 20, 58);
+
+    // Divider
+    doc.setDrawColor(34, 197, 94);
+    doc.setLineWidth(0.5);
+    doc.line(20, 65, 190, 65); // Horizontal line
+
+    // Document Title and Details
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(34, 197, 94);
+    doc.text('Driver Report', 105, 100, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(14);
+    doc.setTextColor(50);
+    doc.text(`Prepared for: ${user?.name || 'Driver'}`, 105, 115, { align: 'center' });
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 125, { align: 'center' });
+    doc.text(`Report ID: ${reportId}`, 105, 135, { align: 'center' });
+
+    // Confidentiality Note
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text('Confidential: For internal use only.', 105, 270, { align: 'center' });
+
     doc.addPage();
 
     // Header on each page (except cover)
     const addHeader = () => {
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
+      doc.setTextColor(34, 197, 94);
+      doc.text(companyDetails.name, 20, 10);
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
-      doc.text('Freshly.lk', 20, 10);
+      doc.text(companyDetails.website, 20, 15);
       try {
         doc.addImage(logoUrl, 'PNG', 180, 5, 20, 20); // Small logo in header
       } catch (imgError) {
@@ -62,7 +111,7 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
       doc.setFontSize(8);
       doc.setTextColor(100);
       doc.text(`Page ${pageNumber} of ${pageCount}`, 190, 287, { align: 'right' });
-      doc.text('Freshly.lk - Delivering Freshness', 20, 287);
+      doc.text(`${companyDetails.name} | Report ID: ${reportId}`, 20, 287);
     };
 
     // Add header and footer to all pages after cover
@@ -74,13 +123,13 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
     }
 
     // Summary Section
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(34, 197, 94);
-    doc.setFont('helvetica', 'bold');
     doc.text('Delivery Summary', 20, 30);
-    doc.setFontSize(12);
-    doc.setTextColor(0);
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(50);
     doc.text(
       'This report provides an overview of your delivery activities with Freshly.lk, ' +
       'including key statistics, crop deliveries, and recent delivery details.',
@@ -104,8 +153,9 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
         fillColor: [34, 197, 94],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+        fontSize: 10,
       },
-      bodyStyles: { textColor: [50, 50, 50] },
+      bodyStyles: { textColor: [50, 50, 50], fontSize: 9 },
       columnStyles: {
         0: { cellWidth: 80 },
         1: { cellWidth: 80, halign: 'right' },
@@ -114,9 +164,9 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
     });
 
     // Crop Breakdown Table
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(34, 197, 94);
-    doc.setFont('helvetica', 'bold');
     doc.text('Crop Delivery Breakdown', 20, doc.lastAutoTable.finalY + 20);
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 30,
@@ -131,8 +181,9 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
         fillColor: [34, 197, 94],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+        fontSize: 10,
       },
-      bodyStyles: { textColor: [50, 50, 50] },
+      bodyStyles: { textColor: [50, 50, 50], fontSize: 9 },
       columnStyles: {
         0: { cellWidth: 60 },
         1: { cellWidth: 60, halign: 'right' },
@@ -142,9 +193,9 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
     });
 
     // Recent Deliveries Table
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
     doc.setTextColor(34, 197, 94);
-    doc.setFont('helvetica', 'bold');
     doc.text('Recent Deliveries', 20, doc.lastAutoTable.finalY + 20);
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 30,
@@ -163,16 +214,17 @@ export const generatePDF = (user, deliveryStats, recentDeliveries) => {
         fillColor: [34, 197, 94],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
+        fontSize: 10,
       },
-      bodyStyles: { textColor: [50, 50, 50] },
+      bodyStyles: { textColor: [50, 50, 50], fontSize: 9 },
       columnStyles: {
-        0: { cellWidth: 15 }, // ID
-        1: { cellWidth: 35 }, // Farm
-        2: { cellWidth: 35 }, // Destination
-        3: { cellWidth: 25 }, // Crop
-        4: { cellWidth: 15, halign: 'right' }, // Qty (kg)
-        5: { cellWidth: 25 }, // Status
-        6: { cellWidth: 35 }, // Date
+        0: { cellWidth: 15 },
+        1: { cellWidth: 35 },
+        2: { cellWidth: 35 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 15, halign: 'right' },
+        5: { cellWidth: 25 },
+        6: { cellWidth: 35 },
       },
       margin: { left: 20, right: 20 },
     });
