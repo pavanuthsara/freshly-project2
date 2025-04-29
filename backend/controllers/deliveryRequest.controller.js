@@ -58,7 +58,7 @@ const createDeliveryRequest = asyncHandler(async (req, res) => {
     }
   
     // Update the delivery request with driver information
-    deliveryRequest.driver = driverId;  // Add this line to set the driver
+    deliveryRequest.driver = driverId;  
     deliveryRequest.status = 'accepted';
     await deliveryRequest.save();
   
