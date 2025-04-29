@@ -1,3 +1,4 @@
+// src/components/Dashboard.jsx
 import React, { useState } from 'react';
 import { 
   Truck, 
@@ -8,8 +9,7 @@ import {
   Leaf, 
   Download,
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { generatePDF } from '../../handlers/driverpdfUtils';
 
 const Dashboard = ({ user }) => {
   // Mock data (in a real app, this would come from an API)
@@ -63,73 +63,6 @@ const Dashboard = ({ user }) => {
     ? recentDeliveries
     : recentDeliveries.filter(delivery => delivery.status === filterStatus);
 
-  // Generate PDF report
-  const generatePDF = () => {
-    console.log('generatePDF called');
-    try {
-      const doc = new jsPDF();
-      console.log('jsPDF initialized');
-
-      // Apply autoTable to jsPDF instance
-      autoTable(doc, {
-        startY: 60,
-        head: [['Metric', 'Value']],
-        body: [
-          ['Total Deliveries', deliveryStats.totalDeliveries],
-          ['Completed Deliveries', deliveryStats.completedDeliveries],
-          ['Pending Deliveries', deliveryStats.pendingDeliveries],
-          ['Total Earnings', `LKR ${deliveryStats.totalEarnings.toFixed(2)}`],
-        ],
-        theme: 'grid',
-        headStyles: { fillColor: [34, 197, 94] },
-      });
-
-      // Header
-      doc.setFontSize(20);
-      doc.setTextColor(34, 197, 94); // Green color
-      doc.text('Freshly.lk Driver Report', 20, 20);
-
-      doc.setFontSize(12);
-      doc.setTextColor(0);
-      doc.text(`Driver: ${user?.name || 'Driver'}`, 20, 30);
-      doc.text(`Email: ${user?.email || 'email@example.com'}`, 20, 38);
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 46);
-
-      // Crop Breakdow
-      autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 10,
-        head: [['Crop', 'Quantity', 'Unit']],
-        body: deliveryStats.cropTypes.map(crop => [crop.name, crop.quantity, crop.unit]),
-        theme: 'grid',
-        headStyles: { fillColor: [34, 197, 94] },
-      });
-
-      // Recent Deliveries Table
-      autoTable(doc, {
-        startY: doc.lastAutoTable.finalY + 10,
-        head: [['ID', 'Farm', 'Destination', 'Crop', 'Quantity (kg)', 'Status', 'Date']],
-        body: recentDeliveries.map(delivery => [
-          delivery.id,
-          delivery.farm,
-          delivery.destination,
-          delivery.crop,
-          delivery.quantity,
-          delivery.status,
-          delivery.date,
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: [34, 197, 94] },
-      });
-
-      // Save the PDF
-      console.log('Saving PDF...');
-      doc.save(`Freshly_Driver_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF. Please check the console for details.');
-    }
-  };
-
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <div className="container mx-auto max-w-7xl">
@@ -138,7 +71,7 @@ const Dashboard = ({ user }) => {
             <Truck className="mr-3 h-8 w-8" /> Driver Dashboard
           </h1>
           <button
-            onClick={generatePDF}
+            onClick={() => generatePDF(user, deliveryStats, recentDeliveries)} // Fixed: Pass arguments
             className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
           >
             <Download className="mr-2 h-5 w-5" /> Download Report
@@ -149,7 +82,7 @@ const Dashboard = ({ user }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 grid-flow-dense gap-6 mb-8">
           <StatCard 
             icon={<CheckCircle2 className="text-green-500 h-8 w-8" />}
-            title="Completed Deliveries"
+            title="Completed Deliver\\.jsxies"
             value={deliveryStats.completedDeliveries}
             className="hover:shadow-lg transition-shadow"
           />
