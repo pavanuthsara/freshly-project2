@@ -57,7 +57,7 @@ const App = () => {
                 path="/drivers/dashboard" 
                 element={
                   <AuthenticatedLayout>
-                    <Dashboard />
+                    <Dashboard user={user}/>
                   </AuthenticatedLayout>
                 } 
               />

@@ -2,18 +2,18 @@ import React, { useState } from 'react';
 import { 
   Truck, 
   MapPin, 
-  Box, 
   CheckCircle2, 
   Clock, 
-  AlertCircle, 
-  Leaf, 
-  DollarSign,
   Coins, 
+  Leaf, 
+  Download,
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-const Dashboard = () => {
+const Dashboard = ({ user }) => {
   // Mock data (in a real app, this would come from an API)
-  const [deliveryStats, setDeliveryStats] = useState({
+  const [deliveryStats] = useState({
     totalDeliveries: 24,
     completedDeliveries: 18,
     pendingDeliveries: 6,
@@ -22,11 +22,11 @@ const Dashboard = () => {
     cropTypes: [
       { name: "Tomatoes", quantity: 320, unit: "kg" },
       { name: "Carrots", quantity: 215, unit: "kg" },
-      { name: "Lettuce", quantity: 180, unit: "kg" }
-    ]
+      { name: "Lettuce", quantity: 180, unit: "kg" },
+    ],
   });
 
-  const recentDeliveries = [
+  const [recentDeliveries] = useState([
     {
       id: "D001",
       farm: "Green Acres Farm",
@@ -34,7 +34,7 @@ const Dashboard = () => {
       crop: "Tomatoes",
       quantity: 120,
       status: "Completed",
-      date: "2024-03-20"
+      date: "2024-03-20",
     },
     {
       id: "D002",
@@ -43,7 +43,7 @@ const Dashboard = () => {
       crop: "Carrots",
       quantity: 85,
       status: "In Progress",
-      date: "2024-03-22"
+      date: "2024-03-22",
     },
     {
       id: "D003",
@@ -52,46 +52,131 @@ const Dashboard = () => {
       crop: "Lettuce",
       quantity: 60,
       status: "Pending",
-      date: "2024-03-25"
+      date: "2024-03-25",
+    },
+  ]);
+
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  // Filter deliveries based on status
+  const filteredDeliveries = filterStatus === 'All'
+    ? recentDeliveries
+    : recentDeliveries.filter(delivery => delivery.status === filterStatus);
+
+  // Generate PDF report
+  const generatePDF = () => {
+    console.log('generatePDF called');
+    try {
+      const doc = new jsPDF();
+      console.log('jsPDF initialized');
+
+      // Apply autoTable to jsPDF instance
+      autoTable(doc, {
+        startY: 60,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Deliveries', deliveryStats.totalDeliveries],
+          ['Completed Deliveries', deliveryStats.completedDeliveries],
+          ['Pending Deliveries', deliveryStats.pendingDeliveries],
+          ['Total Earnings', `LKR ${deliveryStats.totalEarnings.toFixed(2)}`],
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [34, 197, 94] },
+      });
+
+      // Header
+      doc.setFontSize(20);
+      doc.setTextColor(34, 197, 94); // Green color
+      doc.text('Freshly.lk Driver Report', 20, 20);
+
+      doc.setFontSize(12);
+      doc.setTextColor(0);
+      doc.text(`Driver: ${user?.name || 'Driver'}`, 20, 30);
+      doc.text(`Email: ${user?.email || 'email@example.com'}`, 20, 38);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 46);
+
+      // Crop Breakdow
+      autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [['Crop', 'Quantity', 'Unit']],
+        body: deliveryStats.cropTypes.map(crop => [crop.name, crop.quantity, crop.unit]),
+        theme: 'grid',
+        headStyles: { fillColor: [34, 197, 94] },
+      });
+
+      // Recent Deliveries Table
+      autoTable(doc, {
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [['ID', 'Farm', 'Destination', 'Crop', 'Quantity (kg)', 'Status', 'Date']],
+        body: recentDeliveries.map(delivery => [
+          delivery.id,
+          delivery.farm,
+          delivery.destination,
+          delivery.crop,
+          delivery.quantity,
+          delivery.status,
+          delivery.date,
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [34, 197, 94] },
+      });
+
+      // Save the PDF
+      console.log('Saving PDF...');
+      doc.save(`Freshly_Driver_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please check the console for details.');
     }
-  ];
+  };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="container mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-green-700 flex items-center">
-          <Truck className="mr-3" /> Driver Dashboard
-        </h1>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      <div className="container mx-auto max-w-7xl">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-green-700 flex items-center">
+            <Truck className="mr-3 h-8 w-8" /> Driver Dashboard
+          </h1>
+          <button
+            onClick={generatePDF}
+            className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+          >
+            <Download className="mr-2 h-5 w-5" /> Download Report
+          </button>
+        </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 grid-flow-dense gap-6 mb-8">
           <StatCard 
-            icon={<CheckCircle2 className="text-green-500" />}
+            icon={<CheckCircle2 className="text-green-500 h-8 w-8" />}
             title="Completed Deliveries"
             value={deliveryStats.completedDeliveries}
+            className="hover:shadow-lg transition-shadow"
           />
           <StatCard 
-            icon={<Clock className="text-blue-500" />}
+            icon={<Clock className="text-blue-500 h-8 w-8" />}
             title="Pending Deliveries"
             value={deliveryStats.pendingDeliveries}
+            className="hover:shadow-lg transition-shadow"
           />
           <StatCard 
-            icon={<Coins className="text-green-600" />}
+            icon={<Coins className="text-green-600 h-8 w-8" />}
             title="Total Earnings"
             value={`LKR ${deliveryStats.totalEarnings.toFixed(2)}`}
+            className="hover:shadow-lg transition-shadow"
           />
         </div>
 
         {/* Crop Delivery Breakdown */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div className="bg-white shadow-lg rounded-xl p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <Leaf className="mr-2 text-green-600" /> Crop Delivery Breakdown
+            <Leaf className="mr-2 text-green-600 h-6 w-6" /> Crop Delivery Breakdown
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {deliveryStats.cropTypes.map((crop, index) => (
               <div 
                 key={index} 
-                className="bg-green-50 p-4 rounded-lg border border-green-100"
+                className="bg-green-50 p-4 rounded-lg border border-green-100 hover:bg-green-100 transition"
               >
                 <h3 className="font-bold text-green-700">{crop.name}</h3>
                 <p className="text-gray-600">
@@ -103,38 +188,55 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Deliveries */}
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center">
-            <MapPin className="mr-2 text-blue-600" /> Recent Deliveries
-          </h2>
+        <div className="bg-white shadow-lg rounded-xl p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold flex items-center">
+              <MapPin className="mr-2 text-blue-600 h-6 w-6" /> Recent Deliveries
+            </h2>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="All">All</option>
+              <option value="Completed">Completed</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
           <div className="space-y-4">
-            {recentDeliveries.map((delivery) => (
-              <div 
-                key={delivery.id} 
-                className="flex justify-between items-center border-b pb-3 last:border-b-0"
-              >
-                <div>
-                  <p className="font-bold">{delivery.farm}</p>
-                  <p className="text-sm text-gray-600">
-                    {delivery.crop} - {delivery.quantity} kg to {delivery.destination}
-                  </p>
-                </div>
-                <span 
-                  className={`
-                    px-3 py-1 rounded-full text-xs font-semibold
-                    ${
-                      delivery.status === "Completed" 
-                        ? "bg-green-100 text-green-800"
-                        : delivery.status === "In Progress"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }
-                  `}
+            {filteredDeliveries.length > 0 ? (
+              filteredDeliveries.map((delivery) => (
+                <div 
+                  key={delivery.id} 
+                  className="flex justify-between items-center border-b pb-3 last:border-b-0 hover:bg-gray-50 transition cursor-pointer"
                 >
-                  {delivery.status}
-                </span>
-              </div>
-            ))}
+                  <div>
+                    <p className="font-bold text-gray-800">{delivery.farm}</p>
+                    <p className="text-sm text-gray-600">
+                      {delivery.crop} - {delivery.quantity} kg to {delivery.destination}
+                    </p>
+                    <p className="text-xs text-gray-500">{delivery.date}</p>
+                  </div>
+                  <span 
+                    className={`
+                      px-3 py-1 rounded-full text-xs font-semibold
+                      ${
+                        delivery.status === "Completed" 
+                          ? "bg-green-100 text-green-800"
+                          : delivery.status === "In Progress"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }
+                    `}
+                  >
+                    {delivery.status}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No deliveries match the selected filter.</p>
+            )}
           </div>
         </div>
       </div>
@@ -143,13 +245,13 @@ const Dashboard = () => {
 };
 
 // Reusable Stat Card Component
-const StatCard = ({ icon, title, value }) => {
+const StatCard = ({ icon, title, value, className }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-5 flex items-center">
+    <div className={`bg-white shadow-md rounded-xl p-6 flex items-center ${className}`}>
       <div className="mr-4">{icon}</div>
       <div>
         <p className="text-gray-500 text-sm">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
+        <p className="text-2xl font-bold text-gray-800">{value}</p>
       </div>
     </div>
   );
