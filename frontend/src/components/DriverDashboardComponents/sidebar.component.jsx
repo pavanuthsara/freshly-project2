@@ -1,10 +1,9 @@
-import { MoreVertical, ChevronLast, ChevronFirst, Home, User, Sprout, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react";
+import { MoreVertical, Home, User, Sprout, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react";
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logoutDriver } from "../../handlers/driverauthHandler";
 
 export default function Sidebar({ children, user }) {
-  const [expanded, setExpanded] = useState(true);
   const navigate = useNavigate();
 
   const sidebarItems = [
@@ -17,23 +16,11 @@ export default function Sidebar({ children, user }) {
   ];
 
   return (
-    <aside className="flex h-screen fixed top-0 left-0">
-      <nav className="h-full flex flex-col bg-black border-r shadow-sm">
-        <div className="p-4 pb-2 flex justify-between items-center">
-          {expanded && (
-            <>
-              <Sprout className="h-8 w-8 text-green-500" />
-              <span className="text-white text-xl font-bold ml-3">
-                Freshly.lk
-              </span>
-            </>
-          )}
-          <button
-            onClick={() => setExpanded((curr) => !curr)}
-            className="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white"
-          >
-            {expanded ? <ChevronFirst /> : <ChevronLast />}
-          </button>
+    <aside className="h-screen fixed top-0 left-0 z-50">
+      <nav className="h-full flex flex-col bg-black border-r shadow-sm w-64">
+        <div className="p-4 pb-2 flex items-center">
+          <Sprout className="h-8 w-8 text-green-500" />
+          <span className="text-white text-xl font-bold ml-3">Freshly.lk</span>
         </div>
 
         <ul className="flex-1 px-3">
@@ -56,12 +43,7 @@ export default function Sidebar({ children, user }) {
             alt=""
             className="w-10 h-10 rounded-md"
           />
-          <div
-            className={`
-              flex justify-between items-center
-              overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
-            `}
-          >
+          <div className="flex justify-between items-center w-52 ml-3">
             <div className="leading-4">
               <h4 className="font-semibold text-white">{user?.name || 'Driver'}</h4>
               <span className="text-xs text-white/60">{user?.email || 'email@example.com'}</span>
@@ -75,7 +57,6 @@ export default function Sidebar({ children, user }) {
 }
 
 function SidebarItem({ icon, text, path, alert, navigate }) {
-  const [expanded] = useState(true); // Expanded state managed by parent
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleClick = (e) => {
@@ -108,31 +89,9 @@ function SidebarItem({ icon, text, path, alert, navigate }) {
         `}
       >
         {icon}
-        <span
-          className={`overflow-hidden transition-all ${
-            expanded ? "w-52 ml-3" : "w-0"
-          }`}
-        >
-          {text}
-        </span>
+        <span className="w-52 ml-3">{text}</span>
         {alert && (
-          <div
-            className={`absolute right-2 w-2 h-2 rounded bg-green-500 ${
-              expanded ? "" : "top-2"
-            }`}
-          />
-        )}
-        {!expanded && (
-          <div
-            className={`
-              absolute left-full rounded-md px-2 py-1 ml-6
-              bg-green-500 text-white text-sm
-              invisible opacity-20 -translate-x-3 transition-all
-              group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-            `}
-          >
-            {text}
-          </div>
+          <div className="absolute right-2 w-2 h-2 rounded bg-green-500" />
         )}
       </NavLink>
 

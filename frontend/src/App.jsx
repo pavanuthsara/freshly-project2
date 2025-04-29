@@ -31,15 +31,15 @@ const App = () => {
   // Layout component for authenticated routes
   const AuthenticatedLayout = ({ children }) => {
     return (
-      <div className="flex">
+      <div className="flex min-h-screen">
         <Sidebar user={user} />
-        <main className="flex-grow">{children}</main>
+        <main className="flex-grow ml-64 p-4">{children}</main>
       </div>
     );
   };
 
   return (
-    <div>
+    <div className="min-h-screen">
       <ToastContainer />
       <BrowserRouter>
         <Routes>
