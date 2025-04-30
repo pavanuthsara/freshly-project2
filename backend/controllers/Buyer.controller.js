@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { generateToken } from '../utils/generateToken.js';
 import transporter from '../config/email.js';
+import Complaint1 from '../models/complaint1.model.js'
 
 // LOGIN
 const loginUser = async (req, res, next) => {
@@ -188,6 +189,53 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+// Complaint1 controller functions - pavan
+const addComplaint = async(req, res) => {
+  try{
+     const newComplaint = new Complaint1(req.body);
+     await newComplaint.save();
+     res.status(201).json(newComplaint);
+   } catch (error) {
+     res.status(500).json({ message: error.message });
+   }
+ }
+ 
+ const showAllComplaints = async(req, res) => {
+   try{
+     const complaints = await Complaint1.find();
+     res.status(200).json(complaints);
+   } catch (error) {
+     res.status(500).json({ message: error.message });
+   }
+ }
+ 
+ const getComplaintById = async(req, res) => {
+   try{
+     const complaint = await Complaint1.findById(req.params.id);
+     res.status(200).json(complaint);
+   } catch (error) {
+     res.status(500).json({ message: error.message });
+   }
+ }
+ 
+ const updateComplaint = async(req, res) => {
+   try{
+     const updateComplaint = await Complaint1.findByIdAndUpdate(req.params.id, req.body, {new: true});
+     res.status(200).json(updateComplaint);
+   } catch (error) {
+     res.status(500).json({ message: error.message });
+   }
+ }
+ 
+ const deleteComplaint = async(req, res) => {
+   try{
+     await Complaint1.findByIdAndDelete(req.params.id);
+     res.status(200).json({ message: 'Complaint deleted successfully' });
+   } catch (error) {
+     res.status(500).json({ message: error.message });
+   }
+ };
+
 export {
   loginUser,
   registerUser,
@@ -195,5 +243,13 @@ export {
   getUserProfile,
   updateUserProfile,
   resetPasswordRequest,
-  resetPassword
+  resetPassword,
+  addComplaint,
+  showAllComplaints,
+  getComplaintById,
+  updateComplaint,
+  deleteComplaint
 };
+
+
+
