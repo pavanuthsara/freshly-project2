@@ -1,25 +1,37 @@
 import express from 'express';
-import { 
-    registerFarmer, 
-    loginFarmer ,
-    getAllFarmers, 
-    deleteFarmer,
-    getFarmerProfile,
-    updateFarmerProfile } from '../controllers/farmer.controller.js';
-import { farmerProtect } from '../middleware/farmer.middleware.js'; 
+  import { 
+      registerFarmer, 
+      loginFarmer,
+      forgotPassword,
+      resetPassword,
+      getAllFarmers, 
+      deleteFarmer,
+      getFarmerProfile,
+      updateFarmerProfile 
+  } from '../controllers/farmer.controller.js';
+  import { farmerProtect } from '../middleware/farmer.middleware.js'; 
 
-const router = express.Router();
+  console.log('✅ farmer.routes.js loaded'); // Add for debugging
 
-// Farmer registration
-router.post('/register', registerFarmer);
+  const router = express.Router();
 
-// Farmer login
-router.post('/login', loginFarmer);
+  // Farmer registration
+  router.post('/register', registerFarmer);
 
-router.get('/', getAllFarmers);
+  // Farmer login
+  router.post('/login', loginFarmer);
 
-router.delete('/delete/:id',farmerProtect, deleteFarmer);
+  // Forgot password
+  router.post('/forgot-password', forgotPassword);
 
-router.get('/profile', farmerProtect, getFarmerProfile);
-router.put('/profile', farmerProtect, updateFarmerProfile);
-export default router;
+  // Reset password
+  router.post('/reset-password', resetPassword);
+
+  router.get('/', getAllFarmers);
+
+  router.delete('/delete/:id', farmerProtect, deleteFarmer);
+
+  router.get('/profile', farmerProtect, getFarmerProfile);
+  router.put('/profile', farmerProtect, updateFarmerProfile);
+
+  export default router;

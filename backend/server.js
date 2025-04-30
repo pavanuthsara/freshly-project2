@@ -29,14 +29,21 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie'], // Allow cookies to be exposed
 }));
+
+// Ensure JSON responses for all API routes
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json');
+  next();
+});
 
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
   })
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => {
@@ -58,11 +65,11 @@ app.use('/api/drivers', driverRoutes);
 // Serve uploads folder statically
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use('/Uploads', express.static(path.join(__dirname, '/Uploads'))); // Capitalized 'Uploads'
 
 // Health check / root
 app.get('/', (req, res) => {
-  res.send('🚀 API is running...');
+  res.json({ message: '🚀 API is running...' });
 });
 
 // Custom error handlers
@@ -70,7 +77,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000; // Changed to 5000 to match previous context
 app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT} → http://localhost:${PORT}`);
 });

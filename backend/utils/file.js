@@ -1,18 +1,11 @@
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
 
-export const deleteFile = filePath => {
-  const __dirname = path.resolve();
-  const imagePath = path.join(__dirname, filePath);
-
-  if (fs.existsSync(imagePath)) {
-    fs.unlink(imagePath, error => {
-      if (error) {
-        throw new Error(error.message);
-      }
-      console.log('File deleted!');
+export const deleteFile = (filePath) => {
+  if (filePath && filePath !== '/default-product-image.jpg') {
+    const fullPath = path.join(process.cwd(), filePath);
+    fs.unlink(fullPath, (err) => {
+      if (err) console.error(`Failed to delete file ${filePath}:`, err);
     });
-  } else {
-    console.log('Image does not exits');
   }
 };

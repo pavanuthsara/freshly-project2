@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import {Download, File} from 'lucide-react';
-
+import autoTable from 'jspdf-autotable';
+import { Download, File } from 'lucide-react';
 
 const ProductReportGenerator = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -16,78 +15,241 @@ const ProductReportGenerator = () => {
       setIsLoading(true);
       // Get the farmer's token from local storage
       const token = localStorage.getItem('farmerToken');
-      
+
       // Configure the axios request
       const config = {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       };
 
+      // Fetch farmer's profile
+      const profileResponse = await axios.get('/api/farmers/profile', config);
+      const farmer = profileResponse.data.farmer || {};
+
       // Fetch farmer's products
-      const response = await axios.get('/api/farmerProducts', config);
-      const products = response.data.data || [];
+      const productResponse = await axios.get('/api/farmerProducts', config);
+      const products = productResponse.data.data || [];
 
       // Prepare report data
-      const reportData = products.map(product => ({
+      const reportData = products.map((product) => ({
         Name: product.name,
         Category: product.category,
         Price: `LKR ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
         Quantity: `${product.quantity} kg`,
         Certification: product.certification,
-        Description: product.description || 'No description'
+        Description: product.description || 'No description',
       }));
+
+      // Define columns for PDF and Excel
+      const columns = [
+        'Name',
+        'Category',
+        'Price',
+        'Quantity',
+        'Certification',
+        'Description',
+      ];
+
+      // Define rows for PDF
+      const rows = reportData.map((item) => [
+        item.Name,
+        item.Category,
+        item.Price,
+        item.Quantity,
+        item.Certification,
+        item.Description,
+      ]);
 
       // Generate report based on selected format
       if (format === 'excel') {
-        const worksheet = XLSX.utils.json_to_sheet(reportData);
+        // Create cover sheet
+        const coverSheetData = [
+          ['Freshly.lk'], // Logo
+          [], // Spacer
+          ['Farmer Product Report'], // Title
+          ['Generated on:', new Date().toLocaleDateString()],
+          ['Farmer:', farmer.name || 'Unknown'],
+          [
+            'Address:',
+            farmer.farmAddress
+              ? `${farmer.farmAddress.streetNo}, ${farmer.farmAddress.city}, ${farmer.farmAddress.district}`
+              : 'No address provided',
+          ],
+        ];
+        const coverSheet = XLSX.utils.aoa_to_sheet(coverSheetData);
+
+        // Style cover sheet
+        coverSheet['!cols'] = [{ wch: 20 }, { wch: 50 }]; // Column widths
+        coverSheet['A1'] = {
+          v: 'Freshly.lk',
+          s: {
+            font: { name: 'Helvetica', bold: true, sz: 16 },
+            fill: { fgColor: { rgb: '228B22' } }, // Forest green
+            alignment: { horizontal: 'left', vertical: 'center' },
+          },
+        };
+        coverSheet['A3'] = {
+          v: 'Farmer Product Report',
+          s: {
+            font: { name: 'Helvetica', bold: true, sz: 14 },
+            alignment: { horizontal: 'left', vertical: 'center' },
+          },
+        };
+        coverSheet['A4'] = {
+          v: 'Generated on:',
+          s: { font: { name: 'Helvetica', bold: true } },
+        };
+        coverSheet['A5'] = {
+          v: 'Farmer:',
+          s: { font: { name: 'Helvetica', bold: true } },
+        };
+        coverSheet['A6'] = {
+          v: 'Address:',
+          s: { font: { name: 'Helvetica', bold: true } },
+        };
+
+        // Create product data sheet
+        const worksheet = XLSX.utils.json_to_sheet(reportData, {
+          header: columns,
+        });
+
+        // Style product data sheet
+        worksheet['!cols'] = [
+          { wch: 20 }, // Name
+          { wch: 15 }, // Category
+          { wch: 15 }, // Price
+          { wch: 10 }, // Quantity
+          { wch: 15 }, // Certification
+          { wch: 30 }, // Description
+        ];
+        columns.forEach((col, index) => {
+          const cell = XLSX.utils.encode_cell({ r: 0, c: index });
+          worksheet[cell] = {
+            v: col,
+            s: {
+              font: { name: 'Helvetica', bold: true },
+              fill: { fgColor: { rgb: '228B22' } }, // Forest green
+              alignment: { horizontal: 'center', vertical: 'center' },
+            },
+          };
+        });
+
+        // Create workbook
         const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, coverSheet, 'Cover');
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
-        
-        XLSX.writeFile(workbook, `Farmer_Products_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        // Download
+        XLSX.writeFile(
+          workbook,
+          `Farmer_Products_${new Date().toISOString().split('T')[0]}.xlsx`
+        );
       } else {
         const doc = new jsPDF('landscape');
-        
-        doc.setFontSize(18);
-        doc.text('Farmer Products Report', 14, 15);
-        
-        doc.setFontSize(10);
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
 
-        const columns = [
-          'Name', 'Category', 'Price', 'Quantity', 'Certification', 'Description'
-        ];
+        // Cover page
+        // Text-based logo
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(34, 139, 34); // Forest green
+        doc.text('Freshly.lk', 14, 30);
 
-        const rows = reportData.map(product => [
-          product.Name,
-          product.Category,
-          product.Price,
-          product.Quantity,
-          product.Certification,
-          product.Description
-        ]);
+        // Title
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0); // Black
+        doc.text('Farmer Product Report', 148.5, 60, { align: 'center' });
 
-        doc.autoTable({
+        // Farmer details
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 80);
+        doc.text(`Farmer: ${farmer.name || 'Unknown'}`, 14, 90);
+        const address = farmer.farmAddress
+          ? `${farmer.farmAddress.streetNo}, ${farmer.farmAddress.city}, ${farmer.farmAddress.district}`
+          : 'No address provided';
+        doc.text(`Address: ${address}`, 14, 100);
+
+        // Add a subtle border around the cover page
+        doc.setDrawColor(34, 139, 34);
+        doc.setLineWidth(0.5);
+        doc.rect(10, 10, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 20);
+
+        // Add a new page for the product table
+        doc.addPage();
+
+        // Product table
+        autoTable(doc, {
           head: [columns],
           body: rows,
           startY: 30,
-          styles: { 
+          styles: {
             fontSize: 9,
             cellPadding: 3,
-            overflow: 'linebreak'
+            overflow: 'linebreak',
           },
-          columnStyles: { 
-            5: { cellWidth: 50 } 
-          }
+          headStyles: {
+            fillColor: [34, 139, 34], // Forest green
+            textColor: [255, 255, 255], // White
+            fontStyle: 'bold',
+          },
+          columnStyles: {
+            0: { cellWidth: 30 }, // Name
+            1: { cellWidth: 30 }, // Category
+            2: { cellWidth: 30 }, // Price
+            3: { cellWidth: 20 }, // Quantity
+            4: { cellWidth: 30 }, // Certification
+            5: { cellWidth: 50 }, // Description
+          },
+          didDrawPage: (data) => {
+            // Add page number at bottom right
+            const pageCount = doc.internal.getNumberOfPages();
+            const currentPage = data.pageNumber;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(
+              `Page ${currentPage - 1} of ${pageCount - 1}`,
+              doc.internal.pageSize.width - 30,
+              doc.internal.pageSize.height - 10,
+              { align: 'right' }
+            );
+          },
         });
 
-        doc.save(`Farmer_Products_${new Date().toISOString().split('T')[0]}.pdf`);
-      }
+        // Add footer after table on each table page
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 2; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(34, 139, 34);
+          doc.text(
+            'Farmer Product Report',
+            14,
+            doc.internal.pageSize.height - 20
+          );
+          doc.text(
+            `Generated on: ${new Date().toLocaleDateString()}`,
+            14,
+            doc.internal.pageSize.height - 10
+          );
+        }
 
-      setIsReportDialogOpen(false);
+        // Manual download
+        const pdfOutput = doc.output('blob');
+        const url = URL.createObjectURL(pdfOutput);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Farmer_Products_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
     } catch (error) {
       console.error('Error generating report:', error);
-      alert(error.response?.data?.message || 'Failed to generate report');
+      alert('Failed to generate report. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -95,12 +257,12 @@ const ProductReportGenerator = () => {
 
   return (
     <>
-     <button 
-    onClick={() => setIsReportDialogOpen(true)}
-    className="flex items-center px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-  >
-    <Download className="mr-2" size={20} /> Generate Report
-    </button>
+      <button
+        onClick={() => setIsReportDialogOpen(true)}
+        className="flex items-center px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+      >
+        <Download className="mr-2" size={20} /> Generate Report
+      </button>
 
       {isReportDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -109,7 +271,7 @@ const ProductReportGenerator = () => {
               <h2 className="text-xl font-bold text-green-800">
                 Generate Product Report
               </h2>
-              <button 
+              <button
                 onClick={() => setIsReportDialogOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -119,8 +281,10 @@ const ProductReportGenerator = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-green-700 mb-2">Select Report Format</label>
-                <select 
+                <label className="block text-green-700 mb-2">
+                  Select Report Format
+                </label>
+                <select
                   value={reportFormat}
                   onChange={(e) => setReportFormat(e.target.value)}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -131,20 +295,24 @@ const ProductReportGenerator = () => {
               </div>
 
               <div className="flex space-x-4">
-                <button 
+                <button
                   onClick={() => generateReport(reportFormat)}
                   disabled={isLoading}
                   className="flex-1 flex items-center justify-center bg-green-600 text-white py-2 rounded hover:bg-green-700 disabled:opacity-50"
                 >
-                  {isLoading ? 'Generating...' : (
-                    reportFormat === 'excel' ? (
-                    <><File className="mr-2" /> Generate Excel Report</>
-                      ) : (
-                    <><File className="mr-2" /> Generate PDF Report</>
-                  )
+                  {isLoading ? (
+                    'Generating...'
+                  ) : reportFormat === 'excel' ? (
+                    <>
+                      <File className="mr-2" /> Generate Excel Report
+                    </>
+                  ) : (
+                    <>
+                      <File className="mr-2" /> Generate PDF Report
+                    </>
                   )}
                 </button>
-                <button 
+                <button
                   onClick={() => setIsReportDialogOpen(false)}
                   disabled={isLoading}
                   className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 disabled:opacity-50"

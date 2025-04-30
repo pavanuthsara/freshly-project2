@@ -4,7 +4,6 @@ import { Plus, Edit, Trash2, Eye, User, ShoppingCart } from 'lucide-react';
 import ProductListing from './ProductListing';
 import ProductReportGenerator from './ProductReportGenerator';
 
-
 const ProductSection = ({ farmerData }) => {
   const [products, setProducts] = useState([]);
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
@@ -36,6 +35,18 @@ const ProductSection = ({ farmerData }) => {
     fetchProducts();
   }, []);
 
+  const sanitizeProductData = (productData) => {
+    return {
+      name: (productData.name || '').trim().slice(0, 100),
+      category: (productData.category || '').trim(),
+      price: Math.min(Math.max(parseFloat(productData.price) || 0, 0), 99999.99),
+      quantity: Math.min(Math.max(parseInt(productData.quantity) || 0, 0), 9999),
+      certification: (productData.certification || '').trim(),
+      description: (productData.description || '').trim().slice(0, 500),
+      image: (productData.image || '').trim()
+    };
+  };
+
   const handleAddProduct = async (newProduct) => {
     try {
       const token = localStorage.getItem('farmerToken');
@@ -46,14 +57,16 @@ const ProductSection = ({ farmerData }) => {
         }
       };
 
+      const sanitizedProduct = sanitizeProductData(newProduct);
+      
       const productData = {
-        name: newProduct.name,
-        category: newProduct.category,
-        price: newProduct.price,
-        quantity: newProduct.quantity,
-        certification: newProduct.certification,
-        description: newProduct.description || 'No description',
-        image: newProduct.image || '/default-product-image.jpg'
+        name: sanitizedProduct.name,
+        category: sanitizedProduct.category,
+        price: sanitizedProduct.price,
+        quantity: sanitizedProduct.quantity,
+        certification: sanitizedProduct.certification,
+        description: sanitizedProduct.description || 'No description',
+        image: sanitizedProduct.image || '/default-product-image.jpg'
       };
 
       const response = await axios.post('/api/farmerProducts', productData, config);
@@ -75,13 +88,15 @@ const ProductSection = ({ farmerData }) => {
         }
       };
 
+      const sanitizedProduct = sanitizeProductData(updatedProduct);
+      
       const productData = {
-        name: updatedProduct.name,
-        category: updatedProduct.category,
-        price: updatedProduct.price,
-        quantity: updatedProduct.quantity,
-        description: updatedProduct.description || 'No description',
-        image: updatedProduct.image || '/default-product-image.jpg'
+        name: sanitizedProduct.name,
+        category: sanitizedProduct.category,
+        price: sanitizedProduct.price,
+        quantity: sanitizedProduct.quantity,
+        description: sanitizedProduct.description || 'No description',
+        image: sanitizedProduct.image || '/default-product-image.jpg'
       };
 
       const response = await axios.put(`/api/farmerProducts/${updatedProduct._id}`, productData, config);
@@ -248,9 +263,9 @@ const ProductSection = ({ farmerData }) => {
 
       {/* Add/Edit Product Modal */}
       {(isAddProductDialogOpen || editingProduct) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-bold text-green-800">
                 {editingProduct ? "Edit Product" : "Add New Product"}
               </h2>
@@ -264,6 +279,7 @@ const ProductSection = ({ farmerData }) => {
                 ✕
               </button>
             </div>
+            <div className="overflow-y-auto p-6 flex-grow">
             <ProductForm 
               onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct}
               onCancel={() => {
@@ -280,6 +296,7 @@ const ProductSection = ({ farmerData }) => {
                 image: ''
               }}
             />
+            </div>
           </div>
         </div>
       )}
@@ -287,81 +304,192 @@ const ProductSection = ({ farmerData }) => {
   );
 };
 
-// ProductForm component (same as in previous implementation)
+// ProductForm component with image upload and preview
 const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
+  const [focusedField, setFocusedField] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Validation and form handling methods (same as previous implementation)
+  // Base URL for backend (match with your backend setup)
+  const BACKEND_URL = 'http://localhost:5000'; // Adjust if your backend runs on a different port or domain
+
+  // Initialize image preview when component mounts or initialData changes
+  useEffect(() => {
+    if (initialData.image) {
+      // If the image is a relative path, prepend the backend URL
+      const imageUrl = initialData.image.startsWith('http')
+        ? initialData.image
+        : `${BACKEND_URL}${initialData.image}`;
+      setImagePreview(imageUrl);
+    } else {
+      setImagePreview(''); // Clear preview if no image
+    }
+  }, [initialData.image]);
+
+  // Validation methods (unchanged)
   const validateName = (name) => {
-    const nameRegex = /^[a-zA-Z\s]+$/;
+    const nameRegex = /^[a-zA-Z0-9\s.,'-]+$/;
     return nameRegex.test(name);
   };
 
   const validateDescription = (description) => {
-    const descriptionRegex = /^[a-zA-Z0-9\s.,!?()-]+$/;
+    const descriptionRegex = /^[a-zA-Z0-9\s.,!?;:()'"_\-+%&$#@]+$/;
     return descriptionRegex.test(description);
   };
 
+  const validateImageUrl = (url) => {
+    if (!url) return true; // Optional field
+    const urlRegex = /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$/i;
+    return urlRegex.test(url);
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type and size
+      const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
+      if (!validTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          imageFile: 'Only PNG, JPG, or JPEG images are allowed',
+        }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          imageFile: 'Image size must be less than 5MB',
+        }));
+        return;
+      }
+
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setErrors((prev) => ({ ...prev, imageFile: undefined }));
+      // Clear image URL field when a file is selected
+      setFormData({ ...formData, image: '' });
+    }
+  };
+
   const handleNameChange = (e) => {
-    const newName = e.target.value;
-    
+    const newName = e.target.value.slice(0, 100);
     if (validateName(newName) || newName === '') {
-      const newErrors = { ...errors };
-      delete newErrors.name;
-      setErrors(newErrors);
+      setErrors((prev) => ({ ...prev, name: undefined }));
     } else {
-      setErrors(prev => ({
-        ...prev, 
-        name: 'Name can only contain letters and spaces'
+      setErrors((prev) => ({
+        ...prev,
+        name: 'Name can only contain letters, numbers, spaces and basic punctuation',
       }));
     }
-
-    setFormData({...formData, name: newName});
+    setFormData({ ...formData, name: newName });
   };
 
   const handleDescriptionChange = (e) => {
-    const newDescription = e.target.value;
-    
+    const newDescription = e.target.value.slice(0, 500);
     if (validateDescription(newDescription) || newDescription === '') {
-      const newErrors = { ...errors };
-      delete newErrors.description;
-      setErrors(newErrors);
+      setErrors((prev) => ({ ...prev, description: undefined }));
     } else {
-      setErrors(prev => ({
-        ...prev, 
-        description: 'Description can only contain letters, numbers, spaces, and basic punctuation'
+      setErrors((prev) => ({
+        ...prev,
+        description: 'Description contains invalid characters',
       }));
     }
-
-    setFormData({...formData, description: newDescription});
+    setFormData({ ...formData, description: newDescription });
   };
 
-  const handleSubmit = (e) => {
+  const handleImageUrlChange = (e) => {
+    const newUrl = e.target.value;
+    if (validateImageUrl(newUrl)) {
+      setErrors((prev) => ({ ...prev, image: undefined }));
+    } else {
+      setErrors((prev) => ({ ...prev, image: 'Please enter a valid URL' }));
+    }
+    setFormData({ ...formData, image: newUrl });
+    setImagePreview(newUrl || '');
+    // Clear image file when a URL is entered
+    setImageFile(null);
+  };
+
+  const handlePriceChange = (e) => {
+    let value = e.target.value;
+    if (value.includes('.')) {
+      const [intPart, decPart] = value.split('.');
+      if (intPart.length > 5) {
+        value = intPart.slice(0, 5) + '.' + decPart;
+      }
+    } else if (value.length > 5) {
+      value = value.slice(0, 5);
+    }
+    const newPrice = parseFloat(value) || 0;
+    setFormData({ ...formData, price: value === '' ? '' : newPrice });
+    if (newPrice > 0) {
+      setErrors((prev) => ({ ...prev, price: undefined }));
+    } else if (value !== '') {
+      setErrors((prev) => ({ ...prev, price: 'Price must be greater than zero' }));
+    }
+  };
+
+  const handleQuantityChange = (e) => {
+    let value = e.target.value;
+    if (value.length > 4) {
+      value = value.slice(0, 4);
+    }
+    const newQuantity = parseInt(value) || 0;
+    setFormData({ ...formData, quantity: value === '' ? '' : newQuantity });
+    if (newQuantity > 0) {
+      setErrors((prev) => ({ ...prev, quantity: undefined }));
+    } else if (value !== '') {
+      setErrors((prev) => ({
+        ...prev,
+        quantity: 'Quantity must be greater than zero',
+      }));
+    }
+  };
+
+  const handleFocus = (fieldName) => {
+    setFocusedField(fieldName);
+    if (errors[fieldName]) {
+      setErrors((prev) => ({ ...prev, [fieldName]: undefined }));
+    }
+  };
+
+  const handleBlur = () => {
+    setFocusedField(null);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     const validationErrors = {};
 
     if (!formData.name) {
       validationErrors.name = 'Product name is required';
     } else if (!validateName(formData.name)) {
-      validationErrors.name = 'Name can only contain letters, numbers, spaces, apostrophes, periods, and hyphens';
+      validationErrors.name = 'Name contains invalid characters';
     }
 
     if (formData.description && !validateDescription(formData.description)) {
-      validationErrors.description = 'Description can only contain letters, numbers, spaces, and basic punctuation';
+      validationErrors.description = 'Description contains invalid characters';
     }
 
     if (!formData.category) {
       validationErrors.category = 'Category is required';
     }
 
-    if (formData.price <= 0) {
+    if (!formData.price || formData.price <= 0) {
       validationErrors.price = 'Price must be greater than zero';
     }
 
-    if (formData.quantity <= 0) {
+    if (!formData.quantity || formData.quantity <= 0) {
       validationErrors.quantity = 'Quantity must be greater than zero';
+    }
+
+    if (!imageFile && !formData.image) {
+      validationErrors.image = 'An image file or URL is required';
+    } else if (formData.image && !validateImageUrl(formData.image)) {
+      validationErrors.image = 'Please enter a valid URL';
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -369,50 +497,99 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       return;
     }
 
-    setErrors({});
-    onSubmit(formData);
+    try {
+      let imageUrl = formData.image;
+      if (imageFile) {
+        setIsUploading(true);
+        const token = localStorage.getItem('farmerToken');
+        const formDataUpload = new FormData();
+        formDataUpload.append('image', imageFile);
+
+        const uploadResponse = await axios.post('/api/upload', formDataUpload, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (uploadResponse.data.imageUrl) {
+          imageUrl = uploadResponse.data.imageUrl;
+        } else {
+          throw new Error('Image upload failed');
+        }
+      }
+
+      const productData = {
+        ...formData,
+        image: imageUrl || '/default-product-image.jpg',
+      };
+
+      await onSubmit(productData);
+      setErrors({});
+      setImageFile(null);
+      setImagePreview('');
+    } catch (err) {
+      setErrors({ submit: err.response?.data?.error || 'Failed to upload image or save product' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Form fields remain the same as in previous implementation */}
       <div>
         <label className="block text-green-700 mb-2">Product Name</label>
         <input 
           type="text"
           value={formData.name}
           onChange={handleNameChange}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
-            ${errors.name ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
+          onFocus={() => handleFocus('name')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('name')(errors, focusedField)}`}
+          maxLength={100}
           required 
         />
+        {focusedField === 'name' && !errors.name && (
+          <p className="text-blue-600 text-sm mt-1">Enter product name (max 100 characters)</p>
+        )}
         {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
       
-      {/* Remaining form fields with similar structure */}
       <div>
         <label className="block text-green-700 mb-2">Description</label>
         <textarea 
           value={formData.description || ''}
           onChange={handleDescriptionChange}
-          className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
-            ${errors.description ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
+          onFocus={() => handleFocus('description')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('description')(errors, focusedField)}`}
           rows="3"
+          maxLength={500}
         />
+        {focusedField === 'description' && !errors.description && (
+          <p className="text-blue-600 text-sm mt-1">Enter product description (max 500 characters)</p>
+        )}
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
 
-      {/* Category, Price, Quantity, Certification inputs */}
       <div>
         <label className="block text-green-700 mb-2">Category</label>
         <select 
           value={formData.category}
           onChange={(e) => setFormData({...formData, category: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onFocus={() => handleFocus('category')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('category')(errors, focusedField)}`}
+          required
         >
-          <option value="Organic">Vegetables</option>
-          <option value="GAP">Fruits</option>
+          <option value="">Select a category</option>
+          <option value="Vegetables">Vegetables</option>
+          <option value="Fruits">Fruits</option>
         </select>
+        {focusedField === 'category' && !errors.category && (
+          <p className="text-blue-600 text-sm mt-1">Select product category</p>
+        )}
+        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -422,20 +599,17 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
             type="number" 
             step="0.01"
             min="0.01"
+            max="99999.99"
             value={formData.price}
-            onChange={(e) => {
-              const newPrice = parseFloat(e.target.value) || 0;
-              setFormData({...formData, price: newPrice});
-              if (newPrice > 0) {
-                const newErrors = { ...errors };
-                delete newErrors.price;
-                setErrors(newErrors);
-              }
-            }}
-            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
-              ${errors.price ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
+            onChange={handlePriceChange}
+            onFocus={() => handleFocus('price')}
+            onBlur={handleBlur}
+            className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('price')(errors, focusedField)}`}
             required 
           />
+          {focusedField === 'price' && !errors.price && (
+            <p className="text-blue-600 text-sm mt-1">Max 99,999.99 LKR</p>
+          )}
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
         <div>
@@ -443,20 +617,17 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
           <input 
             type="number" 
             min="1"
+            max="9999"
             value={formData.quantity}
-            onChange={(e) => {
-              const newQuantity = parseInt(e.target.value) || 0;
-              setFormData({...formData, quantity: newQuantity});
-              if (newQuantity > 0) {
-                const newErrors = { ...errors };
-                delete newErrors.quantity;
-                setErrors(newErrors);
-              }
-            }}
-            className={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 
-              ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'focus:ring-green-500'}`}
+            onChange={handleQuantityChange}
+            onFocus={() => handleFocus('quantity')}
+            onBlur={handleBlur}
+            className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('quantity')(errors, focusedField)}`}
             required 
           />
+          {focusedField === 'quantity' && !errors.quantity && (
+            <p className="text-blue-600 text-sm mt-1">Max 9,999 kg</p>
+          )}
           {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
         </div>
       </div>
@@ -466,40 +637,99 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
         <select 
           value={formData.certification}
           onChange={(e) => setFormData({...formData, certification: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onFocus={() => handleFocus('certification')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('certification')(errors, focusedField)}`}
         >
           <option value="Organic">Organic</option>
           <option value="GAP">GAP</option>
         </select>
+        {focusedField === 'certification' && (
+          <p className="text-blue-600 text-sm mt-1">Select product certification</p>
+        )}
       </div>
-      
+
+      <div>
+        <label className="block text-green-700 mb-2">Upload Product Image</label>
+        <input
+          type="file"
+          accept="image/png,image/jpg,image/jpeg"
+          onChange={handleImageFileChange}
+          onFocus={() => handleFocus('imageFile')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('imageFile')(errors, focusedField)}`}
+          disabled={isUploading}
+        />
+        {focusedField === 'imageFile' && !errors.imageFile && (
+          <p className="text-blue-600 text-sm mt-1">Upload PNG, JPG, or JPEG (max 5MB)</p>
+        )}
+        {errors.imageFile && <p className="text-red-500 text-sm mt-1">{errors.imageFile}</p>}
+        {imagePreview && (
+          <img
+            src={imagePreview}
+            alt="Product Preview"
+            className="mt-2 w-full h-32 object-cover rounded"
+            onError={(e) => {
+              e.target.src = '/default-product-image.jpg';
+              setErrors((prev) => ({
+                ...prev,
+                imagePreview: 'Failed to load image preview',
+              }));
+            }}
+          />
+        )}
+        {errors.imagePreview && <p className="text-red-500 text-sm mt-1">{errors.imagePreview}</p>}
+      </div>
+
       <div>
         <label className="block text-green-700 mb-2">Image URL (Optional)</label>
         <input 
           type="text"
           value={formData.image || ''}
-          onChange={(e) => setFormData({...formData, image: e.target.value})}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+          onChange={handleImageUrlChange}
+          onFocus={() => handleFocus('image')}
+          onBlur={handleBlur}
+          className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('image')(errors, focusedField)}`}
+          disabled={isUploading}
         />
+        {focusedField === 'image' && !errors.image && (
+          <p className="text-blue-600 text-sm mt-1">Enter a valid image URL (optional if file uploaded)</p>
+        )}
+        {errors.image && <p className="text-red-500 text-sm mt-1">{errors.image}</p>}
       </div>
+
+      {errors.submit && <p className="text-red-500 text-sm">{errors.submit}</p>}
       
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 pt-2">
         <button 
           type="submit" 
-          className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700"
+          className={`flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition duration-200 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={isUploading}
         >
-          {initialData._id ? "Update" : "Add"} Product
+          {isUploading ? 'Uploading...' : initialData._id ? 'Update' : 'Add'} Product
         </button>
         <button 
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300"
+          className="flex-1 bg-gray-200 text-gray-700 py-2 rounded hover:bg-gray-300 transition duration-200"
+          disabled={isUploading}
         >
           Cancel
         </button>
       </div>
     </form>
   );
+};
+
+// Update getInputStyles to handle dynamic arguments correctly
+const getInputStyles = (fieldName) => (errors, focusedField) => {
+  if (errors[fieldName]) {
+    return "border-red-500 focus:ring-red-500 focus:border-red-500";
+  }
+  if (focusedField === fieldName) {
+    return "border-blue-500 ring-2 ring-blue-200 focus:border-blue-500";
+  }
+  return "border-gray-300 focus:ring-green-500 focus:border-green-500";
 };
 
 export default ProductSection;

@@ -9,14 +9,17 @@ import {
   LogOut,
   Sprout
 } from 'lucide-react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Farmer Components
 import ProductSection from './pages/FarmerPages/MyProduct';
 import ProfileSection from './pages/FarmerPages/MyProfile';
+import FarmerProductPreview from './pages/FarmerPages/FarmerProductPreview'; // Updated import
 import Login from './pages/FarmerPages/Login';
 import Register from './pages/FarmerPages/Register';
+import FarmerForgotPassword from './pages/FarmerPages/FarmerFogortPassword';
+import FarmerResetPassword from './pages/FarmerPages/FarmerResetPassword';
 
 function FarmerDashboard({ farmerData, onLogout }) {
   const [activeSection, setActiveSection] = useState('products');
@@ -31,12 +34,11 @@ function FarmerDashboard({ farmerData, onLogout }) {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Sidebar Navigation */}
       <div className="w-64 bg-black text-white p-4">
-      <div className="flex items-center text-2xl font-bold mb-8 space-x-2">
-      <Sprout className="text-green-400" /> 
-      <span>Freshly.lk</span>
-    </div>
+        <div className="flex items-center text-2xl font-bold mb-8 space-x-2">
+          <Sprout className="text-green-400" /> 
+          <span>Freshly.lk</span>
+        </div>
         <nav className="space-y-2">
           {sidebarItems.map(({ name, icon: Icon, section }) => (
             <button
@@ -62,27 +64,29 @@ function FarmerDashboard({ farmerData, onLogout }) {
         </nav>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 p-8 overflow-y-auto">
-        {activeSection === 'products' && (
-          <ProductSection farmerData={farmerData} />
-        )}
-
-        {activeSection === 'profile' && (
-          <ProfileSection farmerData={farmerData} />
-        )}
-
-        {activeSection === 'complaints' && (
-          <div className="text-3xl font-bold text-green-800">Complaints Section</div>
-        )}
-
-        {activeSection === 'analytics' && (
-          <div className="text-3xl font-bold text-green-800">Analytics Section</div>
-        )}
-
-        {activeSection === 'help' && (
-          <div className="text-3xl font-bold text-green-800">Help Bot Section</div>
-        )}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              activeSection === 'products' ? (
+                <ProductSection farmerData={farmerData} />
+              ) : activeSection === 'profile' ? (
+                <ProfileSection farmerData={farmerData} />
+              ) : activeSection === 'complaints' ? (
+                <div className="text-3xl font-bold text-green-800">Complaints Section</div>
+              ) : activeSection === 'analytics' ? (
+                <div className="text-3xl font-bold text-green-800">Analytics Section</div>
+              ) : (
+                <div className="text-3xl font-bold text-green-800">Help Bot Section</div>
+              )
+            }
+          />
+          <Route
+            path="/product/:id"
+            element={<FarmerProductPreview />}
+          />
+        </Routes>
       </div>
     </div>
   );
@@ -110,7 +114,6 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
         <Route 
           path="/login" 
           element={
@@ -127,18 +130,30 @@ function App() {
             <Navigate to="/dashboard" />
           } 
         />
-
-        {/* Protected Route */}
         <Route 
-          path="/dashboard" 
+          path="/forgot-password" 
+          element={
+            !isAuthenticated ? 
+            <FarmerForgotPassword /> : 
+            <Navigate to="/dashboard" />
+          } 
+        />
+        <Route 
+          path="/reset-password" 
+          element={
+            !isAuthenticated ? 
+            <FarmerResetPassword /> : 
+            <Navigate to="/dashboard" />
+          } 
+        />
+        <Route 
+          path="/dashboard/*" 
           element={
             isAuthenticated ? 
             <FarmerDashboard farmerData={farmerData} onLogout={handleLogout} /> : 
             <Navigate to="/login" />
           } 
         />
-
-        {/* Default Redirect */}
         <Route 
           path="/" 
           element={<Navigate to="/login" />} 

@@ -15,8 +15,11 @@ const Register = ({ onRegistrationSuccess }) => {
     }
   });
 
-  // New state for validation errors
+  // State for validation errors
   const [errors, setErrors] = useState({});
+  
+  // State to track touched fields for showing conditions
+  const [touched, setTouched] = useState({});
 
   // Validation functions
   const validateName = (name) => {
@@ -32,18 +35,75 @@ const Register = ({ onRegistrationSuccess }) => {
   };
 
   const validatePassword = (password) => {
-    // At least 8 characters long
-    return password.length >= 8;
+    // At least 8 characters with at least one uppercase, one lowercase, one number and one special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
+  const validatePhone = (phone) => {
+    // Exactly 10 digits
+    const phoneRegex = /^\d{10}$/;
+    return phoneRegex.test(phone);
   };
 
   const validateNIC = (nic) => {
-    // Either 12 digits or 10 digits followed by V/v
+    // Either 12 digits or 9 digits followed by V/v
     const nicRegex = /^(\d{12}|\d{9}[Vv])$/;
     return nicRegex.test(nic);
   };
 
+  const validateStreetNo = (streetNo) => {
+    // Allow alphanumeric values but limit to 10 characters
+    return streetNo.length > 0 && streetNo.length <= 10;
+  };
+
+  const sanitizeInput = (value, type) => {
+    let sanitized = value;
+    
+    switch(type) {
+      case 'name':
+        // Remove any characters that aren't letters or dots
+        sanitized = value.replace(/[^A-Za-z.]/g, '');
+        break;
+      case 'phone':
+        // Keep only digits and limit to 10
+        sanitized = value.replace(/\D/g, '').substring(0, 10);
+        break;
+      case 'nic':
+        // For NIC, allow digits and 'V'/'v' at the end, limit to 12 chars max
+        if (value.length > 0 && (value[value.length - 1] === 'V' || value[value.length - 1] === 'v')) {
+          // If last char is V/v, keep it and sanitize the rest to digits only
+          const digits = value.slice(0, -1).replace(/\D/g, '').substring(0, 9);
+          sanitized = digits + value[value.length - 1];
+        } else {
+          // Otherwise keep only digits and limit to 12
+          sanitized = value.replace(/\D/g, '').substring(0, 12);
+        }
+        break;
+      case 'streetNo':
+        // Allow alphanumeric but limit to 10 chars
+        sanitized = value.replace(/[^A-Za-z0-9\s/]/g, '').substring(0, 10);
+        break;
+      case 'city':
+      case 'district':
+        // Allow only letters, spaces, and hyphens for city and district
+        sanitized = value.replace(/[^A-Za-z\s-]/g, '').substring(0, 30);
+        break;
+      default:
+        // Default case - no sanitization
+        break;
+    }
+    
+    return sanitized;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Mark field as touched
+    if (!touched[name]) {
+      setTouched(prev => ({ ...prev, [name]: true }));
+    }
     
     // Clear specific error when user starts typing
     if (errors[name]) {
@@ -53,49 +113,122 @@ const Register = ({ onRegistrationSuccess }) => {
     // Handle nested farm address fields
     if (name.startsWith('farmAddress.')) {
       const addressField = name.split('.')[1];
+      const sanitizedValue = sanitizeInput(value, addressField);
+      
       setFormData(prevState => ({
         ...prevState,
         farmAddress: {
           ...prevState.farmAddress,
-          [addressField]: value
+          [addressField]: sanitizedValue
         }
       }));
+      
+      // Mark nested field as touched
+      setTouched(prev => ({ ...prev, [addressField]: true }));
     } else {
+      // Sanitize input based on field type
+      const sanitizedValue = sanitizeInput(value, name);
+      
       setFormData(prevState => ({
         ...prevState,
-        [name]: value
+        [name]: sanitizedValue
       }));
     }
   };
 
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    
+    // Validate the field on blur and update errors
+    validateField(name);
+  };
+  
+  const validateField = (name) => {
+    let valid = true;
+    let errorMessage = '';
+    
+    // Extract the base field name for nested objects
+    const baseField = name.includes('.') ? name.split('.')[1] : name;
+    
+    // Get the field value (handle nested objects)
+    const value = name.includes('.')
+      ? formData.farmAddress[baseField]
+      : formData[name];
+    
+    switch(baseField) {
+      case 'name':
+        valid = validateName(value);
+        errorMessage = 'Name should only contain letters and optional dots';
+        break;
+      case 'email':
+        valid = validateEmail(value);
+        errorMessage = 'Please enter a valid email address';
+        break;
+      case 'password':
+        valid = validatePassword(value);
+        errorMessage = 'Password must meet all requirements';
+        break;
+      case 'phone':
+        valid = validatePhone(value);
+        errorMessage = 'Phone number must be exactly 10 digits';
+        break;
+      case 'nic':
+        valid = validateNIC(value);
+        errorMessage = 'NIC must be 12 digits or 9 digits with V/v at end';
+        break;
+      case 'streetNo':
+        valid = validateStreetNo(value);
+        errorMessage = 'Street number must be between 1-10 characters';
+        break;
+      case 'city':
+      case 'district':
+        valid = value.trim().length > 0;
+        errorMessage = `${baseField.charAt(0).toUpperCase() + baseField.slice(1)} is required`;
+        break;
+      default:
+        break;
+    }
+    
+    // Update errors state if invalid
+    if (!valid) {
+      setErrors(prev => ({ ...prev, [baseField]: errorMessage }));
+    } else {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[baseField];
+        return newErrors;
+      });
+    }
+    
+    return valid;
+  };
+
   const validateForm = () => {
-    const newErrors = {};
+    const fieldsToValidate = [
+      'name', 'email', 'password', 'phone', 'nic', 
+      'farmAddress.streetNo', 'farmAddress.city', 'farmAddress.district'
+    ];
+    
+    let isValid = true;
+    
+    // Validate each field and collect errors
+    fieldsToValidate.forEach(field => {
+      const fieldValid = validateField(field);
+      if (!fieldValid) isValid = false;
+    });
+    
+    return isValid;
+  };
 
-    // Name validation
-    if (!validateName(formData.name)) {
-      newErrors.name = 'Name should only contain letters and optional dots';
-    }
-
-    // Email validation
-    if (!validateEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation
-    if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters long';
-    }
-
-    // NIC validation
-    if (!validateNIC(formData.nic)) {
-      newErrors.nic = 'NIC must be 12 digits or 10 digits with V/v at end';
-    }
-
-    // Set errors
-    setErrors(newErrors);
-
-    // Return true if no errors
-    return Object.keys(newErrors).length === 0;
+  // Check specific password criteria for visual feedback
+  const checkPasswordCriteria = (password) => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[@$!%*?&]/.test(password)
+    };
   };
 
   const handleSubmit = async (e) => {
@@ -105,6 +238,21 @@ const Register = ({ onRegistrationSuccess }) => {
     if (!validateForm()) {
       return;
     }
+    
+    // Create a sanitized copy of the data for submission
+    const sanitizedData = {
+      ...formData,
+      // Encode HTML special characters to prevent XSS
+      name: encodeURIComponent(formData.name),
+      email: encodeURIComponent(formData.email),
+      phone: encodeURIComponent(formData.phone),
+      nic: encodeURIComponent(formData.nic),
+      farmAddress: {
+        streetNo: encodeURIComponent(formData.farmAddress.streetNo),
+        city: encodeURIComponent(formData.farmAddress.city),
+        district: encodeURIComponent(formData.farmAddress.district)
+      }
+    };
 
     try {
       const response = await fetch('/api/farmers/register', {
@@ -112,9 +260,14 @@ const Register = ({ onRegistrationSuccess }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(sanitizedData),
         credentials: 'include'
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Server error');
+      }
 
       const data = await response.json();
 
@@ -129,7 +282,7 @@ const Register = ({ onRegistrationSuccess }) => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      alert('An error occurred during registration');
+      alert(`Registration failed: ${error.message}`);
     }
   };
 
@@ -138,13 +291,16 @@ const Register = ({ onRegistrationSuccess }) => {
     navigate('/login');
   };
 
+  // Calculate password strength criteria
+  const passwordCriteria = checkPasswordCriteria(formData.password);
+
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border-2 border-green-600">
         <h2 className="text-3xl font-bold text-center text-green-700 mb-6">
           Farmer Registration
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label className="block text-green-800 mb-2">Full Name</label>
             <input
@@ -152,12 +308,18 @@ const Register = ({ onRegistrationSuccess }) => {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
                 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
               placeholder="Enter your full name"
               required
+              maxLength="50"
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {touched.name && (
+              <p className={`text-sm mt-1 ${errors.name ? 'text-red-500' : 'text-blue-500'}`}>
+                {errors.name || "Only letters and dots are allowed"}
+              </p>
+            )}
           </div>
 
           <div>
@@ -167,12 +329,18 @@ const Register = ({ onRegistrationSuccess }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
                 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
               placeholder="Enter your email"
               required
+              maxLength="100"
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {touched.email && (
+              <p className={`text-sm mt-1 ${errors.email ? 'text-red-500' : 'text-blue-500'}`}>
+                {errors.email || "Must be a valid email format (example@domain.com)"}
+              </p>
+            )}
           </div>
 
           <div>
@@ -182,12 +350,35 @@ const Register = ({ onRegistrationSuccess }) => {
               name="password"
               value={formData.password}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
                 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
               placeholder="Create a strong password"
               required
+              maxLength="64"
+              aria-describedby="password-requirements"
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            
+            {/* Password requirements list with dynamic coloring */}
+            {touched.password && (
+              <ul className="text-sm mt-2 space-y-1">
+                <li className={passwordCriteria.length ? "text-blue-500" : "text-red-500"}>
+                  • At least 8 characters
+                </li>
+                <li className={passwordCriteria.uppercase ? "text-blue-500" : "text-red-500"}>
+                  • At least one uppercase letter
+                </li>
+                <li className={passwordCriteria.lowercase ? "text-blue-500" : "text-red-500"}>
+                  • At least one lowercase letter
+                </li>
+                <li className={passwordCriteria.number ? "text-blue-500" : "text-red-500"}>
+                  • At least one number
+                </li>
+                <li className={passwordCriteria.special ? "text-blue-500" : "text-red-500"}>
+                  • At least one special character (@, $, !, %, *, ?, &)
+                </li>
+              </ul>
+            )}
           </div>
 
           <div>
@@ -197,10 +388,18 @@ const Register = ({ onRegistrationSuccess }) => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full p-3 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              onBlur={handleBlur}
+              className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
+                ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
               placeholder="Enter your phone number"
               required
+              maxLength="10"
             />
+            {touched.phone && (
+              <p className={`text-sm mt-1 ${errors.phone ? 'text-red-500' : 'text-blue-500'}`}>
+                {errors.phone || "Must be exactly 10 digits"}
+              </p>
+            )}
           </div>
 
           <div>
@@ -210,44 +409,80 @@ const Register = ({ onRegistrationSuccess }) => {
               name="nic"
               value={formData.nic}
               onChange={handleChange}
+              onBlur={handleBlur}
               className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
                 ${errors.nic ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
               placeholder="Enter your National ID number"
               required
+              maxLength="12"
             />
-            {errors.nic && <p className="text-red-500 text-sm mt-1">{errors.nic}</p>}
+            {touched.nic && (
+              <p className={`text-sm mt-1 ${errors.nic ? 'text-red-500' : 'text-blue-500'}`}>
+                {errors.nic || "Must be 12 digits or 9 digits followed by V/v"}
+              </p>
+            )}
           </div>
 
           <div className="bg-green-50 p-4 rounded-md">
             <h3 className="text-xl font-semibold text-green-700 mb-4">Farm Address</h3>
             <div className="space-y-3">
-              <input
-                type="text"
-                name="farmAddress.streetNo"
-                value={formData.farmAddress.streetNo}
-                onChange={handleChange}
-                className="w-full p-3 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="Street Number"
-                required
-              />
-              <input
-                type="text"
-                name="farmAddress.city"
-                value={formData.farmAddress.city}
-                onChange={handleChange}
-                className="w-full p-3 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="City"
-                required
-              />
-              <input
-                type="text"
-                name="farmAddress.district"
-                value={formData.farmAddress.district}
-                onChange={handleChange}
-                className="w-full p-3 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="District"
-                required
-              />
+              <div>
+                <input
+                  type="text"
+                  name="farmAddress.streetNo"
+                  value={formData.farmAddress.streetNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
+                    ${errors.streetNo ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
+                  placeholder="Street Number"
+                  required
+                  maxLength="10"
+                />
+                {touched.streetNo && (
+                  <p className={`text-sm mt-1 ${errors.streetNo ? 'text-red-500' : 'text-blue-500'}`}>
+                    {errors.streetNo || "Up to 10 alphanumeric characters allowed"}
+                  </p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="farmAddress.city"
+                  value={formData.farmAddress.city}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
+                    ${errors.city ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
+                  placeholder="City"
+                  required
+                  maxLength="30"
+                />
+                {touched.city && (
+                  <p className={`text-sm mt-1 ${errors.city ? 'text-red-500' : 'text-blue-500'}`}>
+                    {errors.city || "Only letters, spaces and hyphens allowed"}
+                  </p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  name="farmAddress.district"
+                  value={formData.farmAddress.district}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={`w-full p-3 border rounded-md focus:outline-none focus:ring-2 
+                    ${errors.district ? 'border-red-500 focus:ring-red-500' : 'border-green-300 focus:ring-green-500'}`}
+                  placeholder="District"
+                  required
+                  maxLength="30"
+                />
+                {touched.district && (
+                  <p className={`text-sm mt-1 ${errors.district ? 'text-red-500' : 'text-blue-500'}`}>
+                    {errors.district || "Only letters, spaces and hyphens allowed"}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
