@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast, { Toaster } from 'react-hot-toast';
 
 const Register = ({ onRegistrationSuccess }) => {
   const [formData, setFormData] = useState({
@@ -15,45 +16,35 @@ const Register = ({ onRegistrationSuccess }) => {
     }
   });
 
-  // State for validation errors
   const [errors, setErrors] = useState({});
-  
-  // State to track touched fields for showing conditions
   const [touched, setTouched] = useState({});
 
-  // Validation functions
   const validateName = (name) => {
-    // Only allow letters and dot, no consecutive dots or dots at start/end
     const nameRegex = /^[A-Za-z]+(\.[A-Za-z]+)*$/;
     return nameRegex.test(name);
   };
 
   const validateEmail = (email) => {
-    // Standard email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   const validatePassword = (password) => {
-    // At least 8 characters with at least one uppercase, one lowercase, one number and one special character
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password);
   };
 
   const validatePhone = (phone) => {
-    // Exactly 10 digits
     const phoneRegex = /^\d{10}$/;
     return phoneRegex.test(phone);
   };
 
   const validateNIC = (nic) => {
-    // Either 12 digits or 9 digits followed by V/v
     const nicRegex = /^(\d{12}|\d{9}[Vv])$/;
     return nicRegex.test(nic);
   };
 
   const validateStreetNo = (streetNo) => {
-    // Allow alphanumeric values but limit to 10 characters
     return streetNo.length > 0 && streetNo.length <= 10;
   };
 
@@ -62,35 +53,27 @@ const Register = ({ onRegistrationSuccess }) => {
     
     switch(type) {
       case 'name':
-        // Remove any characters that aren't letters or dots
         sanitized = value.replace(/[^A-Za-z.]/g, '');
         break;
       case 'phone':
-        // Keep only digits and limit to 10
         sanitized = value.replace(/\D/g, '').substring(0, 10);
         break;
       case 'nic':
-        // For NIC, allow digits and 'V'/'v' at the end, limit to 12 chars max
         if (value.length > 0 && (value[value.length - 1] === 'V' || value[value.length - 1] === 'v')) {
-          // If last char is V/v, keep it and sanitize the rest to digits only
           const digits = value.slice(0, -1).replace(/\D/g, '').substring(0, 9);
           sanitized = digits + value[value.length - 1];
         } else {
-          // Otherwise keep only digits and limit to 12
           sanitized = value.replace(/\D/g, '').substring(0, 12);
         }
         break;
       case 'streetNo':
-        // Allow alphanumeric but limit to 10 chars
         sanitized = value.replace(/[^A-Za-z0-9\s/]/g, '').substring(0, 10);
         break;
       case 'city':
       case 'district':
-        // Allow only letters, spaces, and hyphens for city and district
         sanitized = value.replace(/[^A-Za-z\s-]/g, '').substring(0, 30);
         break;
       default:
-        // Default case - no sanitization
         break;
     }
     
@@ -100,17 +83,14 @@ const Register = ({ onRegistrationSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Mark field as touched
     if (!touched[name]) {
       setTouched(prev => ({ ...prev, [name]: true }));
     }
     
-    // Clear specific error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
 
-    // Handle nested farm address fields
     if (name.startsWith('farmAddress.')) {
       const addressField = name.split('.')[1];
       const sanitizedValue = sanitizeInput(value, addressField);
@@ -123,10 +103,8 @@ const Register = ({ onRegistrationSuccess }) => {
         }
       }));
       
-      // Mark nested field as touched
       setTouched(prev => ({ ...prev, [addressField]: true }));
     } else {
-      // Sanitize input based on field type
       const sanitizedValue = sanitizeInput(value, name);
       
       setFormData(prevState => ({
@@ -138,8 +116,6 @@ const Register = ({ onRegistrationSuccess }) => {
 
   const handleBlur = (e) => {
     const { name } = e.target;
-    
-    // Validate the field on blur and update errors
     validateField(name);
   };
   
@@ -147,10 +123,7 @@ const Register = ({ onRegistrationSuccess }) => {
     let valid = true;
     let errorMessage = '';
     
-    // Extract the base field name for nested objects
     const baseField = name.includes('.') ? name.split('.')[1] : name;
-    
-    // Get the field value (handle nested objects)
     const value = name.includes('.')
       ? formData.farmAddress[baseField]
       : formData[name];
@@ -189,7 +162,6 @@ const Register = ({ onRegistrationSuccess }) => {
         break;
     }
     
-    // Update errors state if invalid
     if (!valid) {
       setErrors(prev => ({ ...prev, [baseField]: errorMessage }));
     } else {
@@ -211,7 +183,6 @@ const Register = ({ onRegistrationSuccess }) => {
     
     let isValid = true;
     
-    // Validate each field and collect errors
     fieldsToValidate.forEach(field => {
       const fieldValid = validateField(field);
       if (!fieldValid) isValid = false;
@@ -220,7 +191,6 @@ const Register = ({ onRegistrationSuccess }) => {
     return isValid;
   };
 
-  // Check specific password criteria for visual feedback
   const checkPasswordCriteria = (password) => {
     return {
       length: password.length >= 8,
@@ -234,24 +204,23 @@ const Register = ({ onRegistrationSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form before submission
     if (!validateForm()) {
+      toast.error('Please fix the form errors before submitting.', {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
       return;
     }
     
-    // Create a sanitized copy of the data for submission
-    const sanitizedData = {
+    // Use raw formData (sanitized by sanitizeInput, validated by validateEmail)
+    const submissionData = {
       ...formData,
-      // Encode HTML special characters to prevent XSS
-      name: encodeURIComponent(formData.name),
-      email: encodeURIComponent(formData.email),
-      phone: encodeURIComponent(formData.phone),
-      nic: encodeURIComponent(formData.nic),
-      farmAddress: {
-        streetNo: encodeURIComponent(formData.farmAddress.streetNo),
-        city: encodeURIComponent(formData.farmAddress.city),
-        district: encodeURIComponent(formData.farmAddress.district)
-      }
+      // Password is not sanitized/encoded to preserve special characters
+      password: formData.password,
     };
 
     try {
@@ -260,7 +229,7 @@ const Register = ({ onRegistrationSuccess }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(sanitizedData),
+        body: JSON.stringify(submissionData),
         credentials: 'include'
       });
 
@@ -272,17 +241,37 @@ const Register = ({ onRegistrationSuccess }) => {
       const data = await response.json();
 
       if (data.success) {
-        alert('Registration Successful!');
-        // Call the prop function to handle navigation or state update
+        toast.success('Registration Successful!', {
+          style: {
+            background: '#34D399', // Match FarmerDashboard.jsx
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
         if (onRegistrationSuccess) {
-          onRegistrationSuccess(data);
+          setTimeout(() => onRegistrationSuccess(data), 1000); // Delay for toast
         }
       } else {
-        alert(data.message || 'Registration Failed');
+        toast.error(data.message || 'Registration Failed', {
+          style: {
+            background: '#EF4444',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Registration error:', error);
-      alert(`Registration failed: ${error.message}`);
+      toast.error(`Registration failed: ${error.message}`, {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     }
   };
 
@@ -291,11 +280,11 @@ const Register = ({ onRegistrationSuccess }) => {
     navigate('/login');
   };
 
-  // Calculate password strength criteria
   const passwordCriteria = checkPasswordCriteria(formData.password);
 
   return (
     <div className="min-h-screen bg-green-50 flex items-center justify-center p-6">
+      <Toaster position="top-right" />
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md border-2 border-green-600">
         <h2 className="text-3xl font-bold text-center text-green-700 mb-6">
           Farmer Registration
@@ -359,7 +348,6 @@ const Register = ({ onRegistrationSuccess }) => {
               aria-describedby="password-requirements"
             />
             
-            {/* Password requirements list with dynamic coloring */}
             {touched.password && (
               <ul className="text-sm mt-2 space-y-1">
                 <li className={passwordCriteria.length ? "text-blue-500" : "text-red-500"}>
