@@ -1,7 +1,7 @@
 import Buyer from '../models/buyer.model.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { generateToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/generateToken.util.js';
 import transporter from '../config/email.js';
 
 // LOGIN
@@ -23,13 +23,14 @@ const loginUser = async (req, res, next) => {
       throw new Error('Invalid password. Please check your password and try again.');
     }
 
-    generateToken(req, res, user._id);
+    const token = generateToken(req, res, user._id);
 
     res.status(200).json({
       message: 'Login successful.',
       userId: user._id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      token
     });
   } catch (error) {
     next(error);

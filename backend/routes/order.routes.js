@@ -1,7 +1,7 @@
 // backend/routes/order.routes.js
 
 import express from 'express';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin } from '../middleware/auth.middleware.js';
 import {
   addOrderItems,
   getMyOrders,

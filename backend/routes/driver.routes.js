@@ -1,7 +1,16 @@
 import express from 'express';
-import { protect } from '../middleware/authMiddleware.js';
-import { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails} from '../controllers/driverController.js';
-import { validateDriverRegistration, validateDriverLogin } from '../middleware/driverValidator.js';
+import { protect } from '../middleware/auth.middleware.js';
+
+import { registerDriver,
+         loginDriver,
+         logoutDriver,
+         updateDriver,
+         deleteDriver,
+         getDriverDetails,
+         } from '../controllers/driver.controller.js';
+
+import { validateDriverRegistration,
+         validateDriverLogin } from '../middleware/driverValidator.middleware.js';
 
 const router = express.Router();
 
@@ -22,5 +31,6 @@ router.put("/profile", protect, updateDriver);
 
 // Route to delete driver account
 router.delete("/profile", protect, deleteDriver);
+
 
 export default router;

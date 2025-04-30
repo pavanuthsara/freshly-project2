@@ -7,8 +7,8 @@ import {
   updateProduct,
   deleteProduct,
   getTopProducts
-} from '../controllers/productController.js';
-import { protect } from '../middleware/authMiddleware.js';
+} from '../controllers/product.controller.js';
+import { protect } from '../middleware/auth.middleware.js';
 import validateRequest from '../middleware/validator.js';
 import { check, param } from 'express-validator';
 

@@ -34,4 +34,4 @@ const farmerSchema = new mongoose.Schema({
     
 });
 
-export default mongoose.model("farmer", farmerSchema);
+export default mongoose.model("Farmer", farmerSchema);

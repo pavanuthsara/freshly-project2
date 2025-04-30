@@ -1,7 +1,7 @@
 import Driver from '../models/driver.model.js';
 import bcrypt from 'bcryptjs';
 import asyncHandler from 'express-async-handler';
-import { generateDriverToken } from '../utils/generateToken.js';
+import { generateToken } from '../utils/generateToken.util.js';
 
 // Register a new driver
 const registerDriver = async (req, res, next) => {
@@ -34,7 +34,8 @@ const registerDriver = async (req, res, next) => {
     await driver.save();
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    //const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateToken(req, res, driver._id); // Generate token for driver
 
     res.status(201).json({
       message: 'Registration successful. Welcome!',
@@ -57,18 +58,19 @@ const loginDriver = async (req, res, next) => {
     const driver = await Driver.findOne({ email });
     if (!driver) {
       res.statusCode = 404;
-      throw new Error('Invalid email address. Please check your email and try again.');
+      throw new Error('Invalid email address or password. Please try again.');
     }
 
     // Compare the entered password with the stored hashed password
     const match = await bcrypt.compare(password, driver.password);
     if (!match) {
       res.statusCode = 401;
-      throw new Error('Invalid password. Please check your password and try again.');
+      throw new Error('Invalid email address or password. Please try again.');
     }
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+   // const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateToken(req, res, driver._id); 
 
     res.status(200).json({
       message: 'Login successful.',
@@ -98,7 +100,7 @@ const logoutDriver = (req, res) => {
 //update driver details
 const updateDriver = asyncHandler(async (req, res) => {
   const { name, email, district, password, contactNumber, vehicleNumber, vehicleCapacity } = req.body;
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find the driver by their ID
   const driver = await Driver.findById(driverId);
@@ -142,7 +144,7 @@ const updateDriver = asyncHandler(async (req, res) => {
 // @route   DELETE /api/v1/driver/profile
 // @access  Private (Only logged-in driver can delete their profile)
 const deleteDriver = asyncHandler(async (req, res) => {
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find and delete the driver by their ID
   const driver = await Driver.findByIdAndDelete(driverId);
@@ -161,7 +163,7 @@ const deleteDriver = asyncHandler(async (req, res) => {
 // @route   GET /api/v1/driver/profile
 // @access  Private (Only logged-in driver can view their details)
 const getDriverDetails = asyncHandler(async (req, res) => {
-  const driverId = req.driver._id;  // Get the logged-in driver's ID from JWT token
+  const driverId = req.user._id;  // Get the logged-in driver's ID from JWT token
 
   // Find the driver by their ID and exclude password field for security
   const driver = await Driver.findById(driverId).select('-password');
@@ -171,17 +173,21 @@ const getDriverDetails = asyncHandler(async (req, res) => {
     throw new Error("Driver not found");
   }
 
+  // Ensure a consistent response structure
   res.status(200).json({
-    message: "Driver details retrieved successfully",
+    success: true,
     driver: {
+      _id: driver._id,  // Include ID for reference
       name: driver.name,
       email: driver.email,
-      district: driver.district,
-      contactNumber: driver.contactNumber,
-      vehicleNumber: driver.vehicleNumber,
-      vehicleCapacity: driver.vehicleCapacity,
-    },
+      district: driver.district || 'N/A',
+      contactNumber: driver.contactNumber || 'N/A',
+      vehicleNumber: driver.vehicleNumber || 'N/A',
+      vehicleCapacity: driver.vehicleCapacity || 'N/A',
+    }
   });
 });
 
-export { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails };
+
+
+export { registerDriver, loginDriver, logoutDriver, updateDriver, deleteDriver, getDriverDetails};
