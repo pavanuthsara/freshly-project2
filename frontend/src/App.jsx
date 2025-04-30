@@ -16,6 +16,7 @@ import ShippingPage from './pages/BuyerPages/ShippingPage';
 import PaymentPage from './pages/BuyerPages/PaymentPage';
 import ConfirmOrderPage from './pages/BuyerPages/ConfirmOrderPage';
 import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
+import ComplaintList from './pages/BuyerPages/ComplaintList';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -63,6 +64,9 @@ function App() {
               
               {/* User Profile Route */}
               <Route path="/buyer/profile/*" element={<BuyerProfile />} />
+
+              {/* Complaint routes - pavan */}
+              <Route path="/buyer/complaint" element={<ComplaintList />} />
               
               {/* Shopping Routes */}
               <Route 

@@ -108,7 +108,7 @@ router
 
 // complaint routes - pavan
 router.post('/complaints', protect, addComplaint)
-router.get('/complaints', protect, showAllComplaints)
+router.get('/complaints',  protect, showAllComplaints)
 router.get('/complaints/:id', protect, getComplaintById)
 router.put('/complaints/:id', protect, updateComplaint)
 router.delete('/complaints/:id', protect, deleteComplaint)
