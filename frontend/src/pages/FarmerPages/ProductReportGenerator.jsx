@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Download, File } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 const ProductReportGenerator = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
@@ -13,61 +14,52 @@ const ProductReportGenerator = () => {
   const generateReport = async (format) => {
     try {
       setIsLoading(true);
-      // Get the farmer's token from local storage
       const token = localStorage.getItem('farmerToken');
 
-      // Configure the axios request
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       };
 
-      // Fetch farmer's profile
       const profileResponse = await axios.get('/api/farmers/profile', config);
       const farmer = profileResponse.data.farmer || {};
 
-      // Fetch farmer's products
       const productResponse = await axios.get('/api/farmerProducts', config);
       const products = productResponse.data.data || [];
 
-      // Prepare report data
       const reportData = products.map((product) => ({
         Name: product.name,
         Category: product.category,
         Price: `LKR ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-        Quantity: `${product.quantity} kg`,
+        Stock: `${product.countInStock} kg`,
         Certification: product.certification,
         Description: product.description || 'No description',
       }));
 
-      // Define columns for PDF and Excel
       const columns = [
         'Name',
         'Category',
         'Price',
-        'Quantity',
+        'Stock (kg)',
         'Certification',
         'Description',
       ];
 
-      // Define rows for PDF
       const rows = reportData.map((item) => [
         item.Name,
         item.Category,
         item.Price,
-        item.Quantity,
+        item.Stock,
         item.Certification,
         item.Description,
       ]);
 
-      // Generate report based on selected format
       if (format === 'excel') {
-        // Create cover sheet
         const coverSheetData = [
-          ['Freshly.lk'], // Logo
-          [], // Spacer
-          ['Farmer Product Report'], // Title
+          ['Freshly.lk'],
+          [],
+          ['Farmer Product Report'],
           ['Generated on:', new Date().toLocaleDateString()],
           ['Farmer:', farmer.name || 'Unknown'],
           [
@@ -79,13 +71,12 @@ const ProductReportGenerator = () => {
         ];
         const coverSheet = XLSX.utils.aoa_to_sheet(coverSheetData);
 
-        // Style cover sheet
-        coverSheet['!cols'] = [{ wch: 20 }, { wch: 50 }]; // Column widths
+        coverSheet['!cols'] = [{ wch: 20 }, { wch: 50 }];
         coverSheet['A1'] = {
           v: 'Freshly.lk',
           s: {
             font: { name: 'Helvetica', bold: true, sz: 16 },
-            fill: { fgColor: { rgb: '228B22' } }, // Forest green
+            fill: { fgColor: { rgb: '228B22' } },
             alignment: { horizontal: 'left', vertical: 'center' },
           },
         };
@@ -109,19 +100,17 @@ const ProductReportGenerator = () => {
           s: { font: { name: 'Helvetica', bold: true } },
         };
 
-        // Create product data sheet
         const worksheet = XLSX.utils.json_to_sheet(reportData, {
           header: columns,
         });
 
-        // Style product data sheet
         worksheet['!cols'] = [
-          { wch: 20 }, // Name
-          { wch: 15 }, // Category
-          { wch: 15 }, // Price
-          { wch: 10 }, // Quantity
-          { wch: 15 }, // Certification
-          { wch: 30 }, // Description
+          { wch: 20 },
+          { wch: 15 },
+          { wch: 15 },
+          { wch: 10 },
+          { wch: 15 },
+          { wch: 30 },
         ];
         columns.forEach((col, index) => {
           const cell = XLSX.utils.encode_cell({ r: 0, c: index });
@@ -129,39 +118,41 @@ const ProductReportGenerator = () => {
             v: col,
             s: {
               font: { name: 'Helvetica', bold: true },
-              fill: { fgColor: { rgb: '228B22' } }, // Forest green
+              fill: { fgColor: { rgb: '228B22' } },
               alignment: { horizontal: 'center', vertical: 'center' },
             },
           };
         });
 
-        // Create workbook
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, coverSheet, 'Cover');
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
 
-        // Download
         XLSX.writeFile(
           workbook,
           `Farmer_Products_${new Date().toISOString().split('T')[0]}.xlsx`
         );
+        toast.success(`Excel report generated successfully!`, {
+          style: {
+            background: '#34D399',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
       } else {
         const doc = new jsPDF('landscape');
 
-        // Cover page
-        // Text-based logo
         doc.setFontSize(28);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(34, 139, 34); // Forest green
+        doc.setTextColor(34, 139, 34);
         doc.text('Freshly.lk', 14, 30);
 
-        // Title
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0); // Black
+        doc.setTextColor(0, 0, 0);
         doc.text('Farmer Product Report', 148.5, 60, { align: 'center' });
 
-        // Farmer details
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
         doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 80);
@@ -171,15 +162,12 @@ const ProductReportGenerator = () => {
           : 'No address provided';
         doc.text(`Address: ${address}`, 14, 100);
 
-        // Add a subtle border around the cover page
         doc.setDrawColor(34, 139, 34);
         doc.setLineWidth(0.5);
         doc.rect(10, 10, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 20);
 
-        // Add a new page for the product table
         doc.addPage();
 
-        // Product table
         autoTable(doc, {
           head: [columns],
           body: rows,
@@ -190,20 +178,19 @@ const ProductReportGenerator = () => {
             overflow: 'linebreak',
           },
           headStyles: {
-            fillColor: [34, 139, 34], // Forest green
-            textColor: [255, 255, 255], // White
+            fillColor: [34, 139, 34],
+            textColor: [255, 255, 255],
             fontStyle: 'bold',
           },
           columnStyles: {
-            0: { cellWidth: 30 }, // Name
-            1: { cellWidth: 30 }, // Category
-            2: { cellWidth: 30 }, // Price
-            3: { cellWidth: 20 }, // Quantity
-            4: { cellWidth: 30 }, // Certification
-            5: { cellWidth: 50 }, // Description
+            0: { cellWidth: 30 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 30 },
+            3: { cellWidth: 20 },
+            4: { cellWidth: 30 },
+            5: { cellWidth: 50 },
           },
           didDrawPage: (data) => {
-            // Add page number at bottom right
             const pageCount = doc.internal.getNumberOfPages();
             const currentPage = data.pageNumber;
             doc.setFontSize(10);
@@ -217,7 +204,6 @@ const ProductReportGenerator = () => {
           },
         });
 
-        // Add footer after table on each table page
         const pageCount = doc.internal.getNumberOfPages();
         for (let i = 2; i <= pageCount; i++) {
           doc.setPage(i);
@@ -236,7 +222,6 @@ const ProductReportGenerator = () => {
           );
         }
 
-        // Manual download
         const pdfOutput = doc.output('blob');
         const url = URL.createObjectURL(pdfOutput);
         const link = document.createElement('a');
@@ -246,10 +231,26 @@ const ProductReportGenerator = () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+
+        toast.success(`PDF report generated successfully!`, {
+          style: {
+            background: '#34D399',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Error generating report:', error);
-      alert('Failed to generate report. Please try again.');
+      toast.error('Failed to generate report. Please try again.', {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -257,6 +258,7 @@ const ProductReportGenerator = () => {
 
   return (
     <>
+      <Toaster position="top-right" />
       <button
         onClick={() => setIsReportDialogOpen(true)}
         className="flex items-center px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   Package, 
@@ -9,6 +9,7 @@ import {
   LogOut 
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 // Import sections
 import ProductSection from './pages/FarmerPages/MyProduct';
@@ -17,6 +18,29 @@ import ProfileSection from './pages/FarmerPages/MyProfile';
 const FarmerDashboard = ({ farmerData, onLogout }) => {
   const [activeSection, setActiveSection] = useState('products');
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const navigate = useNavigate();
+
+  // Check for valid farmerToken on mount
+  useEffect(() => {
+    const token = localStorage.getItem('farmerToken');
+    console.log('Checking farmerToken:', !!token);
+    if (!token) {
+      console.log('No farmerToken found, redirecting to login');
+      toast.error('Session expired. Please log in again.', {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+        position: 'top-right',
+      });
+      setTimeout(() => {
+        if (onLogout) onLogout();
+        navigate('/farmer/login');
+      }, 1000);
+    }
+  }, [navigate, onLogout]);
 
   const sidebarItems = [
     { name: 'My Products', icon: Package, section: 'products' },
@@ -27,40 +51,52 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
   ];
 
   const handleLogoutClick = () => {
+    console.log('handleLogoutClick called');
+    toast('Please confirm logout action', {
+      style: {
+        background: '#6EE7B7', // emerald-300
+        color: '#1F2937', // gray-800
+        fontWeight: 'bold',
+      },
+      duration: 3000,
+      position: 'top-right',
+    });
     setShowLogoutConfirmation(true);
   };
 
   const handleConfirmLogout = () => {
-    console.log('Logout confirmed, triggering toast');
+    console.log('handleConfirmLogout called');
     toast.success('Logged out successfully!', {
       style: {
-        background: '#34D399', // Green-500 from dashboard buttons
+        background: '#34D399', // green-500
         color: '#FFFFFF',
         fontWeight: 'bold',
       },
-      duration: 3000, // 3 seconds
+      duration: 3000,
       position: 'top-right',
-    }, (err) => {
-      if (err) console.error('Toast failed to render:', err);
     });
+    setShowLogoutConfirmation(false);
     setTimeout(() => {
       console.log('Calling onLogout');
-      onLogout();
+      if (onLogout) {
+        onLogout();
+        navigate('/farmer/login');
+      }
     }, 1000);
   };
 
   const handleCancelLogout = () => {
+    console.log('handleCancelLogout called');
     setShowLogoutConfirmation(false);
   };
 
   return (
     <div className="flex h-screen bg-green-50">
-      {/* Toaster for toast notifications */}
       <Toaster
         position="top-right"
         toastOptions={{
           style: {
-            zIndex: 9999, // Ensure toast is above other elements
+            zIndex: 9999,
           },
         }}
       />
@@ -72,7 +108,10 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
           {sidebarItems.map(({ name, icon: Icon, section }) => (
             <button
               key={section}
-              onClick={() => setActiveSection(section)}
+              onClick={() => {
+                console.log(`Navigating to section: ${section}`);
+                setActiveSection(section);
+              }}
               className={`w-full flex items-center p-2 rounded ${
                 activeSection === section 
                   ? 'bg-green-700' 
