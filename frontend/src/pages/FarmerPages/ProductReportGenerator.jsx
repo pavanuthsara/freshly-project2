@@ -24,16 +24,18 @@ const ProductReportGenerator = () => {
 
       const profileResponse = await axios.get('/api/farmers/profile', config);
       const farmer = profileResponse.data.farmer || {};
+      console.log('Farmer profile:', farmer);
 
       const productResponse = await axios.get('/api/farmerProducts', config);
       const products = productResponse.data.data || [];
+      console.log('Farmer products:', products);
 
       const reportData = products.map((product) => ({
-        Name: product.name,
-        Category: product.category,
-        Price: `LKR ${product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
-        Stock: `${product.countInStock} kg`,
-        Certification: product.certification,
+        Name: product.name || 'Unknown',
+        Category: product.category || 'N/A',
+        Price: `LKR ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}`,
+        Stock: `${product.countInStock ?? 0} kg`, // Fallback to 0 if undefined
+        Certification: product.certification || 'N/A',
         Description: product.description || 'No description',
       }));
 

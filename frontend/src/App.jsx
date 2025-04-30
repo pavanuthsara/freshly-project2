@@ -147,8 +147,8 @@ function FarmerDashboard({ farmerData, onLogout }) {
 
       {/* Logout Confirmation Modal */}
       {showLogoutConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+        <div className="fixed inset-0 bg-green-100 bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg">
             <h3 className="text-xl font-semibold text-green-800 mb-4">Confirm Logout</h3>
             <p className="text-gray-700 mb-6">Are you sure you want to log out from Freshly.lk?</p>
             <div className="flex justify-end space-x-3">
