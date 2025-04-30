@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Search, Filter, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-// Base URL for backend with fallback
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const ProductListing = () => {
@@ -145,7 +144,7 @@ const ProductListing = () => {
                 <span className="text-green-600 text-sm">
                   <span className="font-semibold">Category:</span> {product.category}
                 </span>
-                <span className="text-green-600 text-sm">{product.quantity} kg</span>
+                <span className="text-green-600 text-sm">{product.countInStock} kg</span>
               </div>
               <button
                 onClick={() => navigate(`/dashboard/product/${product._id}`, { state: { search, category } })}

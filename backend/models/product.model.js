@@ -9,8 +9,6 @@ const productSchema = new mongoose.Schema(
       unique: true,
       default: generateProductID,
     },
-
-    // Reference to the farmer who created the product
     farmer: {
       id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -22,43 +20,36 @@ const productSchema = new mongoose.Schema(
         required: true,
       },
     },
-
     name: {
       type: String,
       required: true,
     },
-
     image: {
       type: String,
       required: true,
     },
-
     description: {
       type: String,
       required: true,
     },
-
     category: {
       type: String,
       required: true,
     },
-
     price: {
       type: Number,
       required: true,
       min: [0.01, 'Price must be greater than 0'],
     },
-
-    quantity: {
+    countInStock: {
       type: Number,
       required: true,
-      min: [1, 'Minimum quantity is 1 kilo'],
+      min: [1, 'Minimum stock is 1 kilo'],
     },
-
     certification: {
       type: String,
       required: true,
-      enum: ['Organic', 'GAP'], // Valid certifications
+      enum: ['Organic', 'GAP'],
     },
   },
   { timestamps: true }

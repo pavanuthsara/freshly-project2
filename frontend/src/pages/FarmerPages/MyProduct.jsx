@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, Edit, Trash2, Eye, User, ShoppingCart } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 import ProductListing from './ProductListing';
 import ProductReportGenerator from './ProductReportGenerator';
 
@@ -40,7 +41,7 @@ const ProductSection = ({ farmerData }) => {
       name: (productData.name || '').trim().slice(0, 100),
       category: (productData.category || '').trim(),
       price: Math.min(Math.max(parseFloat(productData.price) || 0, 0), 99999.99),
-      quantity: Math.min(Math.max(parseInt(productData.quantity) || 0, 0), 9999),
+      countInStock: Math.min(Math.max(parseInt(productData.countInStock) || 0, 0), 9999),
       certification: (productData.certification || '').trim(),
       description: (productData.description || '').trim().slice(0, 500),
       image: (productData.image || '').trim()
@@ -63,7 +64,7 @@ const ProductSection = ({ farmerData }) => {
         name: sanitizedProduct.name,
         category: sanitizedProduct.category,
         price: sanitizedProduct.price,
-        quantity: sanitizedProduct.quantity,
+        countInStock: sanitizedProduct.countInStock,
         certification: sanitizedProduct.certification,
         description: sanitizedProduct.description || 'No description',
         image: sanitizedProduct.image || '/default-product-image.jpg'
@@ -73,8 +74,23 @@ const ProductSection = ({ farmerData }) => {
       
       setProducts([...products, response.data.createdProduct]);
       setIsAddProductDialogOpen(false);
+      toast.success('Product added successfully!', {
+        style: {
+          background: '#34D399',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add product');
+      toast.error(err.response?.data?.message || 'Failed to add product', {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     }
   };
 
@@ -94,7 +110,7 @@ const ProductSection = ({ farmerData }) => {
         name: sanitizedProduct.name,
         category: sanitizedProduct.category,
         price: sanitizedProduct.price,
-        quantity: sanitizedProduct.quantity,
+        countInStock: sanitizedProduct.countInStock,
         description: sanitizedProduct.description || 'No description',
         image: sanitizedProduct.image || '/default-product-image.jpg'
       };
@@ -105,8 +121,23 @@ const ProductSection = ({ farmerData }) => {
         p._id === updatedProduct._id ? response.data.updatedProduct : p
       ));
       setEditingProduct(null);
+      toast.success('Product updated successfully!', {
+        style: {
+          background: '#34D399',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update product');
+      toast.error(err.response?.data?.message || 'Failed to update product', {
+        style: {
+          background: '#EF4444',
+          color: '#FFFFFF',
+          fontWeight: 'bold',
+        },
+        duration: 3000,
+      });
     }
   };
 
@@ -123,15 +154,30 @@ const ProductSection = ({ farmerData }) => {
         await axios.delete(`/api/farmerProducts/${id}`, config);
         
         setProducts(products.filter(product => product._id !== id));
+        toast.success('Product deleted successfully!', {
+          style: {
+            background: '#34D399',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
       } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete product');
+        toast.error(err.response?.data?.message || 'Failed to delete product', {
+          style: {
+            background: '#EF4444',
+            color: '#FFFFFF',
+            fontWeight: 'bold',
+          },
+          duration: 3000,
+        });
       }
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header with Farmer Profile and Navigation */}
+      <Toaster position="top-right" />
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center space-x-4">
           <div className="bg-green-100 p-3 rounded-full">
@@ -145,7 +191,6 @@ const ProductSection = ({ farmerData }) => {
           </div>
         </div>
         
-        {/* Quick Action Buttons */}
         <div className="flex space-x-4">
           <button className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
             <ShoppingCart className="mr-2" size={20} /> My Orders
@@ -153,14 +198,12 @@ const ProductSection = ({ farmerData }) => {
         </div>
       </div>
 
-      {/* Product Management Section */}
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-green-800">
             {activeView === 'myProducts' ? 'My Products' : 'All Products'}
           </h2>
           <div className="flex space-x-4">
-            {/* View Toggle */}
             <div className="flex bg-green-100 rounded-lg p-1">
               <button
                 onClick={() => setActiveView('myProducts')}
@@ -184,7 +227,6 @@ const ProductSection = ({ farmerData }) => {
               </button>
             </div>
 
-            {/* Add Product Button */}
             {activeView === 'myProducts' && (
               <>
                 <button 
@@ -199,7 +241,6 @@ const ProductSection = ({ farmerData }) => {
           </div>
         </div>
 
-        {/* Conditional Rendering based on View */}
         {activeView === 'myProducts' ? (
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             {isLoading ? (
@@ -221,7 +262,7 @@ const ProductSection = ({ farmerData }) => {
                     <th className="p-3 text-left text-green-700">Name</th>
                     <th className="p-3 text-left text-green-700">Category</th>
                     <th className="p-3 text-left text-green-700">Price</th>
-                    <th className="p-3 text-left text-green-700">Quantity</th>
+                    <th className="p-3 text-left text-green-700">Stock (kg)</th>
                     <th className="p-3 text-left text-green-700">Certification</th>
                     <th className="p-3 text-left text-green-700">Actions</th>
                   </tr>
@@ -232,7 +273,7 @@ const ProductSection = ({ farmerData }) => {
                       <td className="p-3">{product.name}</td>
                       <td className="p-3">{product.category}</td>
                       <td className="p-3">LKR {product.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                      <td className="p-3">{product.quantity} kg</td>
+                      <td className="p-3">{product.countInStock} kg</td>
                       <td className="p-3">{product.certification}</td>
                       <td className="p-3">
                         <div className="flex space-x-2">
@@ -261,7 +302,6 @@ const ProductSection = ({ farmerData }) => {
         )}
       </div>
 
-      {/* Add/Edit Product Modal */}
       {(isAddProductDialogOpen || editingProduct) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] flex flex-col">
@@ -280,22 +320,22 @@ const ProductSection = ({ farmerData }) => {
               </button>
             </div>
             <div className="overflow-y-auto p-6 flex-grow">
-            <ProductForm 
-              onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct}
-              onCancel={() => {
-                setIsAddProductDialogOpen(false);
-                setEditingProduct(null);
-              }}
-              initialData={editingProduct || {
-                name: '',
-                category: '',
-                price: '',
-                quantity: '',
-                certification: 'Organic',
-                description: '',
-                image: ''
-              }}
-            />
+              <ProductForm 
+                onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct}
+                onCancel={() => {
+                  setIsAddProductDialogOpen(false);
+                  setEditingProduct(null);
+                }}
+                initialData={editingProduct || {
+                  name: '',
+                  category: '',
+                  price: '',
+                  countInStock: '',
+                  certification: 'Organic',
+                  description: '',
+                  image: ''
+                }}
+              />
             </div>
           </div>
         </div>
@@ -304,7 +344,6 @@ const ProductSection = ({ farmerData }) => {
   );
 };
 
-// ProductForm component with image upload and preview
 const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [formData, setFormData] = useState(initialData);
   const [errors, setErrors] = useState({});
@@ -313,23 +352,19 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [imagePreview, setImagePreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
-  // Base URL for backend (match with your backend setup)
-  const BACKEND_URL = 'http://localhost:5000'; // Adjust if your backend runs on a different port or domain
+  const BACKEND_URL = 'http://localhost:5000';
 
-  // Initialize image preview when component mounts or initialData changes
   useEffect(() => {
     if (initialData.image) {
-      // If the image is a relative path, prepend the backend URL
       const imageUrl = initialData.image.startsWith('http')
         ? initialData.image
         : `${BACKEND_URL}${initialData.image}`;
       setImagePreview(imageUrl);
     } else {
-      setImagePreview(''); // Clear preview if no image
+      setImagePreview('');
     }
   }, [initialData.image]);
 
-  // Validation methods (unchanged)
   const validateName = (name) => {
     const nameRegex = /^[a-zA-Z0-9\s.,'-]+$/;
     return nameRegex.test(name);
@@ -341,7 +376,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   };
 
   const validateImageUrl = (url) => {
-    if (!url) return true; // Optional field
+    if (!url) return true;
     const urlRegex = /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$/i;
     return urlRegex.test(url);
   };
@@ -349,7 +384,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const handleImageFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type and size
       const validTypes = ['image/png', 'image/jpg', 'image/jpeg'];
       if (!validTypes.includes(file.type)) {
         setErrors((prev) => ({
@@ -369,7 +403,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, imageFile: undefined }));
-      // Clear image URL field when a file is selected
       setFormData({ ...formData, image: '' });
     }
   };
@@ -409,7 +442,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
     }
     setFormData({ ...formData, image: newUrl });
     setImagePreview(newUrl || '');
-    // Clear image file when a URL is entered
     setImageFile(null);
   };
 
@@ -432,19 +464,19 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
     }
   };
 
-  const handleQuantityChange = (e) => {
+  const handleCountInStockChange = (e) => {
     let value = e.target.value;
     if (value.length > 4) {
       value = value.slice(0, 4);
     }
-    const newQuantity = parseInt(value) || 0;
-    setFormData({ ...formData, quantity: value === '' ? '' : newQuantity });
-    if (newQuantity > 0) {
-      setErrors((prev) => ({ ...prev, quantity: undefined }));
+    const newCountInStock = parseInt(value) || 0;
+    setFormData({ ...formData, countInStock: value === '' ? '' : newCountInStock });
+    if (newCountInStock > 0) {
+      setErrors((prev) => ({ ...prev, countInStock: undefined }));
     } else if (value !== '') {
       setErrors((prev) => ({
         ...prev,
-        quantity: 'Quantity must be greater than zero',
+        countInStock: 'Stock must be greater than zero',
       }));
     }
   };
@@ -482,8 +514,8 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       validationErrors.price = 'Price must be greater than zero';
     }
 
-    if (!formData.quantity || formData.quantity <= 0) {
-      validationErrors.quantity = 'Quantity must be greater than zero';
+    if (!formData.countInStock || formData.countInStock <= 0) {
+      validationErrors.countInStock = 'Stock must be greater than zero';
     }
 
     if (!imageFile && !formData.image) {
@@ -613,22 +645,22 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
         <div>
-          <label className="block text-green-700 mb-2">Quantity (kg)</label>
+          <label className="block text-green-700 mb-2">Stock (kg)</label>
           <input 
             type="number" 
             min="1"
             max="9999"
-            value={formData.quantity}
-            onChange={handleQuantityChange}
-            onFocus={() => handleFocus('quantity')}
+            value={formData.countInStock}
+            onChange={handleCountInStockChange}
+            onFocus={() => handleFocus('countInStock')}
             onBlur={handleBlur}
-            className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('quantity')(errors, focusedField)}`}
+            className={`w-full px-3 py-2 border rounded focus:outline-none transition-all duration-200 ${getInputStyles('countInStock')(errors, focusedField)}`}
             required 
           />
-          {focusedField === 'quantity' && !errors.quantity && (
+          {focusedField === 'countInStock' && !errors.countInStock && (
             <p className="text-blue-600 text-sm mt-1">Max 9,999 kg</p>
           )}
-          {errors.quantity && <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>}
+          {errors.countInStock && <p className="text-red-500 text-sm mt-1">{errors.countInStock}</p>}
         </div>
       </div>
 
@@ -721,7 +753,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   );
 };
 
-// Update getInputStyles to handle dynamic arguments correctly
 const getInputStyles = (fieldName) => (errors, focusedField) => {
   if (errors[fieldName]) {
     return "border-red-500 focus:ring-red-500 focus:border-red-500";
