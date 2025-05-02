@@ -61,89 +61,97 @@ function App() {
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Header user={user} setUser={setUser} cartItems={cartItems} />
         
-        <main className="flex-grow pt-16"> {/* pt-16 accounts for fixed header height */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <Routes>
-              {/* Buyer Routes */}
-              <Route path="/" element={<HomePage />} />
-              
-              {/* Authentication Routes */}
-              <Route path="/buyer/login" element={<BuyerLogin />} />
-              <Route path="/buyer/register" element={<BuyerRegister />} />
-              
-              {/* Dashboard Route */}
-              <Route path="/buyer/dashboard" element={<BuyerDashboard setUser={setUser} />} />
-              
-              {/* User Profile Route */}
-              <Route path="/buyer/profile/*" element={<BuyerProfile />} />
-              
-              {/* Shopping Routes */}
-              <Route 
-                path="/products" 
-                element={
+        <main className="flex-grow">
+          <Routes>
+            {/* Buyer Routes */}
+            <Route path="/" element={<HomePage />} />
+            
+            {/* Authentication Routes */}
+            <Route path="/buyer/login" element={<BuyerLogin />} />
+            <Route path="/buyer/register" element={<BuyerRegister />} />
+            
+            {/* Dashboard Route */}
+            <Route path="/buyer/dashboard" element={<BuyerDashboard setUser={setUser} />} />
+            
+            {/* User Profile Route */}
+            <Route path="/buyer/profile/*" element={<BuyerProfile />} />
+            
+            {/* Shopping Routes */}
+            <Route 
+              path="/products" 
+              element={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <ProductListPage 
                     cartItems={cartItems} 
                     setCartItems={setCartItems} 
                   />
-                } 
-              />
-              <Route 
-                path="/cart" 
-                element={
+                </div>
+              } 
+            />
+            <Route 
+              path="/cart" 
+              element={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <CartPage 
                     cartItems={cartItems} 
                     setCartItems={setCartItems} 
                   />
-                } 
-              />
-              
-              {/* Order Management Routes */}
-              <Route path="/buyer/orders" element={<BuyerOrders />} />
-              <Route path="/order/:id" element={<BuyerOrderDetails />} />
-              
-              {/* Checkout Flow Routes */}
-              <Route
-                path="/buyer/shipping"
-                element={
+                </div>
+              } 
+            />
+            
+            {/* Order Management Routes */}
+            <Route path="/buyer/orders" element={<BuyerOrders />} />
+            <Route path="/order/:id" element={<BuyerOrderDetails />} />
+            
+            {/* Checkout Flow Routes */}
+            <Route
+              path="/buyer/shipping"
+              element={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <ShippingPage
                     shippingAddress={shippingAddress}
                     setShippingAddress={setShippingAddress}
                   />
-                }
-              />
-              <Route
-                path="/buyer/payment"
-                element={
+                </div>
+              }
+            />
+            <Route
+              path="/buyer/payment"
+              element={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <PaymentPage
                     paymentMethod={paymentMethod}
                     setPaymentMethod={setPaymentMethod}
                   />
-                }
-              />
-              <Route
-                path="/buyer/confirm-order"
-                element={
+                </div>
+              }
+            />
+            <Route
+              path="/buyer/confirm-order"
+              element={
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <ConfirmOrderPage
                     cartItems={cartItems}
                     shippingAddress={shippingAddress}
                     paymentMethod={paymentMethod}
                     setCartItems={setCartItems}
                   />
-                }
-              />
-              
-              {/* Farmer Routes */}
-              <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
+                </div>
+              }
+            />
+            
+            {/* Farmer Routes */}
+            <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
 
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/register" element={<AdminRegister />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/refunds" element={<AdminRefunds />} />
-            </Routes>
-          </div>
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/register" element={<AdminRegister />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/admin/refunds" element={<AdminRefunds />} />
+          </Routes>
         </main>
         
         

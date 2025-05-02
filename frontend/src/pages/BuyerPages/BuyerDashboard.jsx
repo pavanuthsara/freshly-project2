@@ -83,10 +83,10 @@ const BuyerDashboard = ({ setUser }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* New Sidebar */}
-      <div className={`bg-gradient-to-b from-emerald-900 to-teal-900 text-white transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} shadow-xl h-full`}>
-        <div className="h-full flex flex-col">
+      <div className={`bg-gradient-to-b from-emerald-900 to-teal-900 text-white transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} shadow-xl flex-shrink-0`}>
+        <div className="flex flex-col h-full">
           {/* Logo and Toggle */}
           <div className="p-4 flex items-center justify-between border-b border-emerald-800">
             {!isSidebarCollapsed && (
@@ -203,9 +203,9 @@ const BuyerDashboard = ({ setUser }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Top Bar */}
-        <div className="bg-white/80 backdrop-blur-sm shadow-sm p-4 flex items-center justify-between">
+        <div className="bg-white/80 backdrop-blur-sm shadow-sm p-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
           </div>
@@ -222,7 +222,7 @@ const BuyerDashboard = ({ setUser }) => {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 min-h-0">
           {error && (
             <div className="mb-8 bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
@@ -337,7 +337,7 @@ const BuyerDashboard = ({ setUser }) => {
                             </td>
                             <td className="py-4">
                               <Link
-                                to={`/buyer/orders/${order._id}`}
+                                to={`/order/${order._id}`}
                                 className="text-emerald-600 hover:text-emerald-700 font-medium"
                               >
                                 View Details
