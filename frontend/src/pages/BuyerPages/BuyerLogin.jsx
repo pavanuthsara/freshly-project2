@@ -52,7 +52,7 @@ const BuyerLogin = () => {
         { withCredentials: true }
       );
       setSuccessMsg(response.data.message);
-      setTimeout(() => navigate('/buyer/profile'), 1000);
+      setTimeout(() => navigate('/buyer/dashboard'), 1000);
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed.';
       setErrorMsg(message);

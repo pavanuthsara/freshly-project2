@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import BuyerLogin from './pages/BuyerPages/BuyerLogin';
 import BuyerRegister from './pages/BuyerPages/BuyerRegister';
 import BuyerProfile from './pages/BuyerPages/BuyerProfile';
+import BuyerDashboard from './pages/BuyerPages/BuyerDashboard';
 import ProductListPage from './pages/BuyerPages/ProductListPage';
 import CartPage from './pages/BuyerPages/CartPage';
 import ShippingPage from './pages/BuyerPages/ShippingPage';
@@ -68,6 +69,9 @@ function App() {
               {/* Authentication Routes */}
               <Route path="/buyer/login" element={<BuyerLogin />} />
               <Route path="/buyer/register" element={<BuyerRegister />} />
+              
+              {/* Dashboard Route */}
+              <Route path="/buyer/dashboard" element={<BuyerDashboard setUser={setUser} />} />
               
               {/* User Profile Route */}
               <Route path="/buyer/profile/*" element={<BuyerProfile />} />

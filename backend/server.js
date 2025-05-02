@@ -83,6 +83,7 @@ mongoose
 
 // Routes
 app.use('/api/buyers', buyerRoutes);
+app.use('/api/v1/buyers', buyerRoutes); // Support both API versions
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/v1/orders', orderRoutes); // Support both API versions
