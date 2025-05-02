@@ -17,6 +17,7 @@ import uploadRoutes from './routes/upload.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import farmerRoutes from './routes/farmer.routes.js';
 import { stripeWebhook } from './controllers/stripeWebhookController.js';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -65,7 +66,7 @@ app.get('/api/payment/test', async (req, res) => {
 // Standard middlewares
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Allow frontend
+    origin: ['http://localhost:5173', 'http://localhost:5000'],
     credentials: true,
   })
 );
@@ -85,12 +86,15 @@ mongoose
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/v1/buyers', buyerRoutes); // Support both API versions
 app.use('/api/products', productRoutes);
+app.use('/api/v1/products', productRoutes); // Add v1 support
 app.use('/api/orders', orderRoutes);
 app.use('/api/v1/orders', orderRoutes); // Support both API versions
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/v1/cart', cartRoutes); // Add v1 support
 app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
 app.use('/api/admin', adminRoutes); // Add admin routes
+app.use('/api/farmers', farmerRoutes); // Add farmer routes
 
 // Serve uploads - include refund evidence
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));

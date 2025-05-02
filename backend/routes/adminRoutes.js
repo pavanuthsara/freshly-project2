@@ -12,7 +12,7 @@ import {
   getDashboardStats,
   updateOrderStatus
 } from '../controllers/adminController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { buyerProtect, admin } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.post('/register', registerAdmin);
 
 // Create a new router for protected routes
 const protectedRouter = express.Router();
-protectedRouter.use(protect, admin);
+protectedRouter.use(buyerProtect, admin);
 
 // Protected routes
 protectedRouter.get('/dashboard/stats', getDashboardStats);

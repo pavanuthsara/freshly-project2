@@ -36,7 +36,7 @@ const addOrderItems = async (req, res, next) => {
 
     // 3) Create a new Order document
     const order = new Order({
-      user: req.user._id,
+      user: req.buyer._id,
       orderItems: orderItems.map((item) => ({
         ...item,
         product: item.product
@@ -53,7 +53,7 @@ const addOrderItems = async (req, res, next) => {
     const createdOrder = await order.save({ session });
 
     // 5) Empty the cart of the current user (Buyer)
-    const buyer = await Buyer.findById(req.user._id).session(session);
+    const buyer = await Buyer.findById(req.buyer._id).session(session);
     if (buyer) {
       buyer.cart = [];
       await buyer.save({ session });
@@ -77,7 +77,7 @@ const addOrderItems = async (req, res, next) => {
 // @access   Private
 const getMyOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.buyer._id }).sort({ createdAt: -1 });
 
     if (!orders || orders.length === 0) {
       res.statusCode = 404;
@@ -110,7 +110,7 @@ const getOrderById = async (req, res, next) => {
     }
     
     // Check if the user is authorized to view this order
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
+    if (req.buyer.role !== 'admin' && order.user._id.toString() !== req.buyer._id.toString()) {
       res.statusCode = 403;
       throw new Error('Not authorized to access this order');
     }
@@ -420,207 +420,85 @@ const getOrderStats = async (req, res, next) => {
 };
 
 // @desc     Request refund for an order
-// @route    POST /api/v1/orders/:id/refund-request
+// @route    POST /api/v1/orders/:id/refund
 // @access   Private
 const requestRefund = async (req, res, next) => {
   try {
     const { id: orderId } = req.params;
-    const { reason, items, evidence } = req.body;
-    
+    const { reason } = req.body;
+
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       res.statusCode = 400;
       throw new Error('Invalid order ID format');
     }
-    
-    if (!reason) {
-      res.statusCode = 400;
-      throw new Error('Refund reason is required');
-    }
-    
+
     const order = await Order.findById(orderId);
+
     if (!order) {
       res.statusCode = 404;
       throw new Error('Order not found');
     }
-    
-    // Check if this is the user's order
-    if (order.user.toString() !== req.user._id.toString()) {
+
+    // Check if the user is the owner of the order
+    if (order.user.toString() !== req.buyer._id.toString()) {
       res.statusCode = 403;
       throw new Error('Not authorized to request refund for this order');
     }
-    
-    // Check if order is eligible for refund
-    if (!order.isPaid) {
-      res.statusCode = 400;
-      throw new Error('Cannot request refund for an unpaid order');
-    }
-    
-    if (order.status === 'Cancelled') {
-      res.statusCode = 400;
-      throw new Error('Cannot request refund for a cancelled order');
-    }
-    
-    // Check if a refund request already exists
-    const existingRequest = await RefundRequest.findOne({ 
-      order: orderId, 
-      status: { $nin: ['Rejected'] } 
-    });
-    
-    if (existingRequest) {
-      res.statusCode = 400;
-      throw new Error('A refund request for this order is already in progress');
-    }
-    
+
     // Create refund request
     const refundRequest = new RefundRequest({
       order: orderId,
-      user: req.user._id,
-      reason,
-      items: items || order.orderItems, // If specific items aren't provided, assume full order refund
-      status: 'Pending',
-      evidence: evidence || [],
+      user: req.buyer._id,
+      reason
     });
-    
+
     await refundRequest.save();
-    
-    // Update order status to indicate refund requested
-    order.refundRequested = true;
-    order.refundRequestedAt = new Date();
-    order.refundStatus = 'Pending';
-    order.refundReason = reason;
-    await order.save();
-    
     res.status(201).json(refundRequest);
   } catch (error) {
     next(error);
   }
 };
 
-// @desc     Process refund request (approve/reject)
-// @route    PUT /api/v1/orders/refund-requests/:id
+// @desc     Process refund request
+// @route    PUT /api/v1/orders/refund/:id/process
 // @access   Private/Admin
 const processRefundRequest = async (req, res, next) => {
   try {
-    const { id: requestId } = req.params;
-    const { status, adminNotes, refundAmount, message } = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+    const { id: refundId } = req.params;
+    const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(refundId)) {
       res.statusCode = 400;
-      throw new Error('Invalid request ID format');
+      throw new Error('Invalid refund request ID format');
     }
-    
-    if (!status || !['Processing', 'Approved', 'Rejected'].includes(status)) {
-      res.statusCode = 400;
-      throw new Error('Valid status (Approved/Rejected/Processing) is required');
-    }
-    
-    const refundRequest = await RefundRequest.findById(requestId);
+
+    const refundRequest = await RefundRequest.findById(refundId);
+
     if (!refundRequest) {
       res.statusCode = 404;
       throw new Error('Refund request not found');
     }
-    
-    // Update refund request
+
     refundRequest.status = status;
-    if (adminNotes) refundRequest.adminNotes = adminNotes;
     refundRequest.processedAt = new Date();
-    refundRequest.processedBy = req.user._id;
-    
-    // Add communication if message provided
-    if (message) {
-      refundRequest.communication.push({
-        message,
-        sender: 'admin',
-        timestamp: new Date()
-      });
-    }
-    
-    // If a specific refund amount is provided
-    if (refundAmount !== undefined && status === 'Approved') {
-      refundRequest.refundAmount = refundAmount;
-    }
-    
+    refundRequest.processedBy = req.buyer._id;
+
     await refundRequest.save();
-    
-    // Update the order based on the refund request status
-    const order = await Order.findById(refundRequest.order);
-    if (order) {
-      order.refundStatus = status;
-      
-      if (status === 'Approved') {
-        order.refundProcessedAt = new Date();
-        order.refundAmount = refundAmount || order.totalPrice;
-        // If it's a full refund, update the order status
-        if (!refundAmount || refundAmount >= order.totalPrice) {
-          order.status = 'Refunded';
-        }
-      } else if (status === 'Rejected') {
-        order.refundRequested = false; // Can request again if rejected
-      }
-      
-      await order.save();
-    }
-    
-    res.status(200).json({
-      refundRequest,
-      order: {
-        _id: order._id,
-        status: order.status,
-        refundStatus: order.refundStatus
-      }
-    });
+    res.status(200).json(refundRequest);
   } catch (error) {
     next(error);
   }
 };
 
-// @desc     Get all refund requests
-// @route    GET /api/v1/orders/refund-requests
-// @access   Private/Admin
-const getRefundRequests = async (req, res, next) => {
-  try {
-    // Add pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    
-    // Add filtering
-    const filterOptions = {};
-    if (req.query.status) {
-      filterOptions.status = req.query.status;
-    }
-    
-    const refundRequests = await RefundRequest.find(filterOptions)
-      .populate('order', 'orderItems totalPrice isPaid createdAt status')
-      .populate('user', 'name email')
-      .populate('processedBy', 'name email')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-    
-    // Get total count for pagination
-    const totalRequests = await RefundRequest.countDocuments(filterOptions);
-    
-    res.status(200).json({
-      refundRequests,
-      page,
-      pages: Math.ceil(totalRequests / limit) || 1,
-      total: totalRequests
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc     Get my refund requests
-// @route    GET /api/v1/orders/my-refund-requests
+// @desc     Get logged-in user's refund requests
+// @route    GET /api/v1/orders/refund/myrequests
 // @access   Private
 const getMyRefundRequests = async (req, res, next) => {
   try {
-    const refundRequests = await RefundRequest.find({ user: req.user._id })
-      .populate('order', 'orderItems totalPrice isPaid createdAt status')
+    const refundRequests = await RefundRequest.find({ user: req.buyer._id })
+      .populate('order')
       .sort({ createdAt: -1 });
-    
+
     res.status(200).json(refundRequests);
   } catch (error) {
     next(error);
@@ -628,84 +506,71 @@ const getMyRefundRequests = async (req, res, next) => {
 };
 
 // @desc     Get refund request by ID
-// @route    GET /api/v1/orders/refund-requests/:id
+// @route    GET /api/v1/orders/refund/:id
 // @access   Private
 const getRefundRequestById = async (req, res, next) => {
   try {
-    const { id: requestId } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+    const { id: refundId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(refundId)) {
       res.statusCode = 400;
-      throw new Error('Invalid request ID format');
+      throw new Error('Invalid refund request ID format');
     }
-    
-    const refundRequest = await RefundRequest.findById(requestId)
+
+    const refundRequest = await RefundRequest.findById(refundId)
       .populate('order')
-      .populate('user', 'name email')
-      .populate('processedBy', 'name email');
-    
+      .populate('user', 'name email');
+
     if (!refundRequest) {
       res.statusCode = 404;
       throw new Error('Refund request not found');
     }
-    
-    // Check if user is authorized to view this request
-    if (req.user.role !== 'admin' && refundRequest.user._id.toString() !== req.user._id.toString()) {
+
+    // Check if the user is authorized to view this refund request
+    if (req.buyer.role !== 'admin' && refundRequest.user._id.toString() !== req.buyer._id.toString()) {
       res.statusCode = 403;
       throw new Error('Not authorized to access this refund request');
     }
-    
+
     res.status(200).json(refundRequest);
   } catch (error) {
     next(error);
   }
 };
 
-// @desc     Add message to refund request communication
-// @route    POST /api/v1/orders/refund-requests/:id/message
+// @desc     Add message to refund request
+// @route    POST /api/v1/orders/refund/:id/message
 // @access   Private
 const addRefundMessage = async (req, res, next) => {
   try {
-    const { id: requestId } = req.params;
+    const { id: refundId } = req.params;
     const { message } = req.body;
-    
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+
+    if (!mongoose.Types.ObjectId.isValid(refundId)) {
       res.statusCode = 400;
-      throw new Error('Invalid request ID format');
+      throw new Error('Invalid refund request ID format');
     }
-    
-    if (!message) {
-      res.statusCode = 400;
-      throw new Error('Message content is required');
-    }
-    
-    const refundRequest = await RefundRequest.findById(requestId);
+
+    const refundRequest = await RefundRequest.findById(refundId);
+
     if (!refundRequest) {
       res.statusCode = 404;
       throw new Error('Refund request not found');
     }
-    
-    // Check if user has permission to add message
-    const isAdmin = req.user.role === 'admin';
-    const isOwner = refundRequest.user.toString() === req.user._id.toString();
-    
-    if (!isAdmin && !isOwner) {
+
+    const isOwner = refundRequest.user.toString() === req.buyer._id.toString();
+    if (!isOwner && req.buyer.role !== 'admin') {
       res.statusCode = 403;
-      throw new Error('Not authorized to add messages to this refund request');
+      throw new Error('Not authorized to add message to this refund request');
     }
-    
-    // Determine sender role (admin or customer)
-    const senderRole = isAdmin ? 'admin' : 'customer';
-    
-    // Add message to communication array
-    refundRequest.communication.push({
+
+    refundRequest.messages.push({
+      sender: req.buyer._id,
       message,
-      sender: senderRole,
-      timestamp: new Date()
+      isAdmin: req.buyer.role === 'admin'
     });
-    
+
     await refundRequest.save();
-    
     res.status(200).json(refundRequest);
   } catch (error) {
     next(error);
@@ -713,50 +578,37 @@ const addRefundMessage = async (req, res, next) => {
 };
 
 // @desc     Upload evidence for refund request
-// @route    POST /api/v1/orders/refund-requests/:id/evidence
+// @route    POST /api/v1/orders/refund/:id/evidence
 // @access   Private
 const uploadRefundEvidence = async (req, res, next) => {
   try {
-    const { id: requestId } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(requestId)) {
+    const { id: refundId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(refundId)) {
       res.statusCode = 400;
-      throw new Error('Invalid request ID format');
+      throw new Error('Invalid refund request ID format');
     }
-    
-    if (!req.files || req.files.length === 0) {
-      res.statusCode = 400;
-      throw new Error('Please upload at least one file');
-    }
-    
-    const refundRequest = await RefundRequest.findById(requestId);
+
+    const refundRequest = await RefundRequest.findById(refundId);
+
     if (!refundRequest) {
       res.statusCode = 404;
       throw new Error('Refund request not found');
     }
-    
-    // Check if user has permission to add evidence
-    if (refundRequest.user.toString() !== req.user._id.toString()) {
+
+    if (refundRequest.user.toString() !== req.buyer._id.toString()) {
       res.statusCode = 403;
-      throw new Error('Not authorized to add evidence to this refund request');
+      throw new Error('Not authorized to upload evidence for this refund request');
     }
-    
-    // Check if refund is in a state where evidence can be added
-    if (['Approved', 'Rejected'].includes(refundRequest.status)) {
+
+    if (!req.file) {
       res.statusCode = 400;
-      throw new Error(`Cannot add evidence to a refund request that is already ${refundRequest.status.toLowerCase()}`);
+      throw new Error('No file uploaded');
     }
-    
-    // Get file paths and add to evidence array
-    const filePaths = req.files.map(file => file.path);
-    refundRequest.evidence = [...refundRequest.evidence, ...filePaths];
-    
+
+    refundRequest.evidence = req.file.path;
     await refundRequest.save();
-    
-    res.status(200).json({
-      message: 'Evidence uploaded successfully',
-      evidence: refundRequest.evidence
-    });
+    res.status(200).json(refundRequest);
   } catch (error) {
     next(error);
   }
@@ -903,7 +755,6 @@ export {
   getOrderStats,
   requestRefund,
   processRefundRequest,
-  getRefundRequests,
   getMyRefundRequests,
   getRefundRequestById,
   addRefundMessage,

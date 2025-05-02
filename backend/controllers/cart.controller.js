@@ -6,20 +6,20 @@ import User from '../models/buyer.model.js';
 const addToCart = async (req, res, next) => {
   try {
     const { productId, qty } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.buyer._id);
 
     const itemExists = user.cart.find(
       (item) => item.product.toString() === productId
     );
 
     if (itemExists) {
-      itemExists.qty = qty; // ✅ Overwrite the quantity with latest value
+      itemExists.qty = qty;
     } else {
       user.cart.push({ product: productId, qty });
     }
 
     await user.save();
-    await user.populate('cart.product'); // ✅ Include product details
+    await user.populate('cart.product');
     res.status(200).json(user.cart);
   } catch (error) {
     next(error);
@@ -31,8 +31,8 @@ const addToCart = async (req, res, next) => {
 // @access Private
 const getCart = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id).populate('cart.product');
-    const filteredCart = user.cart.filter(item => item.product !== null); // optional: remove missing products
+    const user = await User.findById(req.buyer._id).populate('cart.product');
+    const filteredCart = user.cart.filter(item => item.product !== null);
     res.status(200).json(filteredCart);
   } catch (error) {
     next(error);
@@ -44,18 +44,43 @@ const getCart = async (req, res, next) => {
 // @access Private
 const removeFromCart = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.buyer._id);
 
     user.cart = user.cart.filter(
       (item) => item.product.toString() !== req.params.productId
     );
 
     await user.save();
-    await user.populate('cart.product'); // ensure consistent response
+    await user.populate('cart.product');
     res.status(200).json(user.cart);
   } catch (error) {
     next(error);
   }
 };
 
-export { addToCart, getCart, removeFromCart };
+// @desc Update item quantity in cart
+// @route PUT /api/cart/:productId
+// @access Private
+const updateCartItemQuantity = async (req, res, next) => {
+  try {
+    const { quantity } = req.body;
+    const user = await User.findById(req.buyer._id);
+
+    const item = user.cart.find(
+      (item) => item.product.toString() === req.params.productId
+    );
+
+    if (item) {
+      item.qty = quantity;
+      await user.save();
+      await user.populate('cart.product');
+      res.status(200).json(user.cart);
+    } else {
+      res.status(404).json({ message: 'Item not found in cart' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { addToCart, getCart, removeFromCart, updateCartItemQuantity };

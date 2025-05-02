@@ -1,13 +1,13 @@
 import express from 'express';
 import { createCheckoutSession } from '../controllers/paymentController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { buyerProtect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
 // Create a Stripe Checkout Session (requires user to be authenticated)
 router.post(
   '/create-checkout-session',
-  protect,
+  buyerProtect,
   createCheckoutSession
 );
 

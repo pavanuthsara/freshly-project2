@@ -8,7 +8,7 @@ import {
   resetPasswordRequest,
   resetPassword
 } from '../controllers/Buyer.controller.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { buyerProtect } from '../middleware/auth.middleware.js';
 import validateRequest from '../middleware/validator.js';
 import { body, param } from 'express-validator';
 import Order from '../models/order.model.js';
@@ -90,22 +90,20 @@ router.post('/', validator.checkNewUser, validateRequest, registerUser);
 router.post('/login', validator.checkLogin, validateRequest, loginUser);
 
 // Route for buyer logout
-router.post('/logout', protect, logoutUser);
+router.post('/logout', buyerProtect, logoutUser);
 
 // Routes for password reset
 router.post('/reset-password/request', validator.resetPasswordRequest, validateRequest, resetPasswordRequest);
 router.post('/reset-password/reset/:id/:token', validator.resetPassword, validateRequest, resetPassword);
 
 // Routes for buyer profile
-router
-  .route('/profile')
-  .get(protect, getUserProfile)
-  .put(validator.checkNewUser, validateRequest, protect, updateUserProfile);
+router.get('/profile', buyerProtect, getUserProfile);
+router.put('/profile', buyerProtect, updateUserProfile);
 
 // Route for buyer dashboard stats
-router.get('/stats', protect, async (req, res) => {
+router.get('/stats', buyerProtect, async (req, res) => {
   try {
-    const buyerId = req.user._id;
+    const buyerId = req.buyer._id;
     
     // Get total orders count
     const totalOrders = await Order.countDocuments({ user: buyerId });

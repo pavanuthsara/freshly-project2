@@ -1,7 +1,7 @@
 // backend/routes/order.routes.js
 
 import express from 'express';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { buyerProtect, admin } from '../middleware/auth.middleware.js';
 import {
   addOrderItems,
   getMyOrders,
@@ -13,7 +13,6 @@ import {
   // Refund-related controllers
   requestRefund,
   processRefundRequest,
-  getRefundRequests,
   getMyRefundRequests,
   getRefundRequestById,
   addRefundMessage,
@@ -142,8 +141,8 @@ const validator = {
     body('reason')
       .notEmpty()
       .withMessage('Refund reason is required')
-      .isString()
-      .withMessage('Reason must be a string')
+      .isLength({ min: 10 })
+      .withMessage('Refund reason must be at least 10 characters long')
   ],
   processRefundRequest: [
     param('id')
@@ -169,74 +168,36 @@ const validator = {
       .notEmpty()
       .withMessage('Refund request ID is required')
       .isMongoId()
-      .withMessage('Invalid refund request ID'),
+      .withMessage('Invalid Refund Request ID'),
     body('message')
       .notEmpty()
-      .withMessage('Message content is required')
-      .isString()
-      .withMessage('Message must be a string')
+      .withMessage('Message is required')
+      .isLength({ min: 1 })
+      .withMessage('Message cannot be empty')
   ]
 };
 
-// ✅ Regular order routes
-router
-  .route('/')
-  .post(validator.addOrderItems, validateRequest, protect, addOrderItems)
-  .get(protect, admin, getOrders);
+// Public routes
+router.post('/', buyerProtect, validator.addOrderItems, validateRequest, addOrderItems);
+router.get('/myorders', buyerProtect, getMyOrders);
+router.get('/:id', buyerProtect, validator.getOrderById, validateRequest, getOrderById);
+router.put('/:id/pay', buyerProtect, validator.updateOrderToPaid, validateRequest, updateOrderToPaid);
 
-// Fixed route order: specific routes before parametrized routes
-router.get('/my-orders', protect, getMyOrders);
-router.get('/stats', protect, admin, getOrderStats);
-router.get('/my-refund-requests', protect, getMyRefundRequests);
-router.get('/refund-requests', protect, admin, getRefundRequests);
-router.get('/refund-stats', protect, admin, getRefundStats);
+// Admin routes
+router.get('/', buyerProtect, admin, getOrders);
+router.put('/:id/deliver', buyerProtect, admin, validator.updateOrderToDeliver, validateRequest, updateOrderToDeliver);
+router.put('/:id/status', buyerProtect, admin, validator.updateOrderStatus, validateRequest, updateOrderStatus);
 
-// Refund request routes with specific params
-router.get(
-  '/refund-requests/:id', 
-  validator.getRefundRequestById,
-  validateRequest,
-  protect, 
-  getRefundRequestById
-);
+// Refund routes
+router.post('/:id/refund', buyerProtect, validator.requestRefund, validateRequest, requestRefund);
+router.put('/refund/:id/process', buyerProtect, admin, processRefundRequest);
+router.get('/refund/myrequests', buyerProtect, getMyRefundRequests);
+router.get('/refund/:id', buyerProtect, getRefundRequestById);
+router.post('/refund/:id/message', buyerProtect, validator.addRefundMessage, validateRequest, addRefundMessage);
+router.post('/refund/:id/evidence', buyerProtect, upload.single('evidence'), uploadRefundEvidence);
 
-router.put(
-  '/refund-requests/:id', 
-  validator.processRefundRequest,
-  validateRequest,
-  protect, 
-  admin, 
-  processRefundRequest
-);
-
-router.post(
-  '/refund-requests/:id/message',
-  validator.addRefundMessage,
-  validateRequest,
-  protect,
-  addRefundMessage
-);
-
-router.post(
-  '/refund-requests/:id/evidence',
-  validator.getRefundRequestById,
-  validateRequest,
-  protect,
-  upload.array('evidence', 5),
-  uploadRefundEvidence
-);
-
-// Generic order routes with params - must come after specific routes
-router.get('/:id', validator.getOrderById, validateRequest, protect, getOrderById);
-router.put('/:id/pay', validator.updateOrderToPaid, validateRequest, protect, updateOrderToPaid);
-router.put('/:id/deliver', validator.updateOrderToDeliver, validateRequest, protect, admin, updateOrderToDeliver);
-router.put('/:id/status', validator.updateOrderStatus, validateRequest, protect, admin, updateOrderStatus);
-router.post(
-  '/:id/refund-request', 
-  validator.requestRefund, 
-  validateRequest, 
-  protect, 
-  requestRefund
-);
+// Stats routes
+router.get('/stats/orders', buyerProtect, admin, getOrderStats);
+router.get('/stats/refunds', buyerProtect, admin, getRefundStats);
 
 export default router;

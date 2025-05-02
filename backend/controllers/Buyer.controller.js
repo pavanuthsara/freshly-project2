@@ -23,13 +23,28 @@ const loginUser = async (req, res, next) => {
       throw new Error('Invalid password. Please check your password and try again.');
     }
 
-    generateToken(req, res, user._id);
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    // Set token in cookie
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
 
     res.status(200).json({
       message: 'Login successful.',
       userId: user._id,
       name: user.name,
-      email: user.email
+      email: user.email,
+      isAdmin: user.isAdmin,
+      token
     });
   } catch (error) {
     next(error);
@@ -80,7 +95,7 @@ const logoutUser = (req, res) => {
 // GET PROFILE
 const getUserProfile = async (req, res, next) => {
   try {
-    const user = await Buyer.findById(req.user._id);
+    const user = await Buyer.findById(req.buyer._id);
 
     if (!user) {
       res.statusCode = 404;
@@ -102,7 +117,7 @@ const getUserProfile = async (req, res, next) => {
 const updateUserProfile = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-    const user = await Buyer.findById(req.user._id);
+    const user = await Buyer.findById(req.buyer._id);
 
     if (!user) {
       res.statusCode = 404;

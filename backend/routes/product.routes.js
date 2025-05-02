@@ -2,25 +2,26 @@
 import express from 'express';
 import {
   getProducts,
+  getProductsByCategory,
   getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
-  getTopProducts
-} from '../controllers/productController.js';
-import { protect } from '../middleware/authMiddleware.js';
-import validateRequest from '../middleware/validator.js';
-import { check, param } from 'express-validator';
+  getFarmerProducts
+} from '../controllers/product.controller.js';
+import { farmerProtect } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
 
-// Define validators if needed (you already have these in previous steps)
+// Public routes (no authentication required)
+router.get('/', getProducts); // Get all products
+router.get('/category/:category', getProductsByCategory); // Get products by category
+router.get('/:id', getProduct); // Get a single product
 
-router.get('/', getProducts);
-router.get('/top', getTopProducts);
-router.get('/:id', getProduct);
-router.post('/', protect, createProduct);
-router.put('/:id', protect, updateProduct);
-router.delete('/:id', protect, deleteProduct);
+// Protected routes (require farmer authentication)
+router.post('/', farmerProtect, createProduct); // Create a product
+router.put('/:id', farmerProtect, updateProduct); // Update a product
+router.delete('/:id', farmerProtect, deleteProduct); // Delete a product
+router.get('/farmer/products', farmerProtect, getFarmerProducts); // Get farmer's products
 
 export default router;

@@ -1,11 +1,6 @@
-// backend/controllers/productController.js
-import Product from '../models/productModel.js';
+import Product from '../models/product.model.js';
 import { deleteFile } from '../utils/file.js';
 
-// @desc     Fetch All Products
-// @method   GET
-// @endpoint /api/v1/products?limit=2&skip=0
-// @access   Public
 const getProducts = async (req, res, next) => {
   try {
     const total = await Product.countDocuments();
@@ -37,17 +32,14 @@ const getProducts = async (req, res, next) => {
   }
 };
 
-// @desc     Fetch top products
-// @method   GET
-// @endpoint /api/v1/products/top
-// @access   Public
-const getTopProducts = async (req, res, next) => {
+const getProductsByCategory = async (req, res, next) => {
   try {
-    const products = await Product.find({}).sort({ rating: -1 }).limit(3);
+    const { category } = req.params;
+    const products = await Product.find({ category });
 
     if (!products || products.length === 0) {
       res.statusCode = 404;
-      throw new Error('Top products not found!');
+      throw new Error(`No products found in category: ${category}`);
     }
 
     res.status(200).json(products);
@@ -56,10 +48,6 @@ const getTopProducts = async (req, res, next) => {
   }
 };
 
-// @desc     Fetch Single Product
-// @method   GET
-// @endpoint /api/v1/products/:id
-// @access   Public
 const getProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
@@ -76,23 +64,22 @@ const getProduct = async (req, res, next) => {
   }
 };
 
-// @desc     Create product
-// @method   POST
-// @endpoint /api/v1/products
-// @access   Private
 const createProduct = async (req, res, next) => {
   try {
-    const { name, image, description, brand, category, price, countInStock } = req.body;
+    const { name, image, description, category, price, countInStock, certification } = req.body;
 
     const product = new Product({
-      user: req.user._id,
+      farmer: {
+        id: req.farmer._id,
+        name: req.farmer.name,
+      },
       name,
       image,
       description,
-      brand,
       category,
       price,
-      countInStock
+      countInStock,
+      certification: certification || 'Organic',
     });
 
     const createdProduct = await product.save();
@@ -102,13 +89,9 @@ const createProduct = async (req, res, next) => {
   }
 };
 
-// @desc     Update product
-// @method   PUT
-// @endpoint /api/v1/products/:id
-// @access   Private
 const updateProduct = async (req, res, next) => {
   try {
-    const { name, image, description, brand, category, price, countInStock } = req.body;
+    const { name, image, description, category, price, countInStock } = req.body;
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -116,12 +99,16 @@ const updateProduct = async (req, res, next) => {
       throw new Error('Product not found!');
     }
 
+    if (product.farmer.id.toString() !== req.farmer._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Not authorized to update this product.');
+    }
+
     const previousImage = product.image;
 
     product.name = name || product.name;
     product.image = image || product.image;
     product.description = description || product.description;
-    product.brand = brand || product.brand;
     product.category = category || product.category;
     product.price = price || product.price;
     product.countInStock = countInStock || product.countInStock;
@@ -138,10 +125,6 @@ const updateProduct = async (req, res, next) => {
   }
 };
 
-// @desc    Delete product
-// @method   DELETE
-// @endpoint /api/v1/products/:id
-// @access   Private
 const deleteProduct = async (req, res, next) => {
   try {
     const { id: productId } = req.params;
@@ -150,6 +133,11 @@ const deleteProduct = async (req, res, next) => {
     if (!product) {
       res.statusCode = 404;
       throw new Error('Product not found!');
+    }
+
+    if (product.farmer.id.toString() !== req.farmer._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Not authorized to delete this product.');
     }
 
     await Product.deleteOne({ _id: product._id });
@@ -161,11 +149,50 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+const getFarmerProducts = async (req, res, next) => {
+  try {
+    if (!req.farmer.id || !req.farmer._id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    const farmerId = req.farmer._id;
+    
+    const query = { 
+      'farmer.id': farmerId
+    };
+
+    if (req.query.search) {
+      query.name = { $regex: req.query.search, $options: 'i' };
+    }
+
+    const total = await Product.countDocuments(query);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find(query)
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: products
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   getProducts,
+  getProductsByCategory,
   getProduct,
   createProduct,
   updateProduct,
   deleteProduct,
-  getTopProducts
-};
+  getFarmerProducts
+}; 
