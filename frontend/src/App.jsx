@@ -17,6 +17,7 @@ import ShippingPage from './pages/BuyerPages/ShippingPage';
 import PaymentPage from './pages/BuyerPages/PaymentPage';
 import ConfirmOrderPage from './pages/BuyerPages/ConfirmOrderPage';
 import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
+import BuyerOrders from './pages/BuyerPages/BuyerOrders';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -97,6 +98,7 @@ function App() {
               />
               
               {/* Order Management Routes */}
+              <Route path="/buyer/orders" element={<BuyerOrders />} />
               <Route path="/order/:id" element={<BuyerOrderDetails />} />
               
               {/* Checkout Flow Routes */}

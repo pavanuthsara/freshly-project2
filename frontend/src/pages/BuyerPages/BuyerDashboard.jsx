@@ -295,9 +295,10 @@ const BuyerDashboard = ({ setUser }) => {
                   <h2 className="text-lg font-semibold text-gray-800">Recent Orders</h2>
                   <Link
                     to="/buyer/orders"
-                    className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
+                    className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center"
                   >
                     View All
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </Link>
                 </div>
 
