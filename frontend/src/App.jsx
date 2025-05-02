@@ -4,6 +4,7 @@ import './App.css';
 
 // Header
 import Header from './components/Header';
+import PageWrapper from './components/PageWrapper';
 
 // Buyer Pages
 import HomePage from './pages/HomePage';
@@ -61,7 +62,7 @@ function App() {
       <div className="flex flex-col min-h-screen bg-gray-50">
         <Header user={user} setUser={setUser} cartItems={cartItems} />
         
-        <main className="flex-grow">
+        <main className="flex-grow pt-20">
           <Routes>
             {/* Buyer Routes */}
             <Route path="/" element={<HomePage />} />
@@ -80,23 +81,23 @@ function App() {
             <Route 
               path="/products" 
               element={
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <PageWrapper>
                   <ProductListPage 
                     cartItems={cartItems} 
                     setCartItems={setCartItems} 
                   />
-                </div>
+                </PageWrapper>
               } 
             />
             <Route 
               path="/cart" 
               element={
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <PageWrapper>
                   <CartPage 
                     cartItems={cartItems} 
                     setCartItems={setCartItems} 
                   />
-                </div>
+                </PageWrapper>
               } 
             />
             

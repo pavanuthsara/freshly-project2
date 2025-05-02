@@ -146,21 +146,34 @@ export const getOrderById = async (req, res) => {
 // @access  Private/Admin
 export const getDashboardStats = async (req, res) => {
   try {
+    console.log('Fetching dashboard stats...');
+    
     const totalUsers = await User.countDocuments({ isAdmin: false });
+    console.log('Total users:', totalUsers);
+    
     const totalOrders = await Order.countDocuments();
+    console.log('Total orders:', totalOrders);
+    
     const totalRevenue = await Order.aggregate([
       { $match: { isPaid: true } },
       { $group: { _id: null, total: { $sum: '$totalPrice' } } }
     ]);
+    console.log('Total revenue aggregation:', totalRevenue);
+    
     const pendingRefunds = await Order.countDocuments({ refundStatus: 'pending' });
+    console.log('Pending refunds:', pendingRefunds);
 
-    res.json({
+    const stats = {
       totalUsers,
       totalOrders,
       totalRevenue: totalRevenue[0]?.total || 0,
       pendingRefunds
-    });
+    };
+    
+    console.log('Final stats:', stats);
+    res.json(stats);
   } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
     res.status(500).json({ message: error.message });
   }
 };

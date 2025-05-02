@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosConfig';
 import { 
   FaUsers, 
   FaShoppingCart, 
@@ -24,10 +24,14 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data } = await axios.get('/api/admin/dashboard/stats');
+        console.log('Fetching dashboard stats...');
+        const { data } = await axiosInstance.get('/admin/dashboard/stats');
+        console.log('Received stats:', data);
         setStats(data);
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        console.error('Error response:', err.response);
         setError(err.response?.data?.message || 'Failed to fetch dashboard stats');
         setLoading(false);
       }
