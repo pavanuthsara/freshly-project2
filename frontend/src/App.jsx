@@ -20,6 +20,14 @@ import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
 
+// Admin Pages
+import AdminLogin from './pages/AdminPages/AdminLogin';
+import AdminDashboard from './pages/AdminPages/AdminDashboard';
+import AdminUsers from './pages/AdminPages/AdminUsers';
+import AdminOrders from './pages/AdminPages/AdminOrders';
+import AdminRegister from './pages/AdminPages/AdminRegister';
+import AdminRefunds from './pages/AdminPages/AdminRefunds';
+
 function App() {
   // User state management
   const [user, setUser] = useState({ name: 'Damith' }); // Simulated login
@@ -120,6 +128,14 @@ function App() {
               
               {/* Farmer Routes */}
               <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
+
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/orders" element={<AdminOrders />} />
+              <Route path="/admin/refunds" element={<AdminRefunds />} />
             </Routes>
           </div>
         </main>
