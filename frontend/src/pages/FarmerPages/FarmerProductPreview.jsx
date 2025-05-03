@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 
 // Base URL for backend with fallback
@@ -22,7 +21,12 @@ const FarmerProductPreview = () => {
       try {
         console.log('Fetching product with ID:', id);
         console.log('API URL:', `${BACKEND_URL}/api/products/${id}`);
-        const { data } = await axios.get(`/api/products/${id}`);
+        const response = await fetch(`/api/products/${id}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch product');
+        }
+        const data = await response.json();
         console.log('API response:', data);
         if (!data) {
           throw new Error('No product data received');
@@ -31,11 +35,7 @@ const FarmerProductPreview = () => {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching product:', error);
-        setError(
-          error.response?.data?.message ||
-          error.message ||
-          'Failed to fetch product'
-        );
+        setError(error.message || 'Failed to fetch product');
         setLoading(false);
       }
     };
@@ -106,7 +106,7 @@ const FarmerProductPreview = () => {
             <span className="text-green-600">
               <span className="font-semibold">Category:</span> {product.category}
             </span>
-            <span className="text-green-600">{product.quantity} kg available</span>
+            <span className="text-green-600">{product.countInStock ?? 0} kg available</span>
           </div>
           <div className="mb-4">
             <span className="text-green-600">

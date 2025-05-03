@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Plus, Edit, Trash2, Eye, User, ShoppingCart } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, User, ShoppingCart, Search, Filter } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import ProductListing from './ProductListing';
 import ProductReportGenerator from './ProductReportGenerator';
 
 const ProductSection = ({ farmerData }) => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,17 +19,22 @@ const ProductSection = ({ farmerData }) => {
     const fetchProducts = async () => {
       try {
         const token = localStorage.getItem('farmerToken');
-        const config = {
+        const response = await fetch('/api/farmerProducts', {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        };
-
-        const response = await axios.get('/api/farmerProducts', config);
-        setProducts(Array.isArray(response.data.data) ? response.data.data : []);
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch products');
+        }
+        const data = await response.json();
+        setProducts(Array.isArray(data.data) ? data.data : []);
         setIsLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch products');
+        setError(err.message || 'Failed to fetch products');
         setIsLoading(false);
         setProducts([]);
       }
@@ -35,6 +42,29 @@ const ProductSection = ({ farmerData }) => {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [search, category, products]);
+
+  const applyFilters = () => {
+    let result = products;
+
+    if (category) {
+      result = result.filter((product) =>
+        product.category.toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    if (search.trim()) {
+      result = result.filter((product) =>
+        product.name.toLowerCase().includes(search.toLowerCase()) ||
+        product.description.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(result);
+  };
 
   const sanitizeProductData = (productData) => {
     return {
@@ -44,20 +74,13 @@ const ProductSection = ({ farmerData }) => {
       countInStock: Math.min(Math.max(parseInt(productData.countInStock) || 0, 0), 9999),
       certification: (productData.certification || '').trim(),
       description: (productData.description || '').trim().slice(0, 500),
-      image: (productData.image || '').trim()
+      image: (productData.image || '').trim(),
     };
   };
 
   const handleAddProduct = async (newProduct) => {
     try {
       const token = localStorage.getItem('farmerToken');
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      };
-
       const sanitizedProduct = sanitizeProductData(newProduct);
       
       const productData = {
@@ -67,12 +90,24 @@ const ProductSection = ({ farmerData }) => {
         countInStock: sanitizedProduct.countInStock,
         certification: sanitizedProduct.certification,
         description: sanitizedProduct.description || 'No description',
-        image: sanitizedProduct.image || '/default-product-image.jpg'
+        image: sanitizedProduct.image || '/default-product-image.jpg',
       };
 
-      const response = await axios.post('/api/farmerProducts', productData, config);
+      const response = await fetch('/api/farmerProducts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add product');
+      }
+      const data = await response.json();
       
-      setProducts([...products, response.data.createdProduct]);
+      setProducts([...products, data.createdProduct]);
       setIsAddProductDialogOpen(false);
       toast.success('Product added successfully!', {
         style: {
@@ -83,7 +118,7 @@ const ProductSection = ({ farmerData }) => {
         duration: 3000,
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add product', {
+      toast.error(err.message || 'Failed to add product', {
         style: {
           background: '#EF4444',
           color: '#FFFFFF',
@@ -97,13 +132,6 @@ const ProductSection = ({ farmerData }) => {
   const handleUpdateProduct = async (updatedProduct) => {
     try {
       const token = localStorage.getItem('farmerToken');
-      const config = {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      };
-
       const sanitizedProduct = sanitizeProductData(updatedProduct);
       
       const productData = {
@@ -112,13 +140,25 @@ const ProductSection = ({ farmerData }) => {
         price: sanitizedProduct.price,
         countInStock: sanitizedProduct.countInStock,
         description: sanitizedProduct.description || 'No description',
-        image: sanitizedProduct.image || '/default-product-image.jpg'
+        image: sanitizedProduct.image || '/default-product-image.jpg',
       };
 
-      const response = await axios.put(`/api/farmerProducts/${updatedProduct._id}`, productData, config);
+      const response = await fetch(`/api/farmerProducts/${updatedProduct._id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update product');
+      }
+      const data = await response.json();
       
       setProducts(products.map(p => 
-        p._id === updatedProduct._id ? response.data.updatedProduct : p
+        p._id === updatedProduct._id ? data.updatedProduct : p
       ));
       setEditingProduct(null);
       toast.success('Product updated successfully!', {
@@ -130,7 +170,7 @@ const ProductSection = ({ farmerData }) => {
         duration: 3000,
       });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update product', {
+      toast.error(err.message || 'Failed to update product', {
         style: {
           background: '#EF4444',
           color: '#FFFFFF',
@@ -145,13 +185,17 @@ const ProductSection = ({ farmerData }) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         const token = localStorage.getItem('farmerToken');
-        const config = {
+        const response = await fetch(`/api/farmerProducts/${id}`, {
+          method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        };
-
-        await axios.delete(`/api/farmerProducts/${id}`, config);
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to delete product');
+        }
         
         setProducts(products.filter(product => product._id !== id));
         toast.success('Product deleted successfully!', {
@@ -163,7 +207,7 @@ const ProductSection = ({ farmerData }) => {
           duration: 3000,
         });
       } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to delete product', {
+        toast.error(err.message || 'Failed to delete product', {
           style: {
             background: '#EF4444',
             color: '#FFFFFF',
@@ -241,6 +285,33 @@ const ProductSection = ({ farmerData }) => {
           </div>
         </div>
 
+        {activeView === 'myProducts' && (
+          <div className="flex justify-center gap-4 mb-6">
+            <div className="relative flex-grow max-w-md">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500" size={20} />
+            </div>
+            <div className="relative">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="appearance-none w-full px-4 py-2 pl-3 pr-10 border border-green-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">All Categories</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+              </select>
+              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={20} />
+            </div>
+          </div>
+        )}
+
         {activeView === 'myProducts' ? (
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             {isLoading ? (
@@ -251,9 +322,11 @@ const ProductSection = ({ farmerData }) => {
               <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
                 {error}
               </div>
-            ) : products.length === 0 ? (
+            ) : filteredProducts.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
-                No products yet. Click "Add Product" to get started!
+                {search || category
+                  ? 'No products found! Try adjusting your search or category filter.'
+                  : 'No products yet. Click "Add Product" to get started!'}
               </div>
             ) : (
               <table className="w-full">
@@ -268,7 +341,7 @@ const ProductSection = ({ farmerData }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => (
+                  {filteredProducts.map((product) => (
                     <tr key={product._id} className="border-b hover:bg-green-50">
                       <td className="p-3">{product.name}</td>
                       <td className="p-3">{product.category}</td>
@@ -333,7 +406,7 @@ const ProductSection = ({ farmerData }) => {
                   countInStock: '',
                   certification: 'Organic',
                   description: '',
-                  image: ''
+                  image: '',
                 }}
               />
             </div>
@@ -537,15 +610,20 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
         const formDataUpload = new FormData();
         formDataUpload.append('image', imageFile);
 
-        const uploadResponse = await axios.post('/api/upload', formDataUpload, {
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
           },
+          body: formDataUpload,
         });
-
-        if (uploadResponse.data.imageUrl) {
-          imageUrl = uploadResponse.data.imageUrl;
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          throw new Error(errorData.error || 'Image upload failed');
+        }
+        const uploadData = await uploadResponse.json();
+        if (uploadData.imageUrl) {
+          imageUrl = uploadData.imageUrl;
         } else {
           throw new Error('Image upload failed');
         }
@@ -561,7 +639,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       setImageFile(null);
       setImagePreview('');
     } catch (err) {
-      setErrors({ submit: err.response?.data?.error || 'Failed to upload image or save product' });
+      setErrors({ submit: err.message || 'Failed to upload image or save product' });
     } finally {
       setIsUploading(false);
     }

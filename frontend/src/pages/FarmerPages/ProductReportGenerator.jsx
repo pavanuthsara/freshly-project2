@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -16,25 +15,41 @@ const ProductReportGenerator = () => {
       setIsLoading(true);
       const token = localStorage.getItem('farmerToken');
 
-      const config = {
+      // Fetch farmer profile
+      const profileResponse = await fetch('/api/farmers/profile', {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-      };
-
-      const profileResponse = await axios.get('/api/farmers/profile', config);
-      const farmer = profileResponse.data.farmer || {};
+      });
+      if (!profileResponse.ok) {
+        throw new Error('Failed to fetch farmer profile');
+      }
+      const profileData = await profileResponse.json();
+      const farmer = profileData.farmer || {};
       console.log('Farmer profile:', farmer);
 
-      const productResponse = await axios.get('/api/farmerProducts', config);
-      const products = productResponse.data.data || [];
+      // Fetch products
+      const productResponse = await fetch('/api/farmerProducts', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!productResponse.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const productData = await productResponse.json();
+      const products = productData.data || [];
       console.log('Farmer products:', products);
 
       const reportData = products.map((product) => ({
         Name: product.name || 'Unknown',
         Category: product.category || 'N/A',
         Price: `LKR ${product.price?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}`,
-        Stock: `${product.countInStock ?? 0} kg`, // Fallback to 0 if undefined
+        Stock: `${product.countInStock ?? 0} kg`,
         Certification: product.certification || 'N/A',
         Description: product.description || 'No description',
       }));

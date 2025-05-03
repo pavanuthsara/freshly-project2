@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Search, Filter, Eye } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -27,16 +26,25 @@ const ProductListing = () => {
     setLoading(true);
     setError('');
     try {
-      const { data } = await axios.get('/api/products', {
-        withCredentials: true,
+      const response = await fetch('/api/products', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch products');
+      }
+      const data = await response.json();
       console.log('Fetched products:', data.products);
       const products = Array.isArray(data.products) ? data.products : [];
       setAllProducts(products);
       setFilteredProducts(products);
     } catch (error) {
       console.error('Error fetching products:', error);
-      setError(error.response?.data.message || 'Failed to fetch products');
+      setError(error.message || 'Failed to fetch products');
       setAllProducts([]);
       setFilteredProducts([]);
     } finally {
