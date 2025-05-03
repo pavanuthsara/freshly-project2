@@ -19,6 +19,7 @@ import PaymentPage from './pages/BuyerPages/PaymentPage';
 import ConfirmOrderPage from './pages/BuyerPages/ConfirmOrderPage';
 import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
 import BuyerOrders from './pages/BuyerPages/BuyerOrders';
+import ComplaintHistory from './pages/BuyerPages/ComplaintHistory';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -103,7 +104,8 @@ function App() {
             
             {/* Order Management Routes */}
             <Route path="/buyer/orders" element={<BuyerOrders />} />
-            <Route path="/order/:id" element={<BuyerOrderDetails />} />
+            <Route path="/buyer/order/:id" element={<BuyerOrderDetails />} />
+            <Route path="/buyer/complaints" element={<ComplaintHistory />} />
             
             {/* Checkout Flow Routes */}
             <Route
@@ -129,7 +131,7 @@ function App() {
               }
             />
             <Route
-              path="/buyer/confirm-order"
+              path="/buyer/confirm"
               element={
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                   <ConfirmOrderPage
