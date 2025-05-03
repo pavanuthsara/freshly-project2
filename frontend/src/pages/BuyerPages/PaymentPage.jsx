@@ -65,7 +65,7 @@ const PaymentPage = ({ paymentMethod, setPaymentMethod }) => {
 
       // Add a small delay for UI feedback
       setTimeout(() => {
-        navigate('/buyer/confirm-order', { replace: true });
+        navigate('/buyer/confirm', { replace: true });
         setIsLoading(false);
       }, 700);
     } catch (error) {

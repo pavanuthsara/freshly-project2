@@ -109,7 +109,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
       alert('✅ Order placed successfully!');
       setCartItems([]);
       localStorage.removeItem('cartItems');
-      navigate('/buyer/profile');
+      navigate('/buyer/dashboard');
     } catch (err) {
       console.error('Order error:', err);
       alert(err.response?.data?.message || 'Failed to place order');
