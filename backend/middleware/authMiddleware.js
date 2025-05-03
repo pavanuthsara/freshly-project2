@@ -1,6 +1,6 @@
 // backend/middleware/authMiddleware.js
 
-import User from '../models/buyer.model.js';
+import Buyer from '../models/buyer.model.js';
 import jwt from 'jsonwebtoken';
 
 // Middleware to protect routes by verifying JWT authentication token.
@@ -30,7 +30,7 @@ const protect = async (req, res, next) => {
       throw new Error('Authentication failed: Invalid token.');
     }
     
-    req.user = await User.findById(decodedToken.userId).select('-password');
+    req.user = await Buyer.findById(decodedToken.userId).select('-password');
     
     if (!req.user) {
       res.statusCode = 401;

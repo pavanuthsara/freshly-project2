@@ -20,8 +20,10 @@ import {
   Heart,
   AlertCircle,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  MessageSquare
 } from 'lucide-react';
+import ComplaintForm from '../../components/ComplaintForm';
 
 const BuyerDashboard = ({ setUser }) => {
   const [stats, setStats] = useState({
@@ -152,6 +154,22 @@ const BuyerDashboard = ({ setUser }) => {
                 >
                   <Heart className="h-5 w-5" />
                   {!isSidebarCollapsed && <span className="ml-3">Wishlist</span>}
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="/buyer/complaints"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Complaints</span>}
                 </NavLink>
               </li>
 
@@ -289,72 +307,68 @@ const BuyerDashboard = ({ setUser }) => {
                 </div>
               </div>
 
-              {/* Recent Orders */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-semibold text-gray-800">Recent Orders</h2>
-                  <Link
-                    to="/buyer/orders"
-                    className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center"
-                  >
-                    View All
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
-                        <th className="pb-3 font-medium">Order ID</th>
-                        <th className="pb-3 font-medium">Date</th>
-                        <th className="pb-3 font-medium">Status</th>
-                        <th className="pb-3 font-medium">Total</th>
-                        <th className="pb-3 font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {recentOrders.length > 0 ? (
-                        recentOrders.map((order) => (
-                          <tr key={order._id} className="text-sm hover:bg-gray-50/50 transition-colors">
-                            <td className="py-4 text-gray-600">#{order._id.slice(-6)}</td>
-                            <td className="py-4 text-gray-600">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </td>
-                            <td className="py-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                order.status === 'Delivered' 
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : order.status === 'Processing'
-                                  ? 'bg-blue-100 text-blue-700'
-                                  : 'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="py-4 text-gray-600">
-                              LKR {order.totalPrice.toLocaleString()}
-                            </td>
-                            <td className="py-4">
-                              <Link
-                                to={`/order/${order._id}`}
-                                className="text-emerald-600 hover:text-emerald-700 font-medium"
-                              >
-                                View Details
-                              </Link>
+              {/* Recent Orders and Complaint Form */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Orders */}
+                <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-100">
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Orders</h2>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                          <th className="pb-3 font-medium">Order ID</th>
+                          <th className="pb-3 font-medium">Date</th>
+                          <th className="pb-3 font-medium">Status</th>
+                          <th className="pb-3 font-medium">Total</th>
+                          <th className="pb-3 font-medium">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {recentOrders.length > 0 ? (
+                          recentOrders.map((order) => (
+                            <tr key={order._id} className="text-sm hover:bg-gray-50/50 transition-colors">
+                              <td className="py-4 text-gray-600">#{order._id.slice(-6)}</td>
+                              <td className="py-4 text-gray-600">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </td>
+                              <td className="py-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  order.status === 'Delivered' 
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : order.status === 'Processing'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {order.status}
+                                </span>
+                              </td>
+                              <td className="py-4 text-gray-600">
+                                LKR {order.totalPrice.toLocaleString()}
+                              </td>
+                              <td className="py-4">
+                                <Link
+                                  to={`/order/${order._id}`}
+                                  className="text-emerald-600 hover:text-emerald-700 font-medium"
+                                >
+                                  View Details
+                                </Link>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="5" className="py-8 text-center text-gray-500">
+                              No recent orders found
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="5" className="py-8 text-center text-gray-500">
-                            No recent orders found
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+
+                {/* Complaint Form */}
+                <ComplaintForm />
               </div>
             </>
           )}
