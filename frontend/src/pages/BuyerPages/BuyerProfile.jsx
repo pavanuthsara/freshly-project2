@@ -1,8 +1,33 @@
 import React, { useEffect, useState } from 'react'; 
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'; 
+import { Routes, Route, useLocation, NavLink } from 'react-router-dom'; 
 import axios from 'axios'; 
-import { Edit, User, Mail, Phone, MapPin, Camera, Loader2, CheckCircle, X, Calendar, ShoppingBag, Clock } from 'lucide-react';
-import BuyerSidebar from './BuyerSidebar'; 
+import { 
+  Edit, 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Camera, 
+  Loader2, 
+  CheckCircle, 
+  X, 
+  Calendar, 
+  ShoppingBag, 
+  Clock,
+  BarChart2,
+  Package,
+  CreditCard,
+  Truck,
+  Star,
+  Bell,
+  Settings,
+  Heart,
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft,
+  MessageSquare,
+  LogOut
+} from 'lucide-react';
 import BuyerOrders from './BuyerOrders';
 
 // Success notification component for payment success
@@ -426,11 +451,10 @@ const EditProfileModal = ({ user, onClose, onSave }) => {
  
 const BuyerProfile = () => { 
   const [user, setUser] = useState(null); 
-  const [errorMsg, setErrorMsg] = useState(''); 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
   
   // Parse query parameters
@@ -441,17 +465,12 @@ const BuyerProfile = () => {
   useEffect(() => { 
     const fetchProfile = async () => { 
       try { 
-        setIsLoading(true);
         const res = await axios.get('/api/buyers/profile', { 
           withCredentials: true, 
         }); 
         setUser(res.data);
-        setErrorMsg('');
       } catch (error) { 
-        const msg = error.response?.data?.message || 'Failed to load profile'; 
-        setErrorMsg(msg); 
-      } finally {
-        setIsLoading(false);
+        console.error('Failed to load profile', error);
       }
     }; 
  
@@ -473,64 +492,212 @@ const BuyerProfile = () => {
     }
   }, [paymentSuccess, orderId]);
 
-  const getActiveTab = () => { 
-    if (!location || !location.pathname) return 'profile';
-    if (location.pathname.includes('/orders')) return 'orders';
-    return 'profile';
-  };
- 
   return ( 
-    <div className="flex bg-gradient-to-br from-emerald-50 to-teal-50 min-h-screen"> 
-      <BuyerSidebar activeTab={getActiveTab()} /> 
-      
-      {/* Payment Success Notification */}
-      {showPaymentSuccess && (
-        <SuccessNotification 
-          orderId={successOrderId} 
-          onClose={() => setShowPaymentSuccess(false)} 
-        />
-      )}
-       
-      <div className="flex-1 p-4 md:p-6"> 
-        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center mr-3 shadow-sm">
-              <User size={20} className="text-white" />
-            </div>
-            {user ? `Welcome, ${user.name.split(' ')[0]}!` : 'Welcome!'}
-          </h1>
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Dashboard Sidebar */}
+      <div className={`bg-gradient-to-b from-emerald-900 to-teal-900 text-white transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'} shadow-xl flex-shrink-0`}>
+        <div className="flex flex-col h-full">
+          {/* Logo and Toggle */}
+          <div className="p-4 flex items-center justify-between border-b border-emerald-800">
+            {!isSidebarCollapsed && (
+              <div className="flex items-center space-x-3">
+                <User className="h-8 w-8 text-emerald-300" />
+                <h2 className="text-xl font-bold text-white">My Profile</h2>
+              </div>
+            )}
+            {isSidebarCollapsed && <User className="h-8 w-8 text-emerald-300 mx-auto" />}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="p-2 rounded-lg hover:bg-emerald-800 transition-colors"
+            >
+              {isSidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </button>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 py-4">
+            <ul className="space-y-2 px-2">
+              <li>
+                <NavLink
+                  to="/buyer/dashboard"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <BarChart2 className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Dashboard</span>}
+                </NavLink>
+              </li>
+              
+              <li>
+                <NavLink
+                  to="/buyer/orders"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <Package className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">My Orders</span>}
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="/buyer/profile"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <User className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Profile</span>}
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="/buyer/wishlist"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <Heart className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Wishlist</span>}
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
+                  to="/buyer/settings"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <Settings className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Settings</span>}
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          {/* Logout Button */}
+          <div className="p-4 border-t border-emerald-800">
+            <button
+              onClick={() => {
+                // Handle logout
+                localStorage.removeItem('user');
+                window.location.href = '/buyer/login';
+              }}
+              className="flex items-center w-full px-4 py-3 text-emerald-200 hover:bg-emerald-800 rounded-lg transition-colors"
+            >
+              <LogOut className="h-5 w-5" />
+              {!isSidebarCollapsed && <span className="ml-3">Logout</span>}
+            </button>
+          </div>
         </div>
-
-        <Routes> 
-          <Route  
-            path="/"  
-            element={
-              <ProfileInfo 
-                user={isLoading ? null : user} 
-                errorMsg={errorMsg} 
-                onEditProfile={() => setIsEditModalOpen(true)}
-              />
-            }  
-          /> 
-          <Route
-            path="/orders"
-            element={<BuyerOrders />}
-          />
-        </Routes>
-
-        {isEditModalOpen && user && (
-          <EditProfileModal 
-            user={user}
-            onClose={() => setIsEditModalOpen(false)}
-            onSave={(updatedUser) => {
-              setUser(updatedUser);
-              setIsEditModalOpen(false);
-            }}
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        {/* Payment Success Notification */}
+        {showPaymentSuccess && (
+          <SuccessNotification 
+            orderId={successOrderId} 
+            onClose={() => setShowPaymentSuccess(false)} 
           />
         )}
+        <div className="w-full max-w-3xl mx-auto">
+          <div className="bg-white/90 rounded-2xl shadow-xl p-8 mb-8">
+            {/* Profile Picture & Name */}
+            <div className="flex flex-col items-center mb-8">
+              {user?.profilePicture ? (
+                <img src={user.profilePicture} alt="Profile" className="w-28 h-28 rounded-full object-cover border-4 border-emerald-100 shadow-md mb-4" />
+              ) : (
+                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 flex items-center justify-center shadow-md mb-4">
+                  <User size={36} className="text-emerald-600" />
+                </div>
+              )}
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">{user?.name}</h2>
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg shadow transition-colors"
+              >
+                <Edit size={16} className="inline mr-2" />Edit Profile
+              </button>
+            </div>
+            {/* Two-column grid for info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Contact Info */}
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-emerald-700 mb-4 flex items-center"><Mail size={18} className="mr-2" />Contact Information</h3>
+                <div className="flex items-center gap-3">
+                  <Mail className="text-emerald-500" size={18} />
+                  <span className="text-gray-700 font-medium">{user?.email}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="text-emerald-500" size={18} />
+                  <span className="text-gray-700 font-medium">{user?.phoneNumber || 'Not provided'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <MapPin className="text-emerald-500" size={18} />
+                  <span className="text-gray-700 font-medium">{user?.address || 'Not provided'}</span>
+                </div>
+              </div>
+              {/* Account Summary */}
+              <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4 border border-gray-100">
+                <h3 className="text-lg font-semibold text-emerald-700 mb-4 flex items-center"><ShoppingBag size={18} className="mr-2" />Account Summary</h3>
+                <div className="flex items-center gap-3">
+                  <ShoppingBag className="text-emerald-500" size={18} />
+                  <span className="text-gray-700">Total Orders:</span>
+                  <span className="font-bold text-gray-900">{user?.totalOrders || '0'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Calendar className="text-emerald-500" size={18} />
+                  <span className="text-gray-700">Member Since:</span>
+                  <span className="font-bold text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : 'N/A'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="text-emerald-500" size={18} />
+                  <span className="text-gray-700">Last Order:</span>
+                  <span className="font-bold text-gray-900">{user?.lastOrderDate ? new Date(user.lastOrderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'No orders yet'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Edit Modal */}
+          {isEditModalOpen && user && (
+            <EditProfileModal 
+              user={user}
+              onClose={() => setIsEditModalOpen(false)}
+              onSave={(updatedUser) => {
+                setUser(updatedUser);
+                setIsEditModalOpen(false);
+              }}
+            />
+          )}
+        </div>
       </div> 
     </div> 
   ); 
 }; 
- 
+
 export default BuyerProfile;
