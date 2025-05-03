@@ -12,9 +12,7 @@ import mongoose from 'mongoose';
 const createDeliveryRequest = async (order) => {
   try {
     // Calculate total weight from order items (assuming each item has a weight property)
-    const totalWeight = order.orderItems.reduce((sum, item) => {
-      return sum + (item.weight || 0) * item.qty;
-    }, 0);
+    const totalWeight = Math.floor(Math.random() * (500 - 10 + 1)) + 10;;
 
     // Create delivery request
     const deliveryRequest = new DeliveryRequest({
