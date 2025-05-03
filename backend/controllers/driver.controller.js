@@ -16,14 +16,11 @@ const registerDriver = async (req, res, next) => {
       throw new Error('Driver already exists. Please choose a different email.');
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create a new driver
+    // Create a new driver - password will be hashed by the model's pre-save middleware
     const driver = new Driver({
       name,
       email,
-      password: hashedPassword,
+      password, // Password will be hashed by the model's pre-save middleware
       district,
       NIC,
       contactNumber,
@@ -34,14 +31,14 @@ const registerDriver = async (req, res, next) => {
     await driver.save();
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateDriverToken(req, res, driver._id);
 
     res.status(201).json({
       message: 'Registration successful. Welcome!',
       driverId: driver._id,
       name: driver.name,
       email: driver.email,
-      token,  // Send the token in the response
+      token,
     });
   } catch (error) {
     next(error);
@@ -60,22 +57,22 @@ const loginDriver = async (req, res, next) => {
       throw new Error('Invalid email address. Please check your email and try again.');
     }
 
-    // Compare the entered password with the stored hashed password
-    const match = await bcrypt.compare(password, driver.password);
-    if (!match) {
+    // Use the model's matchPassword method to compare passwords
+    const isMatch = await driver.matchPassword(password);
+    if (!isMatch) {
       res.statusCode = 401;
       throw new Error('Invalid password. Please check your password and try again.');
     }
 
     // Generate and send JWT token
-    const token = generateDriverToken(req, res, driver._id); // Generate token for driver
+    const token = generateDriverToken(req, res, driver._id);
 
     res.status(200).json({
       message: 'Login successful.',
       driverId: driver._id,
       name: driver.name,
       email: driver.email,
-      token, // Send the token in the response
+      token,
     });
   } catch (error) {
     next(error);
