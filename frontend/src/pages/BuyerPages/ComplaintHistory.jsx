@@ -8,7 +8,8 @@ import {
   Clock,
   Search,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Phone
 } from 'lucide-react';
 
 const ComplaintHistory = () => {
@@ -25,6 +26,14 @@ const ComplaintHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('createdAt');
   const [sortOrder, setSortOrder] = useState('desc');
+
+  const complaintTypes = [
+    'Product Quality',
+    'Delivery Issue',
+    'Payment Problem',
+    'Service Complaint',
+    'Other'
+  ];
 
   useEffect(() => {
     fetchComplaints();
@@ -168,6 +177,9 @@ const ComplaintHistory = () => {
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Description
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -181,13 +193,13 @@ const ComplaintHistory = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center">
+                  <td colSpan="6" className="px-6 py-4 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto"></div>
                   </td>
                 </tr>
               ) : filteredComplaints.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
                     No complaints found
                   </td>
                 </tr>
@@ -198,7 +210,40 @@ const ComplaintHistory = () => {
                       {new Date(complaint.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {complaint.type}
+                      {editingId === complaint._id ? (
+                        <select
+                          value={editForm.type}
+                          onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                          {complaintTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        complaint.type
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {editingId === complaint._id ? (
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                          <input
+                            type="tel"
+                            value={editForm.contactNo}
+                            onChange={(e) => setEditForm({ ...editForm, contactNo: e.target.value })}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Contact number"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                          {complaint.contactNo}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {editingId === complaint._id ? (
@@ -225,13 +270,13 @@ const ComplaintHistory = () => {
                         <div className="flex space-x-2">
                           <button
                             onClick={handleUpdate}
-                            className="text-emerald-600 hover:text-emerald-800"
+                            className="px-3 py-1 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
                           >
                             Save
                           </button>
                           <button
                             onClick={() => setEditingId(null)}
-                            className="text-gray-600 hover:text-gray-800"
+                            className="px-3 py-1 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                           >
                             Cancel
                           </button>
@@ -240,13 +285,13 @@ const ComplaintHistory = () => {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleEdit(complaint)}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="p-1 text-blue-600 hover:text-blue-800 rounded-lg hover:bg-blue-50 transition-colors"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(complaint._id)}
-                            className="text-red-600 hover:text-red-800"
+                            className="p-1 text-red-600 hover:text-red-800 rounded-lg hover:bg-red-50 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
