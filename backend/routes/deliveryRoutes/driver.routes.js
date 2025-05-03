@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/deliveryMiddleware/auth.middleware.js';
+import { protect } from '../../middleware/deliveryMiddleware/auth.middleware.js';
 
 import { registerDriver,
          loginDriver,
@@ -7,10 +7,10 @@ import { registerDriver,
          updateDriver,
          deleteDriver,
          getDriverDetails,
-         } from '../controllers/driver.controller.js';
+         } from '../../controllers/deliveryControllers/driver.controller.js';
 
 import { validateDriverRegistration,
-         validateDriverLogin } from '../middleware/deliveryMiddleware/driverValidator.middleware.js';
+         validateDriverLogin } from '../../middleware/deliveryMiddleware/driverValidator.middleware.js';
 
 const router = express.Router();
 

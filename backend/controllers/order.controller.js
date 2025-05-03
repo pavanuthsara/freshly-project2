@@ -3,7 +3,7 @@
 import Order from '../models/order.model.js';
 import Buyer from '../models/buyer.model.js';
 import RefundRequest from '../models/refundRequest.model.js';
-import DeliveryRequest from '../models/deliveryRequest.model.js';
+import DeliveryRequest from '../models/deliveryModels/deliveryRequest.model.js';
 import mongoose from 'mongoose';
 
 // @desc     Create delivery request for an order

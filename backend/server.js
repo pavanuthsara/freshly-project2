@@ -19,8 +19,8 @@ import paymentRoutes from './routes/payment.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import complaint1Routes from './routes/complaint1.routes.js';
 
-import driverRoutes from './routes/driver.routes.js';
-import deliveryRequestRoutes from './routes/deliveryRequest.routes.js';
+import driverRoutes from './routes/deliveryRoutes/driver.routes.js';
+import deliveryRequestRoutes from './routes/deliveryRoutes/deliveryRequest.routes.js';
 
 import { stripeWebhook } from './controllers/stripeWebhookController.js';
 
@@ -97,6 +97,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
 app.use('/api/admin', adminRoutes); // Add admin routes
 app.use('/api', complaint1Routes); // Add complaint1 routes
+app.use('/api/deliveryrequest', deliveryRequestRoutes);
 app.use('/api/drivers', driverRoutes);
 
 // Serve uploads - include refund evidence

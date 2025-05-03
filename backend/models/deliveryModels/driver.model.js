@@ -37,7 +37,6 @@ const driverSchema = mongoose.Schema(
         type: Number,
         required: true,
     },
-
   },
   {
     timestamps: true,
@@ -48,15 +47,17 @@ driverSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Hash the password before saving the driver document
+// Hash the password before saving the driver document, but only if it's new or modified
 driverSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) {
-      next();
-    }
+  if (!this.isModified("password")) {
+    return next();
+  }
+  if (this.password && !this.password.startsWith('$2')) { // Check if not already hashed
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    next();
-  });
+  }
+  next();
+});
 
 const Driver = mongoose.model("Driver", driverSchema);
 

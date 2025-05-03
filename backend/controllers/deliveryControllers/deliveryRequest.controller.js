@@ -1,6 +1,6 @@
-import DeliveryRequest from "../models/deliveryRequest.model.js";
-import Driver from "../models/driver.model.js";
-import AcceptedDeliveryRequest from "../models/acceptedDeliveryRequest.model.js";
+import DeliveryRequest from "../../models/deliveryModels/deliveryRequest.model.js";
+import Driver from "../../models/deliveryModels/driver.model.js";
+import AcceptedDeliveryRequest from "../../models/deliveryModels/acceptedDeliveryRequest.model.js";
 import asyncHandler from "express-async-handler";
 
 // 🔹 Create Delivery Request
