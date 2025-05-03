@@ -144,7 +144,7 @@ const BuyerOrderHistory = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <Link 
-                              to={`/order/${order._id}`} 
+                              to={`/buyer/order/${order._id}`} 
                               className="text-teal-600 hover:text-teal-700 flex items-center"
                             >
                               <FaEye className="mr-1" /> Details
