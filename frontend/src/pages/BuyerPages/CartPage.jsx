@@ -173,210 +173,201 @@ const CartPage = ({ cartItems, setCartItems }) => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Shopping Cart</h1>
-      
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md shadow-sm">
-          <p className="font-medium">Error</p>
-          <p>{error}</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      {/* Background pattern */}
+      <div className="absolute inset-0 z-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px'
+        }}></div>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl">
+        <div className="flex items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>
+          <div className="ml-4 h-1 w-24 bg-gradient-to-r from-teal-500 to-teal-600 rounded"></div>
         </div>
-      )}
-      
-      {cartItems.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <IoCartOutline className="text-gray-500 text-3xl" />
+        
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-sm">
+            <p className="font-medium">Error</p>
+            <p>{error}</p>
           </div>
-          <h2 className="text-xl font-medium text-gray-800 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-6">Looks like you haven't added any products to your cart yet.</p>
-          <button
-            onClick={continueShopping}
-            className="bg-teal-600 hover:bg-teal-700 text-white py-2 px-6 rounded-md transition-colors"
-          >
-            Start Shopping
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart items section */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b border-gray-100">
-                    <tr>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 uppercase">Product</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 uppercase">Price</th>
-                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-600 uppercase">Quantity</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 uppercase">Total</th>
-                      <th className="py-3 px-4 text-sm font-medium text-gray-600 uppercase">Remove</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cartItems.map((item) => (
-                      <tr key={item.product?._id || item._id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center">
-                            <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4">
-                              <img 
-                                src={item.product?.image} 
-                                alt={item.product?.name}
-                                className="h-full w-full object-cover object-center"
-                              />
-                            </div>
-                            <div>
-                              <h3 className="text-base font-medium text-gray-800">{item.product?.name}</h3>
-                              <span className="text-xs bg-gray-100 inline-block px-2 py-1 mt-1 text-gray-600 rounded">
-                                {item.product?.category}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-right text-gray-700">
-                          {formatCurrency(item.product?.price)}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center justify-center">
-                            <button 
-                              onClick={() => updateQty(item.product?._id, Math.max(1, item.qty - 1))}
-                              className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-l bg-gray-50 hover:bg-gray-100 transition-colors"
-                            >
-                              -
-                            </button>
-                            <input
-                              type="text"
-                              value={item.qty}
-                              onChange={(e) => updateQty(item.product?._id, e.target.value)}
-                              className="w-10 h-8 text-center border-t border-b border-gray-300 focus:outline-none focus:ring-1 focus:ring-teal-500"
-                            />
-                            <button
-                              onClick={() => updateQty(item.product?._id, item.qty + 1)}
-                              className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-r bg-gray-50 hover:bg-gray-100 transition-colors"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4 text-right font-medium text-gray-800">
-                          {formatCurrency(item.product?.price * item.qty)}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <button
-                            onClick={() => removeFromCart(item.product?._id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors"
-                            aria-label="Remove item"
-                          >
-                            <IoTrashOutline className="text-xl" />
-                          </button>
-                        </td>
+        )}
+        
+        {cartItems.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-12 text-center backdrop-blur-sm bg-opacity-90">
+            <div className="w-20 h-20 bg-gradient-to-br from-teal-50 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <IoCartOutline className="text-teal-600 text-4xl" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Your cart is empty</h2>
+            <p className="text-gray-600 mb-8 max-w-md mx-auto">Looks like you haven't added any products to your cart yet. Start exploring our fresh products!</p>
+            <button
+              onClick={continueShopping}
+              className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <IoArrowBackOutline className="text-xl" />
+                <span>Start Shopping</span>
+              </div>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart items section */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden backdrop-blur-sm bg-opacity-90">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                        <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Price</th>
+                        <th className="text-center py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
+                        <th className="text-right py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                        <th className="py-4 px-6 text-sm font-semibold text-gray-600 uppercase tracking-wider">Remove</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {cartItems.map((item) => (
+                        <tr key={item.product?._id || item._id} className="hover:bg-gray-50 transition-colors duration-150">
+                          <td className="py-6 px-6">
+                            <div className="flex items-center">
+                              <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 mr-4">
+                                <img 
+                                  src={item.product?.image} 
+                                  alt={item.product?.name}
+                                  className="h-full w-full object-cover object-center transform hover:scale-105 transition-transform duration-300"
+                                />
+                              </div>
+                              <div>
+                                <h3 className="text-base font-semibold text-gray-800 hover:text-teal-600 transition-colors">
+                                  {item.product?.name}
+                                </h3>
+                                <span className="text-xs bg-gradient-to-r from-teal-50 to-teal-100 inline-block px-3 py-1 mt-2 text-teal-700 rounded-full font-medium">
+                                  {item.product?.category}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-6 px-6 text-right font-medium text-gray-700">
+                            {formatCurrency(item.product?.price)}
+                          </td>
+                          <td className="py-6 px-6">
+                            <div className="flex items-center justify-center">
+                              <button 
+                                onClick={() => updateQty(item.product?._id, Math.max(1, item.qty - 1))}
+                                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-l-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                              >
+                                -
+                              </button>
+                              <input
+                                type="text"
+                                value={item.qty}
+                                onChange={(e) => updateQty(item.product?._id, e.target.value)}
+                                className="w-16 h-10 text-center border-y border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              />
+                              <button 
+                                onClick={() => updateQty(item.product?._id, item.qty + 1)}
+                                className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-r-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-6 px-6 text-right font-semibold text-gray-800">
+                            {formatCurrency(item.product?.price * item.qty)}
+                          </td>
+                          <td className="py-6 px-6">
+                            <button
+                              onClick={() => removeFromCart(item.product?._id)}
+                              className="group rounded-full p-2 hover:bg-red-50 transition-colors duration-300"
+                            >
+                              <IoTrashOutline className="text-xl text-gray-400 group-hover:text-red-500 transition-colors duration-300" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-            
-            <div className="mt-6">
-              <button
-                onClick={continueShopping}
-                className="flex items-center text-teal-600 hover:text-teal-700 font-medium transition-colors"
-              >
-                <IoArrowBackOutline className="mr-2" />
-                Continue Shopping
-              </button>
-            </div>
-          </div>
-          
-          {/* Order summary section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-100">Order Summary</h2>
-              
-              <div className="space-y-3 text-gray-600">
-                <div className="flex justify-between items-center">
-                  <span>Subtotal</span>
-                  <span className="text-gray-800 font-medium">{formatCurrency(subtotal)}</span>
-                </div>
+
+            {/* Order summary section */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 backdrop-blur-sm bg-opacity-90">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h2>
                 
-                <div className="flex justify-between items-center">
-                  <span>Tax (10%)</span>
-                  <span>{formatCurrency(tax)}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span>Shipping</span>
-                  <span>{shipping === 0 ? 'Free' : formatCurrency(shipping)}</span>
-                </div>
-                
-                {promoApplied && (
-                  <div className="flex justify-between items-center text-teal-600">
-                    <span>Discount (5%)</span>
-                    <span>-{formatCurrency(discount)}</span>
+                {/* Promo code section */}
+                <div className="mb-6">
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="Enter promo code"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={applyPromoCode}
+                      className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+                    >
+                      Apply
+                    </button>
                   </div>
-                )}
-                
-                {shipping > 0 && (
-                  <div className="bg-teal-50 text-teal-600 text-sm p-3 my-2 rounded-md">
-                    Add {formatCurrency(1000 - subtotal)} more for free shipping
+                </div>
+
+                {/* Summary calculations */}
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
                   </div>
-                )}
-              </div>
-              
-              <div className="border-t border-gray-100 pt-4 mt-4">
-                <div className="flex justify-between items-center font-semibold text-lg">
-                  <span className="text-gray-800">Total</span>
-                  <span className="text-teal-700">{formatCurrency(total)}</span>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span>{shipping === 0 ? 'Free' : formatCurrency(shipping)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax</span>
+                    <span>{formatCurrency(tax)}</span>
+                  </div>
+                  {promoApplied && (
+                    <div className="flex justify-between text-teal-600">
+                      <span>Discount</span>
+                      <span>-{formatCurrency(discount)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between text-lg font-semibold text-gray-800">
+                      <span>Total</span>
+                      <span>{formatCurrency(total)}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Promo code section */}
-              <div className="mt-6">
-                <p className="font-medium text-gray-700 mb-2">Promo Code</p>
-                <div className="flex">
-                  <input
-                    type="text"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Enter your code"
-                    className="flex-grow border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500"
-                  />
-                  <button 
-                    onClick={applyPromoCode}
-                    className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-r transition-colors"
-                  >
-                    Apply
-                  </button>
-                </div>
-                {promoApplied && (
-                  <p className="text-sm text-teal-600 mt-2">Promo code applied successfully!</p>
-                )}
-              </div>
-              
-              {/* Checkout button */}
-              <div className="mt-6">
+
+                {/* Checkout button */}
                 <button
                   onClick={handleCheckout}
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-md font-medium transition-colors"
+                  className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md"
                 >
                   Proceed to Checkout
                 </button>
-              </div>
-              
-              {/* Payment methods */}
-              <div className="mt-6 text-center text-xs text-gray-500">
-                <p>Secure payment options</p>
-                <div className="flex justify-center space-x-2 mt-2">
-                  <div className="h-6 w-10 bg-gray-200 rounded"></div>
-                  <div className="h-6 w-10 bg-gray-200 rounded"></div>
-                  <div className="h-6 w-10 bg-gray-200 rounded"></div>
-                  <div className="h-6 w-10 bg-gray-200 rounded"></div>
-                </div>
+
+                {/* Continue shopping link */}
+                <button
+                  onClick={continueShopping}
+                  className="w-full mt-4 bg-transparent border border-gray-300 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <IoArrowBackOutline className="text-xl" />
+                  <span>Continue Shopping</span>
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
