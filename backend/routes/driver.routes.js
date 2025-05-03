@@ -1,6 +1,5 @@
 import express from 'express';
-import { driverProtect } from '../middleware/driverAuth.middleware.js';
-
+import { protect } from "../middleware/deliveryMiddleware/auth.middleware.js";
 import { registerDriver,
          loginDriver,
          logoutDriver,

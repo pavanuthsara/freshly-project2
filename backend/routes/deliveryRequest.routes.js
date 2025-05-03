@@ -1,5 +1,5 @@
 import { createDeliveryRequest, acceptDeliveryRequest, getAcceptedRequestsByDriver, getPendingDeliveryRequests, capacityCalculation} from "../controllers/deliveryRequest.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/deliveryMiddleware/auth.middleware.js";
 import express from "express";
 
 const router = express.Router();
