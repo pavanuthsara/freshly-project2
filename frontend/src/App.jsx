@@ -76,7 +76,7 @@ function App() {
             <Route path="/buyer/dashboard" element={<BuyerDashboard setUser={setUser} />} />
             
             {/* User Profile Route */}
-            <Route path="/buyer/profile/*" element={<BuyerProfile />} />
+            <Route path="/buyer/profile" element={<BuyerProfile />} />
             
             {/* Shopping Routes */}
             <Route 

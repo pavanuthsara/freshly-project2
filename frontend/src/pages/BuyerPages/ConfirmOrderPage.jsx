@@ -96,7 +96,11 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
       ) {
         const stripeRes = await axios.post(
           'http://localhost:5000/api/payment/create-checkout-session',
-          { orderId: data._id },
+          { 
+            orderId: data._id,
+            successUrl: `${window.location.origin}/buyer/dashboard`,
+            cancelUrl: `${window.location.origin}/buyer/confirm`
+          },
           { withCredentials: true }
         );
 

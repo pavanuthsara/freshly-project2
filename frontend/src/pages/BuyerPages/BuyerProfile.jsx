@@ -464,9 +464,6 @@ const BuyerProfile = () => {
       setShowPaymentSuccess(true);
       setSuccessOrderId(orderId);
       
-      // Clear the URL params after showing notification
-      window.history.replaceState({}, document.title, '/buyer/profile');
-      
       // Auto-hide notification after 8 seconds
       const timer = setTimeout(() => {
         setShowPaymentSuccess(false);
@@ -519,10 +516,6 @@ const BuyerProfile = () => {
             path="/orders"
             element={<BuyerOrders />}
           />
-          <Route  
-            path="*"  
-            element={<Navigate to="/buyer/profile" replace />}  
-          /> 
         </Routes>
 
         {isEditModalOpen && user && (

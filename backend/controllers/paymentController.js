@@ -70,9 +70,9 @@ export const createCheckoutSession = async (req, res, next) => {
       mode: 'payment',
       customer_email: order.user?.email,
       line_items: lineItems,
-      // Updated to redirect to profile page with success parameter
-      success_url: `http://localhost:5173/buyer/profile?success=true&orderId=${order._id}`,
-      cancel_url: `${process.env.ORIGIN || 'http://localhost:5173'}/order-cancelled/${order._id}`,
+      // Use the successUrl from the request if provided, otherwise use default
+      success_url: req.body.successUrl || `http://localhost:5173/buyer/dashboard?success=true&orderId=${order._id}`,
+      cancel_url: req.body.cancelUrl || `${process.env.ORIGIN || 'http://localhost:5173'}/order-cancelled/${order._id}`,
       metadata: {
         orderId: order._id.toString(),
         userId: order.user._id.toString(),
