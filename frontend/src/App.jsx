@@ -54,19 +54,20 @@ const checkAuthentication = () => {
 // Main App component
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // User state management
-  const [user, setUser] = useState({ name: 'Damith' }); // Simulated login
-  const [cartItems, setCartItems] = useState([]); // Cart items
-  
-  // Checkout information states
+  const [user, setUser] = useState({ name: 'Damith' });
+  const [cartItems, setCartItems] = useState([]);
   const [shippingAddress, setShippingAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
-  
+
   useEffect(() => {
     setIsAuthenticated(checkAuthentication());
+    const handleStorageChange = () => {
+      setIsAuthenticated(checkAuthentication());
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Load saved cart from localStorage on initial render
   useEffect(() => {
     const savedCart = localStorage.getItem('cartItems');
     if (savedCart) {
@@ -77,8 +78,7 @@ function App() {
       }
     }
   }, []);
-  
-  // Save cart to localStorage whenever it changes
+
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
@@ -117,10 +117,8 @@ function AppContent({
   const location = useLocation();
   const currentPath = location.pathname;
 
-  // Function to check if the current route is a delivery route
   const isDeliveryRoute = (path) => path.startsWith('/drivers');
 
-  // Layout component for authenticated routes
   const AuthenticatedLayout = ({ children }) => {
     return (
       <div className="flex min-h-screen">
@@ -141,7 +139,16 @@ function AppContent({
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/drivers/login" element={<DriverSignInSignUp setUser={setUser} setIsAuthenticated={setIsAuthenticated} />} />
+          <Route
+            path="/drivers/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/drivers/dashboard" />
+              ) : (
+                <DriverSignInSignUp setUser={setUser} setIsAuthenticated={setIsAuthenticated} />
+              )
+            }
+          />
           <Route
             path="/buyer/login"
             element={
@@ -307,7 +314,6 @@ function AppContent({
         <footer className="bg-white border-t border-gray-200 pt-10 pb-8 mt-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-              {/* Brand Column */}
               <div className="md:col-span-4">
                 <div className="flex items-center mb-4">
                   <h2 className="text-xl font-bold text-teal-600">Freshly<span className="text-gray-800">.lk</span></h2>
@@ -338,8 +344,6 @@ function AppContent({
                   </a>
                 </div>
               </div>
-
-              {/* Navigation Columns */}
               <div className="md:col-span-2">
                 <h3 className="text-sm font-semibold text-gray-800 tracking-wider uppercase">Products</h3>
                 <ul className="mt-4 space-y-2">
@@ -349,7 +353,6 @@ function AppContent({
                   <li><a href="/products?category=grains" className="text-sm text-gray-600 hover:text-teal-600 transition-colors">Grains</a></li>
                 </ul>
               </div>
-
               <div className="md:col-span-2">
                 <h3 className="text-sm font-semibold text-gray-800 tracking-wider uppercase">Account</h3>
                 <ul className="mt-4 space-y-2">
@@ -359,7 +362,6 @@ function AppContent({
                   <li><a href="/buyer/profile/settings" className="text-sm text-gray-600 hover:text-teal-600 transition-colors">Settings</a></li>
                 </ul>
               </div>
-
               <div className="md:col-span-2">
                 <h3 className="text-sm font-semibold text-gray-800 tracking-wider uppercase">Company</h3>
                 <ul className="mt-4 space-y-2">
@@ -369,7 +371,6 @@ function AppContent({
                   <li><a href="/contact" className="text-sm text-gray-600 hover:text-teal-600 transition-colors">Contact Us</a></li>
                 </ul>
               </div>
-
               <div className="md:col-span-2">
                 <h3 className="text-sm font-semibold text-gray-800 tracking-wider uppercase">Contact</h3>
                 <ul className="mt-4 space-y-2">
@@ -395,7 +396,6 @@ function AppContent({
                 </ul>
               </div>
             </div>
-            
             <div className="mt-10 pt-6 border-t border-gray-200">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center">
                 <p className="text-sm text-gray-500">
