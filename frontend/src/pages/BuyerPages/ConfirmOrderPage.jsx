@@ -95,7 +95,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
         paymentMethod.provider === 'stripe'
       ) {
         const stripeRes = await axios.post(
-          'http://localhost:5000/api/payment/create-checkout-session',
+          '/api/payment/create-checkout-session',
           { 
             orderId: data._id,
             successUrl: `${window.location.origin}/buyer/dashboard`,

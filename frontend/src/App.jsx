@@ -47,24 +47,34 @@ import AdminRefunds from './pages/AdminPages/AdminRefunds';
 
 // Function to check if the user is authenticated
 const checkAuthentication = () => {
+  // Check both localStorage and cookies
   const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='));
   return !!token;
 };
 
 // Main App component
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // User state management
-  const [user, setUser] = useState({ name: 'Damith' }); // Simulated login
-  const [cartItems, setCartItems] = useState([]); // Cart items
-  
-  // Checkout information states
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuthentication());
+  const [user, setUser] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [shippingAddress, setShippingAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
   
+  // Update authentication state when component mounts and when user changes
   useEffect(() => {
-    setIsAuthenticated(checkAuthentication());
-  }, []);
+    const handleAuthChange = () => {
+      setIsAuthenticated(checkAuthentication());
+    };
+    
+    // Check auth state every second for 5 seconds after mount
+    const interval = setInterval(handleAuthChange, 1000);
+    const timeout = setTimeout(() => clearInterval(interval), 5000);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [user]);
 
   // Load saved cart from localStorage on initial render
   useEffect(() => {

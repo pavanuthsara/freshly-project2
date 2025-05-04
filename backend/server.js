@@ -70,8 +70,13 @@ app.get('/api/payment/test', async (req, res) => {
 // Standard middlewares
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Allow frontend
+    origin: process.env.NODE_ENV === 'development' 
+      ? ['http://localhost:5173', 'https://checkout.stripe.com'] 
+      : process.env.FRONTEND_URL,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie']
   })
 );
 app.use(express.json()); // Body parser (after webhook)

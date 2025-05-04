@@ -62,12 +62,20 @@ const BuyerDashboard = ({ setUser }) => {
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
         console.error('Error response:', error.response);
+        
         if (error.response?.status === 401) {
-          setError('Your session has expired. Please log in again.');
-          setTimeout(() => {
-            setUser(null);
-            navigate('/buyer/login');
-          }, 2000);
+          // Check if we have a valid token
+          const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='));
+          if (!token) {
+            setError('Your session has expired. Please log in again.');
+            setTimeout(() => {
+              setUser(null);
+              navigate('/buyer/login');
+            }, 2000);
+          } else {
+            // If we have a token but still getting 401, try refreshing the page
+            window.location.reload();
+          }
         } else {
           setError('Failed to load dashboard data. Please try again later.');
         }

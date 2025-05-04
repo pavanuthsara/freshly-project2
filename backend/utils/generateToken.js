@@ -9,9 +9,11 @@ export const generateToken = (req, res, userId) => {
   // Setting the JWT as an HTTP-only cookie for enhanced security
   res.cookie('jwt', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
-    maxAge: req.body.remember ? 365 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: req.body.remember ? 365 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
+    path: '/'
   });
 };
 
@@ -24,8 +26,10 @@ export const generateDriverToken = (req, res, driverId) => {
   // Setting the JWT as an HTTP-only cookie for enhanced security
   res.cookie('driver_jwt', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV !== 'development',
-    sameSite: 'strict',
-    maxAge: req.body.remember ? 365 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: req.body.remember ? 365 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
+    path: '/'
   });
 };

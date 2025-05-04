@@ -71,7 +71,7 @@ export const createCheckoutSession = async (req, res, next) => {
       customer_email: order.user?.email,
       line_items: lineItems,
       // Use the successUrl from the request if provided, otherwise use default
-      success_url: req.body.successUrl || `http://localhost:5173/buyer/dashboard?success=true&orderId=${order._id}`,
+      success_url: req.body.successUrl || `${process.env.ORIGIN || 'http://localhost:5173'}/buyer/dashboard?success=true&orderId=${order._id}&session_id={CHECKOUT_SESSION_ID}&user_id=${order.user._id}`,
       cancel_url: req.body.cancelUrl || `${process.env.ORIGIN || 'http://localhost:5173'}/order-cancelled/${order._id}`,
       metadata: {
         orderId: order._id.toString(),
