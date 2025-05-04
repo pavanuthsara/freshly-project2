@@ -16,7 +16,7 @@ const Header = ({ user, setUser, cartItems }) => {
           <Link to="/" className="text-2xl font-bold text-white tracking-wide">
             Freshly.lk
           </Link>
-          <div className="flex items-center gap-x-6">
+          <div className="flex items-center gap-x-6 pr-8">
             <Link to="/cart" className="relative p-2 hover:bg-emerald-800 rounded-full transition">
               <ShoppingCart className="h-6 w-6 text-white" />
               {cartItems.length > 0 && (
