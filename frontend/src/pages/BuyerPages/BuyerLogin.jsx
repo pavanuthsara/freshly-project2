@@ -3,23 +3,23 @@ import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, CheckCircle, User, Facebook, Eye, EyeOff } from 'lucide-react';
 
-const BuyerLogin = () => {
+const BuyerLogin = ({ setIsAuthenticated, setUser }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  
+
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
   };
-  
+
   const validatePassword = (password) => {
     return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
   };
-  
+
   const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -28,31 +28,44 @@ const BuyerLogin = () => {
     setErrorMsg('');
     setSuccessMsg('');
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     if (!validateEmail(formData.email)) {
       setErrorMsg('Please enter a valid email address.');
       setIsLoading(false);
       return;
     }
-    
+
     if (!validatePassword(formData.password)) {
       setErrorMsg('Password must be at least 8 characters long, include at least one uppercase letter and one number.');
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const response = await axios.post(
         '/api/buyers/login',
         formData,
         { withCredentials: true }
       );
-      setSuccessMsg(response.data.message);
-      setTimeout(() => navigate('/buyer/dashboard'), 1000);
+      // Assuming the response includes a token and user data
+      const { token, user } = response.data;
+      // Store token in localStorage to match checkAuthentication
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      // Update user state if user data is provided
+      if (user) {
+        setUser(user);
+      }
+      // Update authentication state
+      setIsAuthenticated(true);
+      setSuccessMsg(response.data.message || 'Login successful!');
+      // Immediate redirect to dashboard
+      navigate('/buyer/dashboard');
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed.';
       setErrorMsg(message);
@@ -60,11 +73,11 @@ const BuyerLogin = () => {
       setIsLoading(false);
     }
   };
-  
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
-  
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden transform transition-all duration-300">
@@ -77,7 +90,7 @@ const BuyerLogin = () => {
           <h2 className="text-2xl font-bold text-center text-white">Welcome Back</h2>
           <p className="text-center text-green-100 mt-1">Sign in to your buyer account</p>
         </div>
-        
+
         <div className="p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {errorMsg && (
@@ -86,14 +99,14 @@ const BuyerLogin = () => {
                 <p className="text-sm font-medium">{errorMsg}</p>
               </div>
             )}
-            
+
             {successMsg && (
               <div className="bg-green-50 text-green-700 p-4 rounded-lg border-l-4 border-green-600 flex items-center space-x-3">
                 <CheckCircle className="h-5 w-5 flex-shrink-0" />
                 <p className="text-sm font-medium">{successMsg}</p>
               </div>
             )}
-            
+
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">Email Address</label>
               <div className="relative">
@@ -111,7 +124,7 @@ const BuyerLogin = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <label className="block text-sm font-medium text-gray-700">Password</label>
@@ -130,7 +143,7 @@ const BuyerLogin = () => {
                   required
                   className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                 />
-                <button 
+                <button
                   type="button"
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={togglePasswordVisibility}
@@ -144,7 +157,7 @@ const BuyerLogin = () => {
               </div>
               <p className="text-xs text-gray-500 mt-1">Password must be at least 8 characters with at least one uppercase letter and one number.</p>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -155,11 +168,11 @@ const BuyerLogin = () => {
                 Remember me
               </label>
             </div>
-            
+
             <button
               className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 ${
-                isLoading 
-                  ? 'bg-green-500 cursor-not-allowed' 
+                isLoading
+                  ? 'bg-green-500 cursor-not-allowed'
                   : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
               }`}
               type="submit"
@@ -176,7 +189,7 @@ const BuyerLogin = () => {
               ) : 'Sign In'}
             </button>
           </form>
-          
+
           <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -186,9 +199,9 @@ const BuyerLogin = () => {
                 <span className="px-3 bg-white text-gray-500">Or continue with</span>
               </div>
             </div>
-            
+
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <button 
+              <button
                 type="button"
                 className="py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-center"
               >
@@ -200,7 +213,7 @@ const BuyerLogin = () => {
                 </svg>
                 Google
               </button>
-              <button 
+              <button
                 type="button"
                 className="py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-all duration-200 flex items-center justify-center"
               >
@@ -209,10 +222,10 @@ const BuyerLogin = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account? 
+              Don't have an account?
               <Link to="/buyer/register" className="ml-1 font-medium text-green-600 hover:text-green-500 hover:underline transition">
                 Create an account
               </Link>

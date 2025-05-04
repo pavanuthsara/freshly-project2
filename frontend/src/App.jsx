@@ -47,7 +47,7 @@ import AdminRefunds from './pages/AdminPages/AdminRefunds';
 
 // Function to check if the user is authenticated
 const checkAuthentication = () => {
-  const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='));
+  const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1];
   return !!token;
 };
 
@@ -142,7 +142,16 @@ function AppContent({
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/drivers/login" element={<DriverSignInSignUp setUser={setUser} setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/buyer/login" element={<BuyerLogin />} />
+          <Route
+            path="/buyer/login"
+            element={
+              isAuthenticated ? (
+                <Navigate to="/buyer/dashboard" />
+              ) : (
+                <BuyerLogin setIsAuthenticated={setIsAuthenticated} setUser={setUser} />
+              )
+            }
+          />
           <Route path="/buyer/register" element={<BuyerRegister />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
