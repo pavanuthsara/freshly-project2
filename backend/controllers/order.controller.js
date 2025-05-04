@@ -5,6 +5,7 @@ import Buyer from '../models/buyer.model.js';
 import RefundRequest from '../models/refundRequest.model.js';
 import DeliveryRequest from '../models/deliveryModels/deliveryRequest.model.js';
 import mongoose from 'mongoose';
+import Notification from '../models/notification.model.js';
 
 // @desc     Create delivery request for an order
 // @route    POST /api/v1/orders/:id/delivery-request
@@ -450,22 +451,105 @@ const getOrderStats = async (req, res, next) => {
   }
 };
 
-// @desc     Request refund for an order
-// @route    POST /api/v1/orders/:id/refund-request
+// @desc     Cancel order
+// @route    PUT /api/v1/orders/:id/cancel
 // @access   Private
-const requestRefund = async (req, res, next) => {
+const cancelOrder = async (req, res, next) => {
   try {
     const { id: orderId } = req.params;
-    const { reason, items, evidence } = req.body;
+    const { reason } = req.body;
     
     if (!mongoose.Types.ObjectId.isValid(orderId)) {
       res.statusCode = 400;
       throw new Error('Invalid order ID format');
     }
     
-    if (!reason) {
+    if (!reason || reason.length < 10) {
       res.statusCode = 400;
-      throw new Error('Refund reason is required');
+      throw new Error('Please provide a detailed cancellation reason (minimum 10 characters)');
+    }
+    
+    const order = await Order.findById(orderId);
+    if (!order) {
+      res.statusCode = 404;
+      throw new Error('Order not found');
+    }
+    
+    // Check if user is authorized to cancel this order
+    if (order.user.toString() !== req.user._id.toString()) {
+      res.statusCode = 403;
+      throw new Error('Not authorized to cancel this order');
+    }
+    
+    // Check if order can be cancelled
+    if (order.isPaid) {
+      res.statusCode = 400;
+      throw new Error('Cannot cancel a paid order. Please request a refund instead.');
+    }
+    
+    if (order.status !== 'Pending') {
+      res.statusCode = 400;
+      throw new Error('Only pending orders can be cancelled');
+    }
+    
+    // Update order status
+    order.status = 'Cancelled';
+    order.cancellationReason = reason;
+    order.cancelledAt = new Date();
+    order.cancelledBy = req.user._id;
+    
+    // Add to cancellation history
+    order.cancellationHistory = order.cancellationHistory || [];
+    order.cancellationHistory.push({
+      reason,
+      cancelledBy: req.user._id,
+      cancelledAt: new Date()
+    });
+    
+    await order.save();
+    
+    // Notify admin about cancellation
+    await Notification.create({
+      user: req.user._id,
+      type: 'order_cancelled',
+      title: 'Order Cancelled',
+      message: `Order #${order._id} has been cancelled by ${req.user.name}`,
+      data: {
+        orderId: order._id,
+        reason
+      }
+    });
+    
+    res.status(200).json({
+      message: 'Order cancelled successfully',
+      order: {
+        _id: order._id,
+        status: order.status,
+        cancellationReason: order.cancellationReason,
+        cancelledAt: order.cancelledAt
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc     Request refund for an order
+// @route    POST /api/v1/orders/:id/refund-request
+// @access   Private
+const requestRefund = async (req, res, next) => {
+  try {
+    const { id: orderId } = req.params;
+    const { reason, items, evidence, refundAmount } = req.body;
+    
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      res.statusCode = 400;
+      throw new Error('Invalid order ID format');
+    }
+    
+    if (!reason || reason.length < 10) {
+      res.statusCode = 400;
+      throw new Error('Please provide a detailed refund reason (minimum 10 characters)');
     }
     
     const order = await Order.findById(orderId);
@@ -502,24 +586,49 @@ const requestRefund = async (req, res, next) => {
       throw new Error('A refund request for this order is already in progress');
     }
     
+    // Validate refund amount if provided
+    if (refundAmount && (refundAmount <= 0 || refundAmount > order.totalPrice)) {
+      res.statusCode = 400;
+      throw new Error('Invalid refund amount');
+    }
+    
     // Create refund request
     const refundRequest = new RefundRequest({
       order: orderId,
       user: req.user._id,
       reason,
-      items: items || order.orderItems, // If specific items aren't provided, assume full order refund
+      items: items || order.orderItems,
       status: 'Pending',
       evidence: evidence || [],
+      refundAmount: refundAmount || order.totalPrice,
+      communication: [{
+        message: reason,
+        sender: 'customer',
+        timestamp: new Date()
+      }]
     });
     
     await refundRequest.save();
     
-    // Update order status to indicate refund requested
+    // Update order status
     order.refundRequested = true;
     order.refundRequestedAt = new Date();
     order.refundStatus = 'Pending';
     order.refundReason = reason;
     await order.save();
+    
+    // Notify admin about refund request
+    await Notification.create({
+      user: req.user._id,
+      type: 'refund_requested',
+      title: 'New Refund Request',
+      message: `New refund request for Order #${order._id} from ${req.user.name}`,
+      data: {
+        orderId: order._id,
+        refundRequestId: refundRequest._id,
+        reason
+      }
+    });
     
     res.status(201).json(refundRequest);
   } catch (error) {
@@ -932,6 +1041,7 @@ export {
   updateOrderStatus,
   getOrders,
   getOrderStats,
+  cancelOrder,
   requestRefund,
   processRefundRequest,
   getRefundRequests,

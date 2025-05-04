@@ -19,7 +19,8 @@ import {
   addRefundMessage,
   uploadRefundEvidence,
   getOrderStats,
-  getRefundStats
+  getRefundStats,
+  cancelOrder
 } from '../controllers/order.controller.js';
 import validateRequest from '../middleware/validator.js';
 import { param, check, body } from 'express-validator';
@@ -175,6 +176,18 @@ const validator = {
       .withMessage('Message content is required')
       .isString()
       .withMessage('Message must be a string')
+  ],
+  cancelOrder: [
+    param('id')
+      .notEmpty()
+      .withMessage('Order ID is required')
+      .isMongoId()
+      .withMessage('Invalid order ID'),
+    body('reason')
+      .notEmpty()
+      .withMessage('Cancellation reason is required')
+      .isLength({ min: 10 })
+      .withMessage('Cancellation reason must be at least 10 characters long')
   ]
 };
 
@@ -237,6 +250,15 @@ router.post(
   validateRequest, 
   protect, 
   requestRefund
+);
+
+// Cancel order route
+router.put(
+  '/:id/cancel',
+  validator.cancelOrder,
+  validateRequest,
+  protect,
+  cancelOrder
 );
 
 export default router;

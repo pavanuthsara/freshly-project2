@@ -25,12 +25,15 @@ const BuyerOrderDetails = () => {
   const [cancelSuccess, setCancelSuccess] = useState(false);
   const [cancelError, setCancelError] = useState('');
 
+  // File upload state
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
   // Fetch order details
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get(`/api/v1/orders/${id}`, {
+        const { data } = await axios.get(`/api/orders/${id}`, {
           withCredentials: true
         });
         setOrder(data);
@@ -76,27 +79,91 @@ const BuyerOrderDetails = () => {
            order.status !== 'Refunded';
   };
 
-  // Get status badge class
-  const getStatusClass = (status) => {
-    switch(status) {
-      case 'Pending': return 'bg-amber-500';
-      case 'Processing': return 'bg-blue-500';
-      case 'Shipped': return 'bg-indigo-500';
-      case 'Delivered': return 'bg-emerald-500';
-      case 'Cancelled': return 'bg-rose-500';
-      case 'Refunded': return 'bg-violet-500';
-      default: return 'bg-slate-500';
+  // Handle cancel order
+  const handleCancelOrder = async () => {
+    if (!cancelReason || cancelReason.length < 10) {
+      setCancelError('Please provide a detailed reason for cancellation (minimum 10 characters)');
+      return;
+    }
+
+    try {
+      setSubmittingCancel(true);
+      setCancelError('');
+
+      await axios.put(`/api/orders/${id}/cancel`, {
+        reason: cancelReason
+      }, {
+        withCredentials: true
+      });
+
+      setCancelSuccess(true);
+      // Update the local order status
+      setOrder({ 
+        ...order, 
+        status: 'Cancelled', 
+        cancellationReason: cancelReason,
+        cancelledAt: new Date()
+      });
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setShowCancelModal(false);
+        setCancelSuccess(false);
+      }, 2000);
+    } catch (err) {
+      setCancelError(err.response?.data?.message || 'Failed to cancel order');
+    } finally {
+      setSubmittingCancel(false);
     }
   };
 
-  // Get refund status badge class
-  const getRefundStatusClass = (status) => {
-    switch(status) {
-      case 'Pending': return 'bg-amber-500';
-      case 'Processing': return 'bg-blue-500';
-      case 'Approved': return 'bg-emerald-500';
-      case 'Rejected': return 'bg-rose-500';
-      default: return 'bg-slate-500';
+  // Handle refund request
+  const handleRefundRequest = async () => {
+    if (!refundReason || refundReason.length < 10) {
+      setRefundError('Please provide a detailed reason for refund (minimum 10 characters)');
+      return;
+    }
+
+    try {
+      setSubmittingRefund(true);
+      setRefundError('');
+
+      const formData = new FormData();
+      formData.append('reason', refundReason);
+      formData.append('items', JSON.stringify(order.orderItems));
+      if (selectedFiles.length > 0) {
+        selectedFiles.forEach(file => {
+          formData.append('evidence', file);
+        });
+      }
+
+      await axios.post(`/api/orders/${id}/refund-request`, formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setRefundSuccess(true);
+      // Update the local order refund status
+      setOrder({ 
+        ...order, 
+        refundRequested: true, 
+        refundStatus: 'Pending',
+        refundReason: refundReason,
+        refundRequestedAt: new Date()
+      });
+      
+      // Close modal after 2 seconds
+      setTimeout(() => {
+        setShowRefundModal(false);
+        setRefundSuccess(false);
+        setSelectedFiles([]);
+      }, 2000);
+    } catch (err) {
+      setRefundError(err.response?.data?.message || 'Failed to submit refund request');
+    } finally {
+      setSubmittingRefund(false);
     }
   };
 
@@ -331,6 +398,177 @@ const BuyerOrderDetails = () => {
           )}
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Cancel Order</h2>
+            
+            {cancelSuccess ? (
+              <div className="text-center py-4">
+                <div className="text-emerald-500 mb-2">
+                  <FaCheck size={48} className="mx-auto" />
+                </div>
+                <p className="text-gray-600">Order cancelled successfully!</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-4">
+                  Are you sure you want to cancel this order? Please provide a detailed reason for cancellation.
+                </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Cancellation Reason
+                  </label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    rows={4}
+                    placeholder="Please provide a detailed reason for cancellation..."
+                    minLength={10}
+                    required
+                  />
+                  {cancelError && (
+                    <p className="text-red-500 text-sm mt-1">{cancelError}</p>
+                  )}
+                </div>
+                
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowCancelModal(false)}
+                    className="px-4 py-2 border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    No, Keep Order
+                  </button>
+                  <button
+                    onClick={handleCancelOrder}
+                    className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-md disabled:opacity-50 transition-colors shadow-sm"
+                    disabled={submittingCancel || !cancelReason || cancelReason.length < 10}
+                  >
+                    {submittingCancel ? 'Cancelling...' : 'Yes, Cancel Order'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Refund Request Modal */}
+      {showRefundModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Request Refund</h2>
+            
+            {refundSuccess ? (
+              <div className="text-center py-4">
+                <div className="text-emerald-500 mb-2">
+                  <FaCheck size={48} className="mx-auto" />
+                </div>
+                <p className="text-gray-600">Refund request submitted successfully!</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-gray-600 mb-4">
+                  Please provide details about why you're requesting a refund. You can also upload supporting evidence.
+                </p>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Refund Reason
+                  </label>
+                  <textarea
+                    value={refundReason}
+                    onChange={(e) => setRefundReason(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    rows={4}
+                    placeholder="Please provide a detailed reason for your refund request..."
+                    minLength={10}
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Supporting Evidence (Optional)
+                  </label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                    <div className="space-y-1 text-center">
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="file-upload"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-teal-600 hover:text-teal-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-teal-500"
+                        >
+                          <span>Upload files</span>
+                          <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            multiple
+                            className="sr-only"
+                            onChange={(e) => setSelectedFiles([...e.target.files])}
+                            accept="image/*,.pdf"
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, PDF up to 5MB
+                      </p>
+                    </div>
+                  </div>
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600">Selected files:</p>
+                      <ul className="mt-1 text-sm text-gray-500">
+                        {selectedFiles.map((file, index) => (
+                          <li key={index} className="flex items-center">
+                            <span className="truncate">{file.name}</span>
+                            <button
+                              onClick={() => {
+                                setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+                              }}
+                              className="ml-2 text-red-500 hover:text-red-700"
+                            >
+                              <FaTimes size={12} />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                
+                {refundError && (
+                  <p className="text-red-500 text-sm mb-4">{refundError}</p>
+                )}
+                
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setShowRefundModal(false);
+                      setSelectedFiles([]);
+                    }}
+                    className="px-4 py-2 border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRefundRequest}
+                    className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-md disabled:opacity-50 transition-colors shadow-sm"
+                    disabled={submittingRefund || !refundReason || refundReason.length < 10}
+                  >
+                    {submittingRefund ? 'Submitting...' : 'Submit Refund Request'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
