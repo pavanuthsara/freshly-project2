@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, Edit, Save, X } from 'lucide-react';
 
-// Validate name (only letters and spaces)
+// Validate name (only letters, spaces, and hyphens)
 const validateName = (name) => {
   if (!name || name.trim() === '') return false;
-  const nameRegex = /^[A-Za-z\s]+$/;
+  const nameRegex = /^[A-Za-z\s-]+$/;
   return nameRegex.test(name);
 };
 
@@ -32,20 +32,14 @@ const validateStreetNo = (streetNo) => {
 // Validate city and district (only letters, spaces, and hyphens)
 const validateLocationName = (name) => {
   if (!name || name.trim() === '') return false;
-  const nameRegex = /^[A-Za-z\s\-]+$/;
+  const nameRegex = /^[A-Za-z\s-]+$/;
   return nameRegex.test(name);
 };
 
 // Sanitize input to prevent XSS
 const sanitizeInput = (input) => {
   if (!input) return '';
-  return input
-    .toString()
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-    .trim();
+  return input.trim();
 };
 
 const ProfileSection = () => {
@@ -61,6 +55,7 @@ const ProfileSection = () => {
   useEffect(() => {
     const fetchFarmerProfile = async () => {
       try {
+        console.log('Fetching profile from /api/farmers/profile');
         const response = await fetch('/api/farmers/profile', {
           method: 'GET',
           credentials: 'include',
@@ -73,6 +68,7 @@ const ProfileSection = () => {
           throw new Error(errorData.message || 'Failed to fetch profile. Please log in again.');
         }
         const data = await response.json();
+        console.log('Profile fetched:', data.farmer);
         setProfileData(data.farmer);
         setEditedData(data.farmer);
         setLoading(false);
@@ -123,6 +119,7 @@ const ProfileSection = () => {
   };
 
   const handleSave = async () => {
+    console.log('Saving profile with data:', editedData);
     const errors = {};
 
     const sanitizedData = {
@@ -140,20 +137,29 @@ const ProfileSection = () => {
 
     setEditedData(sanitizedData);
 
-    if (!validateName(sanitizedData.name)) {
-      errors.name = 'Name should contain only letters and spaces';
+    // Validate only if fields are provided
+    if (sanitizedData.name && !validateName(sanitizedData.name)) {
+      errors.name = 'Name should contain only letters, spaces, or hyphens';
     }
-
-    if (!validatePhone(sanitizedData.phone)) {
+    if (sanitizedData.phone && !validatePhone(sanitizedData.phone)) {
       errors.phone = 'Phone number must be exactly 10 digits';
     }
-
-    if (!validateNIC(sanitizedData.nic)) {
+    if (sanitizedData.nic && !validateNIC(sanitizedData.nic)) {
       errors.nic = 'NIC must be 10 digits followed by V/v or 12 digits';
+    }
+    if (sanitizedData.farmAddress.streetNo && !validateStreetNo(sanitizedData.farmAddress.streetNo)) {
+      errors['farmAddress.streetNo'] = 'Street number must be 1-5 digits';
+    }
+    if (sanitizedData.farmAddress.city && !validateLocationName(sanitizedData.farmAddress.city)) {
+      errors['farmAddress.city'] = 'City should contain only letters, spaces, or hyphens';
+    }
+    if (sanitizedData.farmAddress.district && !validateLocationName(sanitizedData.farmAddress.district)) {
+      errors['farmAddress.district'] = 'District should contain only letters, spaces, or hyphens';
     }
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
+      console.log('Validation errors:', errors);
       return;
     }
 
@@ -176,6 +182,7 @@ const ProfileSection = () => {
         throw new Error(errorData.message || 'Failed to update profile. Please try again.');
       }
       const data = await response.json();
+      console.log('Profile updated:', data.farmer);
       setProfileData(data.farmer);
       setIsEditing(false);
       setValidationErrors({});
@@ -228,9 +235,9 @@ const ProfileSection = () => {
     } else if (field === 'farmAddress' && subfield === 'streetNo') {
       value = value.replace(/\D/g, '').substring(0, 5);
     } else if (field === 'farmAddress' && (subfield === 'city' || subfield === 'district')) {
-      value = value.replace(/[^A-Za-z\s\-]/g, '');
+      value = value.replace(/[^A-Za-z\s-]/g, '');
     } else if (field === 'name') {
-      value = value.replace(/[^A-Za-z\s]/g, '');
+      value = value.replace(/[^A-Za-z\s-]/g, '');
     }
 
     if (validationErrors[field] || (subfield && validationErrors[`${field}.${subfield}`])) {
@@ -272,19 +279,19 @@ const ProfileSection = () => {
     const value = subfield ? editedData[field]?.[subfield] : editedData[field];
 
     let hasError = false;
-    if (field === 'name' && !validateName(value)) {
+    if (field === 'name' && value && !validateName(value)) {
       setValidationErrors(prev => ({
         ...prev,
-        [field]: 'Name should contain only letters and spaces',
+        [field]: 'Name should contain only letters, spaces, or hyphens',
       }));
       hasError = true;
-    } else if (field === 'phone' && !validatePhone(value)) {
+    } else if (field === 'phone' && value && !validatePhone(value)) {
       setValidationErrors(prev => ({
         ...prev,
         [field]: 'Phone number must be exactly 10 digits',
       }));
       hasError = true;
-    } else if (field === 'nic' && !validateNIC(value)) {
+    } else if (field === 'nic' && value && !validateNIC(value)) {
       setValidationErrors(prev => ({
         ...prev,
         [field]: 'NIC must be 10 digits followed by V/v or 12 digits',
@@ -300,7 +307,7 @@ const ProfileSection = () => {
       } else if ((subfield === 'city' || subfield === 'district') && value && !validateLocationName(value)) {
         setValidationErrors(prev => ({
           ...prev,
-          [`${field}.${subfield}`]: `${subfield === 'city' ? 'City' : 'District'} should contain only letters, spaces, and hyphens`,
+          [`${field}.${subfield}`]: `${subfield === 'city' ? 'City' : 'District'} should contain only letters, spaces, or hyphens`,
         }));
         hasError = true;
       }
@@ -317,7 +324,7 @@ const ProfileSection = () => {
 
   const renderField = (label, value, field, subfield = null) => {
     const fieldKey = subfield ? `${field}.${subfield}` : field;
-    const errorMessage = validationErrors[field];
+    const errorMessage = validationErrors[fieldKey] || validationErrors[field];
     const isActive = activeFields[fieldKey];
     const isError = !!errorMessage;
 
@@ -442,7 +449,7 @@ const ProfileSection = () => {
             {renderFieldProgress(field, subfield)}
             {isActive && !isError && (
               <div className="absolute -bottom-5 left-0 text-blue-500 text-xs">
-                {field === 'name' && 'Only letters and spaces allowed'}
+                {field === 'name' && 'Only letters, spaces, and hyphens allowed'}
                 {field === 'phone' && 'Enter exactly 10 digits'}
                 {field === 'nic' && '10 digits + V/v or 12 digits'}
                 {field === 'farmAddress' && subfield === 'streetNo' && 'Enter up to 5 digits'}
@@ -451,7 +458,7 @@ const ProfileSection = () => {
             )}
             {isError && (
               <div className="absolute -bottom-5 left-0 text-red-500 text-xs">
-                {errorMessage || (subfield && validationErrors[`${field}.${subfield}`])}
+                {errorMessage}
               </div>
             )}
           </div>

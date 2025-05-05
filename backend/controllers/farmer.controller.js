@@ -151,7 +151,7 @@ const forgotPassword = async (req, res, next) => {
       },
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/farmer-reset-password?token=${resetToken}`;
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -316,7 +316,7 @@ const getFarmerProfile = async (req, res, next) => {
 // @access   Private
 const updateFarmerProfile = async (req, res, next) => {
   try {
-    const { name, phone, farmAddress } = req.body;
+    const { name, phone, nic, farmAddress } = req.body;
 
     // Find the farmer
     const farmer = await Farmer.findById(req.farmer._id);
@@ -329,8 +329,7 @@ const updateFarmerProfile = async (req, res, next) => {
     // Update fields
     farmer.name = name || farmer.name;
     farmer.phone = phone || farmer.phone;
-    
-    // Update farm address if provided
+    farmer.nic = nic || farmer.nic;
     if (farmAddress) {
       farmer.farmAddress.streetNo = farmAddress.streetNo || farmer.farmAddress.streetNo;
       farmer.farmAddress.city = farmAddress.city || farmer.farmAddress.city;
@@ -348,8 +347,9 @@ const updateFarmerProfile = async (req, res, next) => {
         name: farmer.name,
         email: farmer.email,
         phone: farmer.phone,
-        farmAddress: farmer.farmAddress
-      }
+        nic: farmer.nic,
+        farmAddress: farmer.farmAddress,
+      },
     });
   } catch (error) {
     next(error);
