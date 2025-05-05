@@ -175,11 +175,11 @@ const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   
   const handleRegisterClick = () => {
-    navigate('/register');
+    navigate('/farmer-register');
   };
 
   const handleForgotPassword = () => {
-    navigate('/forgot-password');
+    navigate('/farmer-forgot-password');
   };
 
   return (

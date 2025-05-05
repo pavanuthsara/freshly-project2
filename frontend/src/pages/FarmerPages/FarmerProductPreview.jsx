@@ -72,7 +72,7 @@ const FarmerProductPreview = () => {
     <div className="max-w-4xl mx-auto px-5 py-8 font-sans bg-green-50">
       {/* Back Button */}
       <button
-        onClick={() => navigate('/dashboard', { state: { search, category } })}
+        onClick={() => navigate('/farmer-dashboard', { state: { search, category } })}
         className="flex items-center text-green-700 mb-6 hover:text-green-800"
       >
         <ArrowLeft className="mr-2" size={20} />

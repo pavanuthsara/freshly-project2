@@ -64,7 +64,7 @@ function FarmerDashboard({ farmerData, onLogout }) {
       console.log('Calling onLogout');
       if (onLogout) {
         onLogout();
-        navigate('/login');
+        navigate('/farmer-login');
       }
     }, 1000);
   };
@@ -229,48 +229,48 @@ function App() {
       />
       <Routes>
         <Route 
-          path="/login" 
+          path="/farmer-login" 
           element={
             !isAuthenticated ? 
             <Login onLoginSuccess={handleLoginSuccess} /> : 
-            <Navigate to="/dashboard" />
+            <Navigate to="/farmer-dashboard" />
           } 
         />
         <Route 
-          path="/register" 
+          path="/farmer-register" 
           element={
             !isAuthenticated ? 
             <Register onRegistrationSuccess={handleRegistrationSuccess} /> : 
-            <Navigate to="/dashboard" />
+            <Navigate to="/farmer-dashboard" />
           } 
         />
         <Route 
-          path="/forgot-password" 
+          path="/farmer-forgot-password" 
           element={
             !isAuthenticated ? 
             <FarmerForgotPassword /> : 
-            <Navigate to="/dashboard" />
+            <Navigate to="/farmer-dashboard" />
           } 
         />
         <Route 
-          path="/reset-password" 
+          path="/farmer-reset-password" 
           element={
             !isAuthenticated ? 
             <FarmerResetPassword /> : 
-            <Navigate to="/dashboard" />
+            <Navigate to="/farmer-dashboard" />
           } 
         />
         <Route 
-          path="/dashboard/*" 
+          path="/farmer-dashboard/*" 
           element={
             isAuthenticated ? 
             <FarmerDashboard farmerData={farmerData} onLogout={handleLogout} /> : 
-            <Navigate to="/login" />
+            <Navigate to="/farmer-login" />
           } 
         />
         <Route 
           path="/" 
-          element={<Navigate to="/login" />} 
+          element={<Navigate to="/farmer-login" />} 
         />
       </Routes>
     </Router>

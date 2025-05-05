@@ -37,7 +37,7 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
       });
       setTimeout(() => {
         if (onLogout) onLogout();
-        navigate('/farmer/login');
+        navigate('/farmer/farmer-login');
       }, 1000);
     }
   }, [navigate, onLogout]);
@@ -80,7 +80,7 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
       console.log('Calling onLogout');
       if (onLogout) {
         onLogout();
-        navigate('/farmer/login');
+        navigate('/farmer/farmer-login');
       }
     }, 1000);
   };

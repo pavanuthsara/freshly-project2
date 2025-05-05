@@ -51,7 +51,7 @@ const FarmerResetPassword = () => {
 
       if (data.success) {
         setMessage('Password reset successfully. Redirecting to login...');
-        setTimeout(() => navigate('/login'), 3000);
+        setTimeout(() => navigate('/farmer-login'), 3000);
       } else {
         setError(data.message || 'An error occurred. Please try again.');
       }
@@ -107,7 +107,7 @@ const FarmerResetPassword = () => {
           <div className="text-center mt-4">
             <button
               type="button"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/farmer-login')}
               className="text-green-600 hover:underline"
             >
               Back to Login

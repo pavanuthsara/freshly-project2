@@ -277,7 +277,7 @@ const Register = ({ onRegistrationSuccess }) => {
 
   const navigate = useNavigate();
   const handleLoginRedirect = () => {
-    navigate('/login');
+    navigate('/farmer-login');
   };
 
   const passwordCriteria = checkPasswordCriteria(formData.password);

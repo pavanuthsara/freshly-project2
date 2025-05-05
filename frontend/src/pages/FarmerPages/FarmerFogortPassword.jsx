@@ -44,7 +44,7 @@ const FarmerForgotPassword = () => {
         
         // Automatically redirect to login page after 3 seconds
         setTimeout(() => {
-          navigate('/login');
+          navigate('/farmer-login');
         }, 3000);
       } else {
         setError(data.message || 'An error occurred. Please try again.');
@@ -58,7 +58,7 @@ const FarmerForgotPassword = () => {
   };
 
   const handleBackToLogin = () => {
-    navigate('/login');
+    navigate('/farmer-login');
   };
 
   return (
