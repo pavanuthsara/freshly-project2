@@ -1,4 +1,4 @@
-import Farmer from '../models/farmer.model.js';
+import Farmer from '../../models/productListingModels/farmer.model.js';
 import jwt from 'jsonwebtoken';
 
 const farmerProtect = async (req, res, next) => {
@@ -42,4 +42,4 @@ const farmerProtect = async (req, res, next) => {
   }
 };
 
-export { farmerProtect }; 
+export { farmerProtect };

@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import { farmerProtect } from '../../middleware/productListingMiddleware/farmer.middleware.js';
 
 const router = express.Router();
 
@@ -33,7 +34,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter }).single('image');
 
 // Upload Route
-router.post('/', (req, res, next) => {
+router.post('/', farmerProtect, (req, res, next) => {
   upload(req, res, function (err) {
     if (err) {
       return res.status(400).json({ error: err.message || 'Upload error' });

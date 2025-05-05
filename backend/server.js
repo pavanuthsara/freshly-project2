@@ -11,9 +11,13 @@ import Stripe from 'stripe';
 import fs from 'fs';
 
 import buyerRoutes from './routes/Buyer.routes.js';
-import productRoutes from './routes/product.routes.js';
+
+import productRoutes from './routes/productListingRoutes/product.routes.js';
+import farmerRoutes from './routes/productListingRoutes/farmer.routes.js';
+import uploadRoutes from './routes/productListingRoutes/upload.routes.js';
+
+
 import orderRoutes from './routes/order.routes.js';
-import uploadRoutes from './routes/upload.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -89,7 +93,13 @@ mongoose
 // Routes
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/v1/buyers', buyerRoutes); // Support both API versions
-app.use('/api/products', productRoutes);
+
+app.use('/api/products', productRoutes.publicRoutes); // Public product routes
+app.use('/api/farmerProducts', productRoutes.protectedRoutes); // Farmer-specific product routes
+app.use('/api/farmers', farmerRoutes);
+app.use('/api/upload', uploadRoutes);
+
+
 app.use('/api/orders', orderRoutes);
 app.use('/api/v1/orders', orderRoutes); // Support both API versions
 app.use('/api/upload', uploadRoutes);
@@ -97,6 +107,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
 app.use('/api/admin', adminRoutes); // Add admin routes
 app.use('/api', complaint1Routes); // Add complaint1 routes
+
 app.use('/api/deliveryrequest', deliveryRequestRoutes);
 app.use('/api/drivers', driverRoutes);
 
