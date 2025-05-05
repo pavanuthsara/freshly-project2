@@ -113,6 +113,7 @@ const loginFarmer = async (req, res, next) => {
       farmerId: farmer._id,
       name: farmer.name,
       email: farmer.email,
+      token
     });
   } catch (error) {
     next(error);
