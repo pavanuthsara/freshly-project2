@@ -1,4 +1,4 @@
-import Product from '../models/product.model.js';
+import Product from '../../models/productListingModels/product.model.js';
 import { deleteFile } from '../../utils/productListingUtils/file.js';
 
 const getProducts = async (req, res, next) => {

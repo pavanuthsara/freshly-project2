@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
 import Buyer from '../../models/buyer.model.js';
-import Farmer from '../../models/farmer.model.js';
+import Farmer from '../../models/productListingModels/farmer.model.js';
 import Driver from '../../models/deliveryModels/driver.model.js';
 
 const protect = asyncHandler(async (req, res, next) => {

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import generateProductID from '../utils/generateProudctIDs.util.js';
+import generateProductID from '../../utils/productListingUtils/generateProudctIDs.util.js';
 
 const productSchema = new mongoose.Schema(
   {
