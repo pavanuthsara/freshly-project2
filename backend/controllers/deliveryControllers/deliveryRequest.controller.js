@@ -110,7 +110,7 @@ const getPendingDeliveryRequests = asyncHandler(async (req, res) => {
         })
         .populate({
           path: 'farmerId',
-          model: 'farmer', // Explicitly specify model
+          model: 'Farmer', // Explicitly specify model
           select: 'name email phone farmName location'
         })
         .sort({ createdAt: -1 });
