@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  LayoutDashboard, 
   Package, 
   User, 
   AlertOctagon, 
@@ -10,55 +9,27 @@ import {
   Sprout,
   MoreVertical
 } from 'lucide-react';
-import { NavLink } from 'react-router-dom'; // Added for NavLink
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-
-// Import sections
-import ProductSection from './pages/FarmerPages/MyProduct';
-import ProfileSection from './pages/FarmerPages/MyProfile';
 
 const FarmerDashboard = ({ farmerData, onLogout }) => {
-  const [activeSection, setActiveSection] = useState('products');
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const navigate = useNavigate();
-
-  // Check for valid farmerToken on mount
-  useEffect(() => {
-    const token = localStorage.getItem('farmerToken');
-    console.log('Checking farmerToken:', !!token);
-    if (!token) {
-      console.log('No farmerToken found, redirecting to login');
-      toast.error('Session expired. Please log in again.', {
-        style: {
-          background: '#EF4444',
-          color: '#FFFFFF',
-          fontWeight: 'bold',
-        },
-        duration: 3000,
-        position: 'top-right',
-      });
-      setTimeout(() => {
-        if (onLogout) onLogout();
-        navigate('/farmer/farmer-login');
-      }, 1000);
-    }
-  }, [navigate, onLogout]);
 
   const sidebarItems = [
     { name: 'My Products', icon: Package, section: 'products' },
     { name: 'My Profile', icon: User, section: 'profile' },
     { name: 'Complaints', icon: AlertOctagon, section: 'complaints' },
     { name: 'Analytics', icon: BarChart, section: 'analytics' },
-    { name: 'Help Bot', icon: HelpCircle, section: 'help', alert: true }, // Added alert for consistency
+    { name: 'Help Bot', icon: HelpCircle, section: 'help', alert: true },
   ];
 
   const handleLogoutClick = () => {
     console.log('handleLogoutClick called');
     toast('Please confirm logout action', {
       style: {
-        background: '#6EE7B7', // emerald-300
-        color: '#1F2937', // gray-800
+        background: '#6EE7B7',
+        color: '#1F2937',
         fontWeight: 'bold',
       },
       duration: 3000,
@@ -71,7 +42,7 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
     console.log('handleConfirmLogout called');
     toast.success('Logged out successfully!', {
       style: {
-        background: '#34D399', // green-500
+        background: '#34D399',
         color: '#FFFFFF',
         fontWeight: 'bold',
       },
@@ -83,7 +54,7 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
       console.log('Calling onLogout');
       if (onLogout) {
         onLogout();
-        navigate('/farmer/farmer-login');
+        navigate('/farmer-login');
       }
     }, 1000);
   };
@@ -116,17 +87,13 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
             {sidebarItems.map(({ name, icon: Icon, section, alert }) => (
               <NavLink
                 key={section}
-                to={`/farmer/${section}`} // Adjusted path to match farmer routes
-                onClick={() => {
-                  console.log(`Navigating to section: ${section}`);
-                  setActiveSection(section);
-                }}
+                to={`/farmer/${section}`}
                 className={({ isActive }) => `
                   relative flex items-center py-2 px-3 my-1
                   font-medium rounded-md cursor-pointer
                   transition-colors group
                   ${
-                    activeSection === section
+                    isActive
                       ? "bg-green-400 text-white"
                       : "hover:bg-green-400 text-white"
                   }
@@ -170,26 +137,8 @@ const FarmerDashboard = ({ farmerData, onLogout }) => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-8 overflow-y-auto ml-64"> {/* Added ml-64 to account for fixed sidebar width */}
-        {activeSection === 'products' && (
-          <ProductSection farmerData={farmerData} />
-        )}
-
-        {activeSection === 'profile' && (
-          <ProfileSection farmerData={farmerData} />
-        )}
-
-        {activeSection === 'complaints' && (
-          <div className="text-3xl font-bold text-green-800">Complaints Section</div>
-        )}
-
-        {activeSection === 'analytics' && (
-          <div className="text-3xl font-bold text-green-800">Analytics Section</div>
-        )}
-
-        {activeSection === 'help' && (
-          <div className="text-3xl font-bold text-green-800">Help Bot Section</div>
-        )}
+      <div className="flex-1 p-8 overflow-y-auto ml-64">
+        <Outlet />
       </div>
 
       {/* Logout Confirmation Modal */}
