@@ -3,7 +3,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { logoutDriver } from "../../handlers/driverauthHandler";
 
-export default function Sidebar({ children, user }) {
+export default function Sidebar({ user, setIsAuthenticated }) {
   const navigate = useNavigate();
 
   const sidebarItems = [
@@ -32,9 +32,9 @@ export default function Sidebar({ children, user }) {
               path={item.path}
               alert={item.alert}
               navigate={navigate}
+              setIsAuthenticated={setIsAuthenticated}
             />
           ))}
-          {children}
         </ul>
 
         <div className="border-t border-white/10 flex p-3">
@@ -56,7 +56,7 @@ export default function Sidebar({ children, user }) {
   );
 }
 
-function SidebarItem({ icon, text, path, alert, navigate }) {
+function SidebarItem({ icon, text, path, alert, navigate, setIsAuthenticated }) {
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
 
   const handleClick = (e) => {
@@ -68,7 +68,7 @@ function SidebarItem({ icon, text, path, alert, navigate }) {
 
   const confirmLogout = async () => {
     console.log('Confirming logout...');
-    await logoutDriver(navigate);
+    await logoutDriver(navigate, setIsAuthenticated);
     setIsLogoutDialogOpen(false);
   };
 

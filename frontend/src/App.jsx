@@ -1,8 +1,8 @@
-import 'react-toastify/dist/ReactToastify.css';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import 'leaflet/dist/leaflet.css';
 
 // Header
@@ -46,23 +46,53 @@ import AdminRegister from './pages/AdminPages/AdminRegister';
 import AdminRefunds from './pages/AdminPages/AdminRefunds';
 
 // Function to check if the user is authenticated
-const checkAuthentication = () => {
-  const token = localStorage.getItem('token') || document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1];
-  return !!token;
+const checkAuthentication = async () => {
+  const token = localStorage.getItem('token') || 
+                document.cookie.split('; ').find(row => row.startsWith('jwt='))?.split('=')[1];
+
+  if (!token) return false;
+
+  // Validate token with backend
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/verify', {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` },
+      credentials: 'include',
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Token validation failed:', error);
+    return false;
+  }
+};
+
+// Clear stale tokens
+const clearStaleTokens = () => {
+  localStorage.removeItem('token');
+  document.cookie = 'jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; sameSite=strict';
 };
 
 // Main App component
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState({ name: 'Damith' });
+  const [user, setUser] = useState({ name: 'Guest', role: null });
   const [cartItems, setCartItems] = useState([]);
   const [shippingAddress, setShippingAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
 
   useEffect(() => {
-    setIsAuthenticated(checkAuthentication());
+    const initializeAuth = async () => {
+      const isAuth = await checkAuthentication();
+      if (!isAuth) {
+        clearStaleTokens();
+      }
+      setIsAuthenticated(isAuth);
+      setUser({ name: isAuth ? user.name : 'Guest', role: isAuth ? user.role : null });
+    };
+    initializeAuth();
+
     const handleStorageChange = () => {
-      setIsAuthenticated(checkAuthentication());
+      initializeAuth();
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
@@ -119,23 +149,25 @@ function AppContent({
 
   const isDeliveryRoute = (path) => path.startsWith('/drivers');
 
-  const AuthenticatedLayout = ({ children }) => {
-    return (
-      <div className="flex min-h-screen">
-        <Sidebar user={user} />
-        <main className="flex-grow ml-64 p-4">{children}</main>
-      </div>
-    );
-  };
+  const AuthenticatedLayout = ({ children }) => (
+    <div className="flex min-h-screen">
+      <Sidebar user={user} setIsAuthenticated={setIsAuthenticated} />
+      <main className="flex-grow ml-64 p-4">{children}</main>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {!isDeliveryRoute(currentPath) && (
-        <Header user={user} setUser={setUser} cartItems={cartItems} />
+        <Header 
+          user={user} 
+          setUser={setUser} 
+          cartItems={cartItems} 
+        />
       )}
       
       <main className={`flex-grow ${!isDeliveryRoute(currentPath) ? 'pt-16' : ''}`}>
-        <ToastContainer />
+        <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -145,7 +177,10 @@ function AppContent({
               isAuthenticated ? (
                 <Navigate to="/drivers/dashboard" />
               ) : (
-                <DriverSignInSignUp setUser={setUser} setIsAuthenticated={setIsAuthenticated} />
+                <DriverSignInSignUp 
+                  setUser={setUser} 
+                  setIsAuthenticated={setIsAuthenticated}
+                />
               )
             }
           />
@@ -155,7 +190,10 @@ function AppContent({
               isAuthenticated ? (
                 <Navigate to="/buyer/dashboard" />
               ) : (
-                <BuyerLogin setIsAuthenticated={setIsAuthenticated} setUser={setUser} />
+                <BuyerLogin 
+                  setIsAuthenticated={setIsAuthenticated} 
+                  setUser={setUser}
+                />
               )
             }
           />
@@ -163,150 +201,244 @@ function AppContent({
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/register" element={<AdminRegister />} />
 
-          {/* Non-Delivery Protected Routes */}
-          {!isDeliveryRoute(currentPath) && isAuthenticated && (
-            <>
-              <Route path="/buyer/dashboard" element={<BuyerDashboard setUser={setUser} />} />
-              <Route path="/buyer/profile" element={<BuyerProfile />} />
-              <Route 
-                path="/products" 
-                element={
-                  <PageWrapper>
-                    <ProductListPage 
-                      cartItems={cartItems} 
-                      setCartItems={setCartItems} 
-                    />
-                  </PageWrapper>
-                } 
-              />
-              <Route 
-                path="/cart" 
-                element={
-                  <PageWrapper>
-                    <CartPage 
-                      cartItems={cartItems} 
-                      setCartItems={setCartItems} 
-                    />
-                  </PageWrapper>
-                } 
-              />
-              <Route
-                path="/buyer/shipping"
-                element={
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <ShippingPage
-                      shippingAddress={shippingAddress}
-                      setShippingAddress={setShippingAddress}
-                    />
-                  </div>
-                }
-              />
-              <Route
-                path="/buyer/payment"
-                element={
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <PaymentPage
-                      paymentMethod={paymentMethod}
-                      setPaymentMethod={setPaymentMethod}
-                    />
-                  </div>
-                }
-              />
-              <Route
-                path="/buyer/confirm"
-                element={
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <ConfirmOrderPage
-                      cartItems={cartItems}
-                      shippingAddress={shippingAddress}
-                      paymentMethod={paymentMethod}
-                      setCartItems={setCartItems}
-                    />
-                  </div>
-                }
-              />
-              <Route path="/buyer/orders" element={<BuyerOrders />} />
-              <Route path="/buyer/order/:id" element={<BuyerOrderDetails />} />
-              <Route path="/buyer/complaints" element={<ComplaintHistory />} />
-              <Route path="/farmer-dashboard" element={<FarmerDashboard />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/orders" element={<AdminOrders />} />
-              <Route path="/admin/refunds" element={<AdminRefunds />} />
-            </>
-          )}
-
-          {/* Delivery Protected Routes */}
-          {isAuthenticated && (
-            <>
-              <Route 
-                path="/drivers/dashboard" 
-                element={
-                  <AuthenticatedLayout>
-                    <Dashboard user={user} />
-                  </AuthenticatedLayout>
-                } 
-              />
-              <Route 
-                path="/drivers/profile" 
-                element={
-                  <AuthenticatedLayout>
-                    <Profile />
-                  </AuthenticatedLayout>
-                } 
-              />
-              <Route 
-                path="/drivers/delivery-requests" 
-                element={
-                  <AuthenticatedLayout>
-                    <DeliveryRequests />
-                  </AuthenticatedLayout>
-                } 
-              />
-              <Route 
-                path="/drivers/accepted-requests" 
-                element={
-                  <AuthenticatedLayout>
-                    <AcceptedRequests />
-                  </AuthenticatedLayout>
-                } 
-              />
-              <Route 
-                path="/drivers/notifications" 
-                element={
-                  <AuthenticatedLayout>
-                    <DriverNotifications />
-                  </AuthenticatedLayout>
-                } 
-              />
-            </>
-          )}
-
-          {/* Redirects for unauthenticated users */}
-          {!isAuthenticated && (
-            <>
-              <Route path="/drivers/dashboard" element={<Navigate to="/drivers/login" />} />
-              <Route path="/drivers/profile" element={<Navigate to="/drivers/login" />} />
-              <Route path="/drivers/delivery-requests" element={<Navigate to="/drivers/login" />} />
-              <Route path="/drivers/accepted-requests" element={<Navigate to="/drivers/login" />} />
-              <Route path="/drivers/notifications" element={<Navigate to="/drivers/login" />} />
-              <Route path="/buyer/dashboard" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/profile" element={<Navigate to="/buyer/login" />} />
-              <Route path="/products" element={<Navigate to="/buyer/login" />} />
-              <Route path="/cart" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/shipping" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/payment" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/confirm" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/orders" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/order/:id" element={<Navigate to="/buyer/login" />} />
-              <Route path="/buyer/complaints" element={<Navigate to="/buyer/login" />} />
-              <Route path="/farmer-dashboard" element={<Navigate to="/admin/login" />} />
-              <Route path="/admin/dashboard" element={<Navigate to="/admin/login" />} />
-              <Route path="/admin/users" element={<Navigate to="/admin/login" />} />
-              <Route path="/admin/orders" element={<Navigate to="/admin/login" />} />
-              <Route path="/admin/refunds" element={<Navigate to="/admin/login" />} />
-            </>
-          )}
+          {/* Protected Routes */}
+          <Route
+            path="/drivers/dashboard"
+            element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <Dashboard user={user} />
+                </AuthenticatedLayout>
+              ) : (
+                <Navigate to="/drivers/login" />
+              )
+            }
+          />
+          <Route
+            path="/drivers/profile"
+            element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <Profile />
+                </AuthenticatedLayout>
+              ) : (
+                <Navigate to="/drivers/login" />
+              )
+            }
+          />
+          <Route
+            path="/drivers/delivery-requests"
+            element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <DeliveryRequests />
+                </AuthenticatedLayout>
+              ) : (
+                <Navigate to="/drivers/login" />
+              )
+            }
+          />
+          <Route
+            path="/drivers/accepted-requests"
+            element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <AcceptedRequests />
+                </AuthenticatedLayout>
+              ) : (
+                <Navigate to="/drivers/login" />
+              )
+            }
+          />
+          <Route
+            path="/drivers/notifications"
+            element={
+              isAuthenticated ? (
+                <AuthenticatedLayout>
+                  <DriverNotifications />
+                </AuthenticatedLayout>
+              ) : (
+                <Navigate to="/drivers/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/dashboard"
+            element={
+              isAuthenticated ? (
+                <BuyerDashboard setUser={setUser} />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/profile"
+            element={
+              isAuthenticated ? (
+                <BuyerProfile />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              isAuthenticated ? (
+                <PageWrapper>
+                  <ProductListPage 
+                    cartItems={cartItems} 
+                    setCartItems={setCartItems} 
+                  />
+                </PageWrapper>
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/cart"
+            element={
+              isAuthenticated ? (
+                <PageWrapper>
+                  <CartPage 
+                    cartItems={cartItems} 
+                    setCartItems={setCartItems} 
+                  />
+                </PageWrapper>
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/shipping"
+            element={
+              isAuthenticated ? (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  <ShippingPage
+                    shippingAddress={shippingAddress}
+                    setShippingAddress={setShippingAddress}
+                  />
+                </div>
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/payment"
+            element={
+              isAuthenticated ? (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  <PaymentPage
+                    paymentMethod={paymentMethod}
+                    setPaymentMethod={setPaymentMethod}
+                  />
+                </div>
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/confirm"
+            element={
+              isAuthenticated ? (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  <ConfirmOrderPage
+                    cartItems={cartItems}
+                    shippingAddress={shippingAddress}
+                    paymentMethod={paymentMethod}
+                    setCartItems={setCartItems}
+                  />
+                </div>
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/orders"
+            element={
+              isAuthenticated ? (
+                <BuyerOrders />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/order/:id"
+            element={
+              isAuthenticated ? (
+                <BuyerOrderDetails />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/buyer/complaints"
+            element={
+              isAuthenticated ? (
+                <ComplaintHistory />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          <Route
+            path="/farmer-dashboard"
+            element={
+              isAuthenticated ? (
+                <FarmerDashboard />
+              ) : (
+                <Navigate to="/admin/login" />
+              )
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              isAuthenticated ? (
+                <AdminDashboard />
+              ) : (
+                <Navigate to="/admin/login" />
+              )
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              isAuthenticated ? (
+                <AdminUsers />
+              ) : (
+                <Navigate to="/admin/login" />
+              )
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              isAuthenticated ? (
+                <AdminOrders />
+              ) : (
+                <Navigate to="/admin/login" />
+              )
+            }
+          />
+          <Route
+            path="/admin/refunds"
+            element={
+              isAuthenticated ? (
+                <AdminRefunds />
+              ) : (
+                <Navigate to="/admin/login" />
+              )
+            }
+          />
         </Routes>
       </main>
       
