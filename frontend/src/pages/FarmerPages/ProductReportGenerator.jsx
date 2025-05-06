@@ -72,19 +72,26 @@ const ProductReportGenerator = () => {
         item.Description,
       ]);
 
+      // Generate report ID using timestamp
+      const reportId = `FR-${Date.now()}`;
+
       if (format === 'excel') {
         const coverSheetData = [
           ['Freshly.lk'],
+          ['Delivering Freshness Across Sri Lanka'],
+          ['123 Green Harvest Road, Colombo 00700, Sri Lanka'],
+          ['Email: support@freshly.lk'],
+          ['Phone: +94 112345678'],
+          ['Website: www.freshly.lk'],
           [],
           ['Farmer Product Report'],
-          ['Generated on:', new Date().toLocaleDateString()],
-          ['Farmer:', farmer.name || 'Unknown'],
-          [
-            'Address:',
-            farmer.farmAddress
-              ? `${farmer.farmAddress.streetNo}, ${farmer.farmAddress.city}, ${farmer.farmAddress.district}`
-              : 'No address provided',
-          ],
+          ['Prepared for:', farmer.name || 'Unknown'],
+          ['Date:', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })],
+          ['Report ID:', reportId],
+          ['Confidential: For internal use only.'],
+          [],
+          ['Product Summary'],
+          ['This report provides an overview of your product inventory with Freshly.lk.'],
         ];
         const coverSheet = XLSX.utils.aoa_to_sheet(coverSheetData);
 
@@ -93,28 +100,55 @@ const ProductReportGenerator = () => {
           v: 'Freshly.lk',
           s: {
             font: { name: 'Helvetica', bold: true, sz: 16 },
-            fill: { fgColor: { rgb: '228B22' } },
             alignment: { horizontal: 'left', vertical: 'center' },
           },
         };
+        coverSheet['A2'] = {
+          v: 'Delivering Freshness Across Sri Lanka',
+          s: { font: { name: 'Helvetica', sz: 12 } },
+        };
         coverSheet['A3'] = {
+          v: '123 Green Harvest Road, Colombo 00700, Sri Lanka',
+          s: { font: { name: 'Helvetica', sz: 10 } },
+        };
+        coverSheet['A4'] = {
+          v: 'Email: support@freshly.lk',
+          s: { font: { name: 'Helvetica', sz: 10 } },
+        };
+        coverSheet['A5'] = {
+          v: 'Phone: +94 112345678',
+          s: { font: { name: 'Helvetica', sz: 10 } },
+        };
+        coverSheet['A6'] = {
+          v: 'Website: www.freshly.lk',
+          s: { font: { name: 'Helvetica', sz: 10 } },
+        };
+        coverSheet['A8'] = {
           v: 'Farmer Product Report',
           s: {
             font: { name: 'Helvetica', bold: true, sz: 14 },
             alignment: { horizontal: 'left', vertical: 'center' },
           },
         };
-        coverSheet['A4'] = {
-          v: 'Generated on:',
+        coverSheet['A9'] = {
+          v: 'Prepared for:',
           s: { font: { name: 'Helvetica', bold: true } },
         };
-        coverSheet['A5'] = {
-          v: 'Farmer:',
+        coverSheet['A10'] = {
+          v: 'Date:',
           s: { font: { name: 'Helvetica', bold: true } },
         };
-        coverSheet['A6'] = {
-          v: 'Address:',
+        coverSheet['A11'] = {
+          v: 'Report ID:',
           s: { font: { name: 'Helvetica', bold: true } },
+        };
+        coverSheet['A12'] = {
+          v: 'Confidential: For internal use only.',
+          s: { font: { name: 'Helvetica', italic: true } },
+        };
+        coverSheet['A14'] = {
+          v: 'Product Summary',
+          s: { font: { name: 'Helvetica', bold: true, sz: 12 } },
         };
 
         const worksheet = XLSX.utils.json_to_sheet(reportData, {
@@ -135,7 +169,6 @@ const ProductReportGenerator = () => {
             v: col,
             s: {
               font: { name: 'Helvetica', bold: true },
-              fill: { fgColor: { rgb: '228B22' } },
               alignment: { horizontal: 'center', vertical: 'center' },
             },
           };
@@ -158,86 +191,86 @@ const ProductReportGenerator = () => {
           duration: 3000,
         });
       } else {
-        const doc = new jsPDF('landscape');
+        const doc = new jsPDF('portrait');
 
-        doc.setFontSize(28);
+        // Cover page
+        doc.setFontSize(20);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(34, 139, 34);
-        doc.text('Freshly.lk', 14, 30);
-
-        doc.setFontSize(24);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(0, 0, 0);
-        doc.text('Farmer Product Report', 148.5, 60, { align: 'center' });
+        doc.text('Freshly.lk', 20, 20);
 
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 80);
-        doc.text(`Farmer: ${farmer.name || 'Unknown'}`, 14, 90);
-        const address = farmer.farmAddress
-          ? `${farmer.farmAddress.streetNo}, ${farmer.farmAddress.city}, ${farmer.farmAddress.district}`
-          : 'No address provided';
-        doc.text(`Address: ${address}`, 14, 100);
+        doc.setTextColor(0, 0, 0);
+        doc.text('Delivering Freshness Across Sri Lanka', 20, 30);
+        doc.text('123 Green Harvest Road, Colombo 00700, Sri Lanka', 20, 40);
+        doc.text('Email: support@freshly.lk', 20, 50);
+        doc.text('Phone: +94 112345678', 20, 60);
+        doc.text('Website: www.freshly.lk', 20, 70);
 
-        doc.setDrawColor(34, 139, 34);
-        doc.setLineWidth(0.5);
-        doc.rect(10, 10, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 20);
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Farmer Product Report', 105, 100, { align: 'center' });
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Prepared for: ${farmer.name || 'Unknown'}`, 20, 120);
+        doc.text(`Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 20, 130);
+        doc.text(`Report ID: ${reportId}`, 20, 140);
+        doc.text('Confidential: For internal use only.', 20, 150);
 
         doc.addPage();
+
+        // Product summary page
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Product Summary', 20, 20);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text('This report provides an overview of your product inventory with Freshly.lk.', 20, 30);
 
         autoTable(doc, {
           head: [columns],
           body: rows,
-          startY: 30,
+          startY: 40,
           styles: {
             fontSize: 9,
             cellPadding: 3,
             overflow: 'linebreak',
+            font: 'helvetica',
           },
           headStyles: {
             fillColor: [34, 139, 34],
             textColor: [255, 255, 255],
             fontStyle: 'bold',
+            font: 'helvetica',
           },
           columnStyles: {
             0: { cellWidth: 30 },
-            1: { cellWidth: 30 },
-            2: { cellWidth: 30 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 25 },
             3: { cellWidth: 20 },
-            4: { cellWidth: 30 },
-            5: { cellWidth: 50 },
+            4: { cellWidth: 25 },
+            5: { cellWidth: 45 },
           },
           didDrawPage: (data) => {
             const pageCount = doc.internal.getNumberOfPages();
             const currentPage = data.pageNumber;
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
+            doc.setTextColor(0, 0, 0);
             doc.text(
               `Page ${currentPage - 1} of ${pageCount - 1}`,
-              doc.internal.pageSize.width - 30,
+              doc.internal.pageSize.width - 20,
               doc.internal.pageSize.height - 10,
               { align: 'right' }
             );
+            // Add footer branding
+            doc.setTextColor(34, 139, 34);
+            doc.text('Freshly.lk', 20, doc.internal.pageSize.height - 10);
+            doc.text(`Report ID: ${reportId}`, 20, doc.internal.pageSize.height - 20);
           },
         });
-
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 2; i <= pageCount; i++) {
-          doc.setPage(i);
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(34, 139, 34);
-          doc.text(
-            'Farmer Product Report',
-            14,
-            doc.internal.pageSize.height - 20
-          );
-          doc.text(
-            `Generated on: ${new Date().toLocaleDateString()}`,
-            14,
-            doc.internal.pageSize.height - 10
-          );
-        }
 
         const pdfOutput = doc.output('blob');
         const url = URL.createObjectURL(pdfOutput);
