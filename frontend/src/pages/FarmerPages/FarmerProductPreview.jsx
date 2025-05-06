@@ -21,20 +21,22 @@ const FarmerProductPreview = () => {
       try {
         console.log('Fetching product with ID:', id);
         console.log('API URL:', `${BACKEND_URL}/api/products/${id}`);
+        const token = localStorage.getItem('farmerToken');
         const response = await fetch(`/api/products/${id}`, {
           method: 'GET',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch product');
+          throw new Error(errorData.message || `Failed to fetch product (Status: ${response.status})`);
         }
         const data = await response.json();
         console.log('API response:', data);
-        if (!data) {
+        if (!data || Object.keys(data).length === 0) {
           throw new Error('No product data received');
         }
         setProduct(data);
@@ -49,19 +51,19 @@ const FarmerProductPreview = () => {
   }, [id]);
 
   const getImageUrl = (image) => {
-    if (!image) {
-      console.log('No image provided, using default');
+    if (!image || typeof image !== 'string') {
+      console.log('Invalid or missing image, using default');
       return '/default-product-image.jpg';
     }
     const url = image.startsWith('http') ? image : `${BACKEND_URL}${image.startsWith('/') ? '' : '/'}${image}`;
-    console.log('Image URL:', url);
+    console.log('Constructed image URL:', url);
     return url;
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-green.Special consideration: if you have a backend API running, ensure that the endpoint /api/products/:id is correctly set up and accessible. If you're using a proxy in your Vite configuration (vite.config.js), verify that it correctly forwards requests to your backend (e.g., http://localhost:5000).600">Loading product...</p>
+        <p className="text-green-600">Loading product...</p>
       </div>
     );
   }
@@ -91,7 +93,7 @@ const FarmerProductPreview = () => {
         <div>
           <img
             src={getImageUrl(product.image)}
-            alt={product.name}
+            alt={product.name || 'Product'}
             className="w-full h-64 object-contain rounded-lg"
             loading="lazy"
             onError={(e) => {
@@ -103,20 +105,20 @@ const FarmerProductPreview = () => {
 
         {/* Details Section */}
         <div>
-          <h1 className="text-2xl font-bold text-green-800 mb-4">{product.name}</h1>
-          <p className="text-gray-600 mb-4">{product.description}</p>
+          <h1 className="text-2xl font-bold text-green-800 mb-4">{product.name || 'Unnamed Product'}</h1>
+          <p className="text-gray-600 mb-4">{product.description || 'No description'}</p>
           <p className="text-green-700 font-bold text-xl mb-4">
-            LKR {product.price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            LKR {product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : 'N/A'}
           </p>
           <div className="flex justify-between items-center mb-4">
             <span className="text-green-600">
-              <span className="font-semibold">Category:</span> {product.category}
+              <span className="font-semibold">Category:</span> {product.category || 'N/A'}
             </span>
-            <span className="text-green-600">{product.countInStock ?? 0} kg available</span>
+            <span className="text-green-600">{product.countInStock ? `${product.countInStock} kg available` : 'Out of stock'}</span>
           </div>
           <div className="mb-4">
             <span className="text-green-600">
-              <span className="font-semibold">Certification:</span> {product.certification}
+              <span className="font-semibold">Certification:</span> {product.certification || 'None'}
             </span>
           </div>
           {/* Add to Cart Button (Non-functional) */}
