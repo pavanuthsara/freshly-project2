@@ -1,4 +1,5 @@
 import Complaint1 from '../models/complaint1.model.js';
+import buildPdf from '../services/buildpdf.js';
 
 const addComplaint = async(req, res) => {
   try {
@@ -103,10 +104,29 @@ const deleteComplaint = async(req, res) => {
   }
 };
 
+const generatePDF = async(req, res) => {
+  try{
+    const complaints = await Complaint1.find();
+    const stream = res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=complaintsSample.pdf'
+    });
+  
+    buildPdf( 
+      complaints,
+      (chunk) => stream.write(chunk),
+      () => stream.end()
+    );
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export {
   addComplaint,
   showAllComplaints,
   getComplaintById,
   updateComplaint,
-  deleteComplaint
+  deleteComplaint,
+  generatePDF
 }; 
