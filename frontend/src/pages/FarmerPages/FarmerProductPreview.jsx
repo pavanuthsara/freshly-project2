@@ -21,7 +21,13 @@ const FarmerProductPreview = () => {
       try {
         console.log('Fetching product with ID:', id);
         console.log('API URL:', `${BACKEND_URL}/api/products/${id}`);
-        const response = await fetch(`/api/products/${id}`);
+        const response = await fetch(`/api/products/${id}`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch product');
@@ -55,7 +61,7 @@ const FarmerProductPreview = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <p className="text-green-600">Loading product...</p>
+        <p className="text-green.Special consideration: if you have a backend API running, ensure that the endpoint /api/products/:id is correctly set up and accessible. If you're using a proxy in your Vite configuration (vite.config.js), verify that it correctly forwards requests to your backend (e.g., http://localhost:5000).600">Loading product...</p>
       </div>
     );
   }
@@ -72,7 +78,7 @@ const FarmerProductPreview = () => {
     <div className="max-w-4xl mx-auto px-5 py-8 font-sans bg-green-50">
       {/* Back Button */}
       <button
-        onClick={() => navigate('/farmer-dashboard', { state: { search, category } })}
+        onClick={() => navigate('/farmer/products', { state: { search, category } })}
         className="flex items-center text-green-700 mb-6 hover:text-green-800"
       >
         <ArrowLeft className="mr-2" size={20} />
