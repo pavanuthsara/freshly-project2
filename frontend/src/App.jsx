@@ -37,6 +37,7 @@ import ComplaintHistory from './pages/BuyerPages/ComplaintHistory';
 import ReviewPage from './pages/BuyerPages/ReviewPage.jsx';
 import ReviewList from './pages/BuyerPages/ReviewList.jsx';
 import ReviewEditPage from './pages/BuyerPages/ReviewEditPage.jsx';
+import FeedbackBot from './pages/FeedbackBot/FeedbackBot.jsx';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -520,6 +521,17 @@ function AppContent({
             element={
               isAuthenticated ? (
                 <ReviewList />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+
+          <Route
+            path="/buyer/feedbackbot"
+            element={
+              isAuthenticated ? (
+                <FeedbackBot />
               ) : (
                 <Navigate to="/buyer/login" />
               )
