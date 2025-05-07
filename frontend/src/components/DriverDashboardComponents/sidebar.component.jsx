@@ -1,10 +1,45 @@
 import { MoreVertical, Home, User, Sprout, CheckSquare, ClipboardList, Bell, LogOut } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 import { logoutDriver } from "../../handlers/driverauthHandler";
 
 export default function Sidebar({ user, setIsAuthenticated }) {
   const navigate = useNavigate();
+  const [userDetails, setUserDetails] = useState(user);
+
+  // Fetch user details if user prop is not provided
+  useEffect(() => {
+    if (!user?.name || !user?.email) {
+      const fetchUserDetails = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+          const response = await axios.get('/api/drivers/profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            withCredentials: true,
+          });
+          const driver = response.data.driver || response.data;
+          setUserDetails({
+            name: driver.name,
+            email: driver.email,
+          });
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+          toast.error('Failed to load user details', { position: 'top-right' });
+          setUserDetails({ name: 'Driver', email: 'email@example.com' });
+        }
+      };
+      fetchUserDetails();
+    } else {
+      setUserDetails(user);
+    }
+  }, [user]);
 
   const sidebarItems = [
     { icon: <Home />, text: "Dashboard", path: "/drivers/dashboard" },
@@ -39,14 +74,14 @@ export default function Sidebar({ user, setIsAuthenticated }) {
 
         <div className="border-t border-white/10 flex p-3">
           <img
-            src="https://ui-avatars.com/api/?background=22c55e&color=ffffff&bold=true"
-            alt=""
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userDetails?.name || 'Driver')}&background=22c55e&color=ffffff&bold=true`}
+            alt="User avatar"
             className="w-10 h-10 rounded-md"
           />
           <div className="flex justify-between items-center w-52 ml-3">
             <div className="leading-4">
-              <h4 className="font-semibold text-white">{user?.name || 'Driver'}</h4>
-              <span className="text-xs text-white/60">{user?.email || 'email@example.com'}</span>
+              <h4 className="font-semibold text-white">{userDetails?.name || 'Driver'}</h4>
+              <span className="text-xs text-white/60">{userDetails?.email || 'email@example.com'}</span>
             </div>
             <MoreVertical size={20} className="text-white/60" />
           </div>
