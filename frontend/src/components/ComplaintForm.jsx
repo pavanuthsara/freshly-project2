@@ -11,6 +11,11 @@ const ComplaintForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [errors, setErrors] = useState({
+    contactNo: '',
+    type: '',
+    description: ''
+  });
 
   const handleChange = (e) => {
     setFormData({
@@ -19,8 +24,43 @@ const ComplaintForm = () => {
     });
   };
 
+  const validateForm = () => {
+    let newErrors = {};
+    let isValid = true;
+
+    // Contact Number Validation
+    if (!formData.contactNo.trim()) {
+      newErrors.contactNo = 'Contact number cannot be empty';
+      isValid = false;
+    } else if (!/^0\d{9}$/.test(formData.contactNo)) {
+      newErrors.contactNo = 'Must be 10 digits starting with 0';
+      isValid = false;
+    }
+
+    // Complaint Type Validation
+    if (!formData.type) {
+      newErrors.type = 'Please select a complaint type';
+      isValid = false;
+    }
+
+    // Description Validation
+    const wordCount = formData.description.trim().split(/\s+/).filter(word => word !== '').length;
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description cannot be empty';
+      isValid = false;
+    } else if (wordCount > 50) {
+      newErrors.description = 'Description cannot exceed 50 words';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setLoading(true);
     setError('');
     setSuccess('');
@@ -52,6 +92,8 @@ const ComplaintForm = () => {
     }
   };
 
+  const wordCount = formData.description.trim().split(/\s+/).filter(word => word !== '').length;
+
   return (
     <div className="bg-white/80 backdrop-blur-sm p-6 rounded-lg shadow-sm border border-gray-100">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Submit a Complaint</h2>
@@ -81,10 +123,16 @@ const ComplaintForm = () => {
             name="contactNo"
             value={formData.contactNo}
             onChange={handleChange}
-            required
+            onKeyPress={(e) => {
+              if (!/[0-9]/.test(e.key)) e.preventDefault();
+            }}
+            maxLength={10}
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             placeholder="Enter your contact number"
           />
+          {errors.contactNo && (
+            <p className="text-red-500 text-sm mt-1">{errors.contactNo}</p>
+          )}
         </div>
 
         <div>
@@ -96,7 +144,6 @@ const ComplaintForm = () => {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            required
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           >
             <option value="">Select complaint type</option>
@@ -105,6 +152,9 @@ const ComplaintForm = () => {
             <option value="payment">Payment Issue</option>
             <option value="other">Other</option>
           </select>
+          {errors.type && (
+            <p className="text-red-500 text-sm mt-1">{errors.type}</p>
+          )}
         </div>
 
         <div>
@@ -116,11 +166,16 @@ const ComplaintForm = () => {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            required
             rows="4"
             className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            placeholder="Describe your complaint in detail"
+            placeholder="Describe your complaint in detail (max 50 words)"
           />
+          <div className="mt-1 text-sm text-gray-500">
+            Word count: <span className={wordCount > 50 ? 'text-red-500' : ''}>{wordCount}</span>/50
+          </div>
+          {errors.description && (
+            <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+          )}
         </div>
 
         <button
@@ -135,4 +190,4 @@ const ComplaintForm = () => {
   );
 };
 
-export default ComplaintForm; 
+export default ComplaintForm;

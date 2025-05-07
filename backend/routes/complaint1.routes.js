@@ -5,7 +5,8 @@ import {
   showAllComplaints,
   getComplaintById,
   updateComplaint,
-  deleteComplaint
+  deleteComplaint,
+  generatePDF,
 } from '../controllers/complaint1.controller.js';
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.get('/complaints', protect, showAllComplaints);
 router.get('/complaints/:id', protect, getComplaintById);
 router.put('/complaints/:id', protect, updateComplaint);
 router.delete('/complaints/:id', protect, deleteComplaint);
+router.get('/complaints/generate-pdf', protect, generatePDF)
 
 export default router; 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   Edit2, 
   Trash2, 
@@ -91,6 +93,99 @@ const ComplaintHistory = () => {
         console.error('Error deleting complaint:', error);
       }
     }
+  };
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    const logoUrl = '../../assets/logo.png';
+
+    const companyDetails = {
+      name: 'Freshly.lk',
+      address: '123 Green Harvest Road, Colombo 00700, Sri Lanka',
+      email: 'support@freshly.lk',
+      phone: '+94 11 234 5678',
+      website: 'www.freshly.lk',
+      tagline: 'Delivering Freshness Across Sri Lanka',
+    };
+
+    // Cover Page
+    // Company Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(34, 197, 94); // Freshly.lk green
+    doc.text(companyDetails.name, 20, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(companyDetails.tagline, 20, 28);
+
+    // Company Logo
+    try {
+      doc.addImage(logoUrl, 'PNG', 160, 15, 30, 30); // Logo at top-right
+    } catch (imgError) {
+      console.warn('Failed to load logo:', imgError);
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text('Freshly.lk', 160, 25); // Fallback text
+    }
+
+    // Company Contact Info
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(50);
+    doc.text(companyDetails.address, 20, 40);
+    doc.text(`Email: ${companyDetails.email}`, 20, 46);
+    doc.text(`Phone: ${companyDetails.phone}`, 20, 52);
+    doc.text(`Website: ${companyDetails.website}`, 20, 58);
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(0); // Black color for title
+    doc.text('Complaint History Summary', 14, 70); // Moved title lower to avoid overlap
+    
+    // Prepare table data
+    const tableData = filteredComplaints.map(complaint => [
+      new Date(complaint.createdAt).toLocaleDateString(),
+      complaint.type,
+      complaint.contactNo,
+      complaint.description,
+      complaint.status
+    ]);
+
+    // Add table using autoTable
+    autoTable(doc, {
+      startY: 80, // Adjusted to start below the title
+      head: [['Date', 'Type', 'Contact', 'Description', 'Status']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [0, 128, 128],
+        textColor: [255, 255, 255]
+      },
+      styles: {
+        cellPadding: 2,
+        fontSize: 10,
+        overflow: 'linebreak'
+      },
+      columnStyles: {
+        3: { cellWidth: 80 } // Make description column wider
+      }
+    });
+
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text(
+        `Page ${i} of ${pageCount} | Generated on ${new Date().toLocaleDateString()}`,
+        14,
+        doc.internal.pageSize.height - 10
+      );
+    }
+
+    // Save the PDF
+    doc.save('complaint_history.pdf');
   };
 
   const getStatusIcon = (status) => {
@@ -304,9 +399,19 @@ const ComplaintHistory = () => {
             </tbody>
           </table>
         </div>
+
+        <div className="mt-4 flex flex-row-reverse">      
+          <button 
+            type="button" 
+            onClick={generatePDF}
+            className="focus:outline-none text-black bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:focus:ring-yellow-700"
+          >
+            Download Complaint Summary PDF
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default ComplaintHistory; 
+export default ComplaintHistory;
