@@ -20,7 +20,7 @@ const Register = ({ onRegistrationSuccess }) => {
   const [touched, setTouched] = useState({});
 
   const validateName = (name) => {
-    const nameRegex = /^[A-Za-z]+(\.[A-Za-z]+)*$/;
+    const nameRegex = /^[A-Za-z\s]+(\.[A-Za-z\s]+)*$/;
     return nameRegex.test(name);
   };
 
@@ -53,7 +53,7 @@ const Register = ({ onRegistrationSuccess }) => {
     
     switch(type) {
       case 'name':
-        sanitized = value.replace(/[^A-Za-z.]/g, '');
+        sanitized = value.replace(/[^A-Za-z\s.]/g, '');
         break;
       case 'phone':
         sanitized = value.replace(/\D/g, '').substring(0, 10);
@@ -131,7 +131,7 @@ const Register = ({ onRegistrationSuccess }) => {
     switch(baseField) {
       case 'name':
         valid = validateName(value);
-        errorMessage = 'Name should only contain letters and optional dots';
+        errorMessage = 'Name should only contain letters, spaces, and optional dots';
         break;
       case 'email':
         valid = validateEmail(value);
@@ -306,7 +306,7 @@ const Register = ({ onRegistrationSuccess }) => {
             />
             {touched.name && (
               <p className={`text-sm mt-1 ${errors.name ? 'text-red-500' : 'text-blue-500'}`}>
-                {errors.name || "Only letters and dots are allowed"}
+                {errors.name || "Only letters, spaces, and dots are allowed"}
               </p>
             )}
           </div>

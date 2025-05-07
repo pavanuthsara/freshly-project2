@@ -245,7 +245,7 @@ const ProductSection = ({ farmerData }) => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-green-800">
-            {activeView === 'myProducts' ? 'My Products' : 'All Products'}
+            {activeView === 'myProducts' && 'My Products'}
           </h2>
           <div className="flex space-x-4">
             <div className="flex bg-green-100 rounded-lg p-1">
@@ -376,7 +376,7 @@ const ProductSection = ({ farmerData }) => {
       </div>
 
       {(isAddProductDialogOpen || editingProduct) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-bold text-green-800">
@@ -424,6 +424,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isImageModified, setIsImageModified] = useState(false); // Track image changes
 
   const BACKEND_URL = 'http://localhost:5000';
 
@@ -450,7 +451,8 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
 
   const validateImageUrl = (url) => {
     if (!url) return true;
-    const urlRegex = /^(https?:\/\/)?[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$/i;
+    // Allow relative paths (e.g., /uploads/image.jpg) or full URLs
+    const urlRegex = /^(https?:\/\/[\w.-]+\.[a-z]{2,}(\/[^\s]*)?$)|(\/[^\s]*)$/i;
     return urlRegex.test(url);
   };
 
@@ -477,6 +479,7 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       setImagePreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, imageFile: undefined }));
       setFormData({ ...formData, image: '' });
+      setIsImageModified(true); // Mark image as modified
     }
   };
 
@@ -511,11 +514,12 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
     if (validateImageUrl(newUrl)) {
       setErrors((prev) => ({ ...prev, image: undefined }));
     } else {
-      setErrors((prev) => ({ ...prev, image: 'Please enter a valid URL' }));
+      setErrors((prev) => ({ ...prev, image: 'Please enter a valid URL or path' }));
     }
     setFormData({ ...formData, image: newUrl });
     setImagePreview(newUrl || '');
     setImageFile(null);
+    setIsImageModified(true); // Mark image as modified
   };
 
   const handlePriceChange = (e) => {
@@ -591,10 +595,13 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       validationErrors.countInStock = 'Stock must be greater than zero';
     }
 
-    if (!imageFile && !formData.image) {
-      validationErrors.image = 'An image file or URL is required';
-    } else if (formData.image && !validateImageUrl(formData.image)) {
-      validationErrors.image = 'Please enter a valid URL';
+    // Only validate image for new products or if image is modified when editing
+    if (!initialData._id || isImageModified) {
+      if (!imageFile && !formData.image) {
+        validationErrors.image = 'An image file or URL is required';
+      } else if (formData.image && !validateImageUrl(formData.image)) {
+        validationErrors.image = 'Please enter a valid URL or path';
+      }
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -631,18 +638,29 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
 
       const productData = {
         ...formData,
-        image: imageUrl || '/default-product-image.jpg',
+        image: imageUrl || initialData.image || '/default-product-image.jpg', // Preserve existing image if unchanged
       };
 
       await onSubmit(productData);
       setErrors({});
       setImageFile(null);
       setImagePreview('');
+      setIsImageModified(false); // Reset image modification state
     } catch (err) {
       setErrors({ submit: err.message || 'Failed to upload image or save product' });
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const getInputStyles = (fieldName) => (errors, focusedField) => {
+    if (errors[fieldName]) {
+      return "border-red-500 focus:ring-red-500 focus:border-red-500";
+    }
+    if (focusedField === fieldName) {
+      return "border-blue-500 ring-2 ring-blue-200 focus:border-blue-500";
+    }
+    return "border-gray-300 focus:ring-green-500 focus:border-green-500";
   };
 
   return (
@@ -829,16 +847,6 @@ const ProductForm = ({ onSubmit, onCancel, initialData }) => {
       </div>
     </form>
   );
-};
-
-const getInputStyles = (fieldName) => (errors, focusedField) => {
-  if (errors[fieldName]) {
-    return "border-red-500 focus:ring-red-500 focus:border-red-500";
-  }
-  if (focusedField === fieldName) {
-    return "border-blue-500 ring-2 ring-blue-200 focus:border-blue-500";
-  }
-  return "border-gray-300 focus:ring-green-500 focus:border-green-500";
 };
 
 export default ProductSection;
