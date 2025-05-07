@@ -50,18 +50,56 @@ const ReviewsList = () => {
   };
 
   const handleFeedbackBot = () => {
-    // Placeholder for Feedback Bot functionality
-    console.log('Feedback Bot clicked');
-    // TODO: Implement Feedback Bot functionality
+    navigate('/buyer/feedbackbot')
   };
 
   const generatePDF = () => {
     const doc = new jsPDF();
 
+    const logoUrl = '../../assets/logo.png';
+
+    const companyDetails = {
+      name: 'Freshly.lk',
+      address: '123 Green Harvest Road, Colombo 00700, Sri Lanka',
+      email: 'support@freshly.lk',
+      phone: '+94 11 234 5678',
+      website: 'www.freshly.lk',
+      tagline: 'Delivering Freshness Across Sri Lanka',
+    };
+
+    // Cover Page
+    // Company Header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(34, 197, 94); // Freshly.lk green
+    doc.text(companyDetails.name, 20, 20);
+    doc.setFontSize(12);
+    doc.setTextColor(100);
+    doc.text(companyDetails.tagline, 20, 28);
+
+    // Company Logo
+    try {
+      doc.addImage(logoUrl, 'PNG', 160, 15, 30, 30); // Logo at top-right
+    } catch (imgError) {
+      console.warn('Failed to load logo:', imgError);
+      doc.setFontSize(12);
+      doc.setTextColor(100);
+      doc.text('Freshly.lk', 160, 25); // Fallback text
+    }
+
+    // Company Contact Info
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(50);
+    doc.text(companyDetails.address, 20, 40);
+    doc.text(`Email: ${companyDetails.email}`, 20, 46);
+    doc.text(`Phone: ${companyDetails.phone}`, 20, 52);
+    doc.text(`Website: ${companyDetails.website}`, 20, 58);
+
     // Add title
     doc.setFontSize(18);
     doc.setTextColor(0);
-    doc.text('Review History Summary', 14, 20);
+    doc.text('Review History Summary', 14, 80);
 
     // Prepare table data
     const tableData = filteredReviews.map((review, index) => [
@@ -73,7 +111,7 @@ const ReviewsList = () => {
 
     // Add table using autoTable
     autoTable(doc, {
-      startY: 30,
+      startY: 90,
       head: [['Order ID', 'Rating', 'Description', 'Posted Date']],
       body: tableData,
       theme: 'striped',
@@ -112,10 +150,12 @@ const ReviewsList = () => {
     e.target.src = 'https://via.placeholder.com/80?text=Image+Not+Found'; // Placeholder image
   };
 
-  // Filter reviews by order ID
-  const filteredReviews = reviews.filter((review, index) => {
-    const orderId = `R${String(index + 1).padStart(3, '0')}`;
-    return orderId.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter reviews by rating or description
+  const filteredReviews = reviews.filter((review) => {
+    const rating = `${review.rating}/5`;
+    const description = review.description.toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return rating.includes(search) || description.includes(search);
   });
 
   return (
@@ -146,7 +186,7 @@ const ReviewsList = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             <input
               type="text"
-              placeholder="Search by Order ID (e.g., R001)"
+              placeholder="Search by rating (e.g., 4/5) or description"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -176,7 +216,7 @@ const ReviewsList = () => {
               <div key={review._id} className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-gray-800">
-                    Order R{String(index + 1).padStart(3, '0')}
+                    Order ID : R{String(index + 1).padStart(3, '0')}
                   </h3>
                   <div className="flex space-x-2">
                     <button
