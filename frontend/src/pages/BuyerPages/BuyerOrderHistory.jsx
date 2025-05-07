@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaArrowLeft, FaMoneyBillWave, FaBan, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaMoneyBillWave, FaBan, FaCheck, FaTimes, FaFilePdf } from 'react-icons/fa';
 import BuyerSidebar from '../../components/BuyerSidebar';
+import { generateOrderPDF } from '../handlers/buyerpdfUtils';
 
 const BuyerOrderDetails = () => {
   const { id } = useParams();
@@ -300,6 +301,12 @@ const BuyerOrderDetails = () => {
                 <FaMoneyBillWave className="mr-2" /> Request Refund
               </button>
             )}
+            <button
+              onClick={() => generateOrderPDF(order)}
+              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-md flex items-center shadow-sm transition-colors"
+            >
+              <FaFilePdf className="mr-2" /> Download PDF
+            </button>
           </div>
 
           {/* Order cancelled info */}

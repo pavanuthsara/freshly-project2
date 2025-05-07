@@ -37,7 +37,9 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
           url += `?${params.toString()}`;
         }
         
+        console.log('Fetching products from:', url);
         const res = await axios.get(url);
+        console.log('Received products:', res.data);
         setProducts(res.data.products);
         
         // Extract unique categories for the filter
@@ -48,6 +50,7 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
         
         setLoading(false);
       } catch (err) {
+        console.error('Error fetching products:', err);
         setError(err.response?.data?.message || 'Failed to load products');
         setLoading(false);
       }
@@ -169,24 +172,20 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
             >
               <div className="product-image-container">
                 <img src={product.image} alt={product.name} />
-                {product.discount > 0 && (
-                  <span className="discount-badge">{product.discount}% OFF</span>
+                {product.certification && (
+                  <span className="certification-badge">{product.certification}</span>
                 )}
               </div>
               
               <div className="product-details">
                 <h4>{product.name}</h4>
+                <p className="product-description">{product.description}</p>
                 <div className="product-price">
-                  {product.discount > 0 && (
-                    <span className="original-price">Rs. {product.price}</span>
-                  )}
-                  <span className="current-price">
-                    Rs. {product.discount 
-                      ? Math.round(product.price * (1 - product.discount / 100)) 
-                      : product.price}
-                  </span>
+                  <span className="current-price">Rs. {product.price}</span>
                 </div>
                 <p className="product-category">{product.category}</p>
+                <p className="farmer-name">By: {product.farmer?.name || 'Unknown Farmer'}</p>
+                <p className="stock-info">Available: {product.countInStock} kg</p>
                 
                 {isOutOfStock(product) ? (
                   <button className="out-of-stock-button" disabled>
