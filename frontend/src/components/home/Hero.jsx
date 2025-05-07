@@ -1,7 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 export function Hero() {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate('/login-dashboard');
+  };
+
   return (
     <div className="relative bg-gradient-to-r from-emerald-600 to-teal-600 overflow-hidden">
       {/* Background pattern */}
@@ -28,6 +35,21 @@ export function Hero() {
               </button>
               <button className="bg-transparent border-2 border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg font-medium transition-all duration-300">
                 Learn More
+              </button>
+              <button 
+                onClick={handleLoginClick}
+                className="relative bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium shadow-lg overflow-hidden group transition-all duration-500"
+              >
+                <span className="relative z-10 flex items-center">
+                  Login
+                  <span className="ml-2 transform group-hover:translate-x-1 transition-transform duration-300">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14" />
+                    </svg>
+                  </span>
+                </span>
+                <span className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></span>
+                <span className="absolute inset-0 bg-emerald-700 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></span>
               </button>
             </div>
           </div>
