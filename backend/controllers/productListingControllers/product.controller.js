@@ -13,6 +13,7 @@ const getProducts = async (req, res, next) => {
     const products = await Product.find({
       name: { $regex: search, $options: 'i' }
     })
+      .populate('farmer.id', 'name')
       .limit(limit > maxLimit ? maxLimit : limit)
       .skip(skip > maxSkip ? maxSkip : skip < 0 ? 0 : skip);
 

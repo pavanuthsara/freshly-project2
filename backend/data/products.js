@@ -1,0 +1,147 @@
+import mongoose from 'mongoose';
+
+// Create a sample buyer ID - you should replace this with an actual buyer ID from your database
+const sampleBuyerId = new mongoose.Types.ObjectId();
+
+export const products = [
+  {
+    productID: "PROD-1",
+    user: sampleBuyerId,
+    name: "Carrot",
+    image: "/Uploads/Fruits/Carrot.jpg",
+    description: "Fresh, organic carrots rich in vitamins, ideal for salads or cooking.",
+    brand: "Organic Farms",
+    category: "Vegetables",
+    price: 50,
+    countInStock: 100,
+    rating: 4.5,
+    numReviews: 20,
+    isActive: true
+  },
+  {
+    productID: "PROD-2",
+    user: sampleBuyerId,
+    name: "Cashew",
+    image: "/Uploads/Fruits/cashew.jpg",
+    description: "Premium quality cashews, perfect for snacking or culinary use.",
+    brand: "Nutty Delights",
+    category: "Nuts",
+    price: 200,
+    countInStock: 50,
+    rating: 4.0,
+    numReviews: 15,
+    isActive: true
+  },
+  {
+    productID: "PROD-3",
+    user: sampleBuyerId,
+    name: "Durian",
+    image: "/Uploads/Fruits/Durian.jpg",
+    description: "Exotic durian with a unique flavor, known as the king of fruits.",
+    brand: "Tropical Treasures",
+    category: "Fruits",
+    price: 300,
+    countInStock: 20,
+    rating: 4.2,
+    numReviews: 10,
+    isActive: true
+  },
+  {
+    productID: "PROD-4",
+    user: sampleBuyerId,
+    name: "Mango",
+    image: "/Uploads/Fruits/Mango.jpg",
+    description: "Juicy and sweet mangoes, great for desserts or smoothies.",
+    brand: "Sunny Orchards",
+    category: "Fruits",
+    price: 80,
+    countInStock: 80,
+    rating: 4.7,
+    numReviews: 25,
+    isActive: true
+  },
+  {
+    productID: "PROD-5",
+    user: sampleBuyerId,
+    name: "Mangosteen",
+    image: "/Uploads/Fruits/Mangosteen.jpg",
+    description: "Sweet and tangy mangosteen, a tropical delight.",
+    brand: "Tropical Treasures",
+    category: "Fruits",
+    price: 150,
+    countInStock: 30,
+    rating: 4.3,
+    numReviews: 12,
+    isActive: true
+  },
+  {
+    productID: "PROD-6",
+    user: sampleBuyerId,
+    name: "Mushroom",
+    image: "/Uploads/Fruits/Mushroom.jpg",
+    description: "Fresh mushrooms, ideal for soups, stir-fries, or grilling.",
+    brand: "Organic Farms",
+    category: "Vegetables",
+    price: 60,
+    countInStock: 90,
+    rating: 4.1,
+    numReviews: 18,
+    isActive: true
+  },
+  {
+    productID: "PROD-7",
+    user: sampleBuyerId,
+    name: "Papaya",
+    image: "/Uploads/Fruits/papaya.jpg",
+    description: "Sweet and juicy papaya, packed with nutrients.",
+    brand: "Sunny Orchards",
+    category: "Fruits",
+    price: 70,
+    countInStock: 70,
+    rating: 4.6,
+    numReviews: 22,
+    isActive: true
+  },
+  {
+    productID: "PROD-8",
+    user: sampleBuyerId,
+    name: "Pears",
+    image: "/Uploads/Fruits/Pears.jpg",
+    description: "Crisp and sweet pears, perfect for snacking or baking.",
+    brand: "Sunny Orchards",
+    category: "Fruits",
+    price: 90,
+    countInStock: 60,
+    rating: 4.4,
+    numReviews: 16,
+    isActive: true
+  },
+  {
+    productID: "PROD-9",
+    user: sampleBuyerId,
+    name: "Rambutan",
+    image: "/Uploads/Fruits/Rambutan.jpg",
+    description: "Sweet and juicy rambutan, a tropical treat.",
+    brand: "Tropical Treasures",
+    category: "Fruits",
+    price: 120,
+    countInStock: 40,
+    rating: 4.5,
+    numReviews: 14,
+    isActive: true
+  },
+  {
+    productID: "PROD-10",
+    user: sampleBuyerId,
+    name: "Red Banana",
+    image: "/Uploads/Fruits/Red Banana in Sri Lanka.jpg",
+    description: "Unique red bananas from Sri Lanka, sweet and flavorful.",
+    brand: "Sunny Orchards",
+    category: "Fruits",
+    price: 100,
+    countInStock: 50,
+    rating: 4.8,
+    numReviews: 30,
+    isActive: true
+  }
+]; 
