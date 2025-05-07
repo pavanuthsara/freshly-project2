@@ -26,19 +26,21 @@ const ProductListing = () => {
     setLoading(true);
     setError('');
     try {
+      const token = localStorage.getItem('farmerToken');
       const response = await fetch('/api/products', {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch products');
+        throw new Error(errorData.message || `Failed to fetch products (Status: ${response.status})`);
       }
       const data = await response.json();
-      console.log('Fetched products:', data.products);
+      console.log('Fetched products:', data);
       const products = Array.isArray(data.products) ? data.products : [];
       setAllProducts(products);
       setFilteredProducts(products);
@@ -57,14 +59,14 @@ const ProductListing = () => {
 
     if (category) {
       result = result.filter((product) =>
-        product.category.toLowerCase() === category.toLowerCase()
+        product.category?.toLowerCase() === category.toLowerCase()
       );
     }
 
     if (search.trim()) {
       result = result.filter((product) =>
-        product.name.toLowerCase().includes(search.toLowerCase()) ||
-        product.description.toLowerCase().includes(search.toLowerCase())
+        product.name?.toLowerCase().includes(search.toLowerCase()) ||
+        product.description?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -72,12 +74,12 @@ const ProductListing = () => {
   };
 
   const getImageUrl = (image) => {
-    if (!image) {
-      console.log('No image provided, using default');
+    if (!image || typeof image !== 'string') {
+      console.log('Invalid or missing image, using default');
       return '/default-product-image.jpg';
     }
     const url = image.startsWith('http') ? image : `${BACKEND_URL}${image.startsWith('/') ? '' : '/'}${image}`;
-    console.log('Image URL:', url);
+    console.log('Constructed image URL:', url);
     return url;
   };
 
@@ -126,16 +128,16 @@ const ProductListing = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
         {filteredProducts.length ? (
           filteredProducts.map((product) => (
             <div
               key={product._id}
-              className="border border-green-200 rounded-lg shadow-md p-4 text-center bg-white transition-transform duration-300 hover:-translate-y-2 hover:shadow-lg"
+              className="border border-green-200 rounded-lg shadow-md p-4 text-center bg-white transition-transform duration-300 hover:-translate-y-2 hover:shadow-lg flex flex-col"
             >
               <img
                 src={getImageUrl(product.image)}
-                alt={product.name}
+                alt={product.name || 'Product'}
                 className="w-full h-48 object-contain rounded-lg mb-4"
                 loading="lazy"
                 onError={(e) => {
@@ -143,20 +145,20 @@ const ProductListing = () => {
                   e.target.src = '/default-product-image.jpg';
                 }}
               />
-              <h3 className="text-lg font-semibold text-green-800 mb-2">{product.name}</h3>
-              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{product.description}</p>
+              <h3 className="text-lg font-semibold text-green-800 mb-2">{product.name || 'Unnamed Product'}</h3>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2 flex-grow">{product.description || 'No description'}</p>
               <p className="text-green-700 font-bold text-xl mb-2">
-                LKR {product.price?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                LKR {product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : 'N/A'}
               </p>
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <span className="text-green-600 text-sm">
-                  <span className="font-semibold">Category:</span> {product.category}
+                  <span className="font-semibold">Category:</span> {product.category || 'N/A'}
                 </span>
-                <span className="text-green-600 text-sm">{product.countInStock} kg</span>
+                <span className="text-green-600 text-sm">{product.countInStock ? `${product.countInStock} kg` : 'Out of stock'}</span>
               </div>
               <button
-                onClick={() => navigate(`/farmer-dashboard/product/${product._id}`, { state: { search, category } })}
-                className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-300 flex items-center justify-center"
+                onClick={() => navigate(`/farmer/product/${product._id}`, { state: { search, category } })}
+                className="mt-auto w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-300 flex items-center justify-center"
               >
                 <Eye className="mr-2" size={20} />
                 View Product
