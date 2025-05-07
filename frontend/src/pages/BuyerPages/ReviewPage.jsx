@@ -22,7 +22,7 @@ const ReviewPage = () => {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'pictures') {
-      const newFiles = Array.from(files);
+      const newFiles = Array.from(files).filter(file => file.type.startsWith('image/')); // Ensure only image files
       if (formData.pictures.length + newFiles.length > 3) {
         setErrorMsg('You can upload a maximum of 3 pictures.');
         return;
@@ -84,8 +84,8 @@ const ReviewPage = () => {
     formDataToSend.append('orderId', formData.orderId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('rating', formData.rating);
-    formData.pictures.forEach((file) => {
-      formDataToSend.append('pictures', file);
+    formData.pictures.forEach((file, index) => {
+      formDataToSend.append('pictures', file); // Append each file individually
     });
 
     try {

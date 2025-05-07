@@ -1,6 +1,17 @@
 import Review from '../models/review.model.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Define __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure uploads/reviews directory exists
+const reviewsDir = path.join(__dirname, '..', 'uploads', 'reviews');
+if (!fs.existsSync(reviewsDir)) {
+  fs.mkdirSync(reviewsDir, { recursive: true });
+}
 
 // Create a new review
 export const createReview = async (req, res) => {
@@ -16,11 +27,14 @@ export const createReview = async (req, res) => {
         return res.status(400).json({ message: 'Maximum 3 pictures allowed.' });
       }
 
-      files.forEach((file) => {
-        const filePath = `/uploads/reviews/${Date.now()}_${file.name}`;
-        fs.writeFileSync(path.join(__dirname, '..', filePath), file.data);
+      for (const file of files) {
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(400).json({ message: 'Only image files are allowed.' });
+        }
+        const filePath = `/uploads/reviews/${Date.now()}_${file.originalname}`;
+        fs.writeFileSync(path.join(__dirname, '..', filePath), file.buffer); // Use file.buffer for memory storage
         pictures.push(filePath);
-      });
+      }
     }
 
     const review = new Review({
@@ -81,11 +95,14 @@ export const updateReview = async (req, res) => {
       }
 
       const newPictures = [];
-      files.forEach((file) => {
-        const filePath = `/uploads/reviews/${Date.now()}_${file.name}`;
-        fs.writeFileSync(path.join(__dirname, '..', filePath), file.data);
+      for (const file of files) {
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(400).json({ message: 'Only image files are allowed.' });
+        }
+        const filePath = `/uploads/reviews/${Date.now()}_${file.originalname}`;
+        fs.writeFileSync(path.join(__dirname, '..', filePath), file.buffer);
         newPictures.push(filePath);
-      });
+      }
       review.pictures = newPictures;
     }
 
