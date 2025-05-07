@@ -103,10 +103,6 @@ const ProductListing = () => {
     { value: '', label: 'All Categories' },
     { value: 'Vegetables', label: 'Vegetables' },
     { value: 'Fruits', label: 'Fruits' },
-    { value: 'Grains', label: 'Grains' },
-    { value: 'Herbs', label: 'Herbs' },
-    { value: 'Spices', label: 'Spices' },
-    { value: 'Nuts', label: 'Nuts' },
   ];
 
   return (
