@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 const cartItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'fProduct',
     required: true
   },
   qty: {
