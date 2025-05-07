@@ -74,6 +74,11 @@ const ProductReportGenerator = () => {
 
       // Generate report ID using timestamp
       const reportId = `FR-${Date.now()}`;
+      const currentDate = new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'numeric', 
+        day: 'numeric' 
+      });
 
       if (format === 'excel') {
         const coverSheetData = [
@@ -84,9 +89,9 @@ const ProductReportGenerator = () => {
           ['Phone: +94 112345678'],
           ['Website: www.freshly.lk'],
           [],
-          ['Farmer Product Report'],
+          ['Product Report'],
           ['Prepared for:', farmer.name || 'Unknown'],
-          ['Date:', new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })],
+          ['Date:', currentDate],
           ['Report ID:', reportId],
           ['Confidential: For internal use only.'],
           [],
@@ -124,7 +129,7 @@ const ProductReportGenerator = () => {
           s: { font: { name: 'Helvetica', sz: 10 } },
         };
         coverSheet['A8'] = {
-          v: 'Farmer Product Report',
+          v: 'Product Report',
           s: {
             font: { name: 'Helvetica', bold: true, sz: 14 },
             alignment: { horizontal: 'left', vertical: 'center' },
@@ -180,7 +185,7 @@ const ProductReportGenerator = () => {
 
         XLSX.writeFile(
           workbook,
-          `Farmer_Products_${new Date().toISOString().split('T')[0]}.xlsx`
+          `Freshly_Product_Report_${new Date().toISOString().split('T')[0]}.xlsx`
         );
         toast.success(`Excel report generated successfully!`, {
           style: {
@@ -193,57 +198,115 @@ const ProductReportGenerator = () => {
       } else {
         const doc = new jsPDF('portrait');
 
-        // Cover page
-        doc.setFontSize(20);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(34, 139, 34);
-        doc.text('Freshly.lk', 20, 20);
+        // Cover page styling similar to the Driver Report
+        // ======= LOGO PLACEMENT - ADD YOUR LOGO HERE =======
+        // Uncomment and replace the path with your actual logo path
+        const logoPath = '/src/assets/freshly-logo.png';
+        doc.addImage(logoPath, 'PNG', 20, 15, 40, 40);
+        // For now, we'll add a placeholder text
+        //doc.setFontSize(10);
+        //doc.setTextColor(150, 150, 150);
+        //doc.text('LOGO PLACEHOLDER', 20, 25);
+        // ===================================================
+
+        //doc.setFontSize(20);
+        //doc.setFont('helvetica', 'bold');
+        //doc.setTextColor(34, 139, 34);
+        //doc.text('Freshly.lk', 20, 40);
 
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(0, 0, 0);
-        doc.text('Delivering Freshness Across Sri Lanka', 20, 30);
-        doc.text('123 Green Harvest Road, Colombo 00700, Sri Lanka', 20, 40);
-        doc.text('Email: support@freshly.lk', 20, 50);
-        doc.text('Phone: +94 112345678', 20, 60);
-        doc.text('Website: www.freshly.lk', 20, 70);
+        doc.text('Delivering Freshness Across Sri Lanka', 20, 48);
+        doc.text('123 Green Harvest Road, Colombo 00700, Sri Lanka', 20, 56);
+        doc.text('Email: support@freshly.lk', 20, 64);
+        doc.text('Phone: +94 11 234 5678', 20, 72);
+        doc.text('Website: www.freshly.lk', 20, 80);
 
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('Farmer Product Report', 105, 100, { align: 'center' });
+        doc.text('Product Report', 20, 96);
 
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Prepared for: ${farmer.name || 'Unknown'}`, 20, 120);
-        doc.text(`Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, 20, 130);
-        doc.text(`Report ID: ${reportId}`, 20, 140);
-        doc.text('Confidential: For internal use only.', 20, 150);
+        doc.text(`Prepared for: ${farmer.name || 'Unknown'}`, 20, 112);
+        doc.text(`Date: ${currentDate}`, 20, 120);
+        doc.text(`Report ID: ${reportId}`, 20, 128);
+        doc.text('Confidential: For internal use only.', 20, 136);
 
-        doc.addPage();
+        // Add a horizontal line
+        doc.setDrawColor(34, 139, 34);
+        doc.setLineWidth(0.5);
+        doc.line(20, 146, 190, 146);
 
-        // Product summary page
+        // Product summary section
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Product Summary', 20, 20);
+        doc.text('Product Summary', 20, 160);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text('This report provides an overview of your product inventory with Freshly.lk.', 20, 30);
+        doc.text('This report provides an overview of your product inventory with Freshly.lk,', 20, 170);
+        doc.text('including product details, pricing, and stock information.', 20, 178);
 
+        // Create statistical summary boxes similar to Driver Report
+        if (products.length > 0) {
+          // Simple metrics calculation
+          const totalProducts = products.length;
+          const totalStock = products.reduce((sum, product) => sum + (product.countInStock || 0), 0);
+          const avgPrice = products.reduce((sum, product) => sum + (product.price || 0), 0) / totalProducts;
+          
+          // Create metrics table
+          const metricsData = [
+            ['Metric', 'Value'],
+            ['Total Products', totalProducts.toString()],
+            ['Total Stock', `${totalStock} kg`],
+            ['Average Price', `LKR ${avgPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}`]
+          ];
+          
+          autoTable(doc, {
+            head: [metricsData[0]],
+            body: metricsData.slice(1),
+            startY: 190,
+            theme: 'grid',
+            styles: {
+              fontSize: 10,
+              cellPadding: 4,
+              lineColor: [200, 200, 200],
+              lineWidth: 0.1,
+            },
+            headStyles: {
+              fillColor: [34, 139, 34],
+              textColor: [255, 255, 255],
+              fontStyle: 'bold',
+            },
+            columnStyles: {
+              0: { cellWidth: 60 },
+              1: { cellWidth: 60 },
+            },
+            margin: { left: 20 }
+          });
+        }
+
+        // Add second page with product details
+        doc.addPage();
+
+        // Main products table
         autoTable(doc, {
           head: [columns],
           body: rows,
-          startY: 40,
+          startY: 20,
           styles: {
             fontSize: 9,
             cellPadding: 3,
             overflow: 'linebreak',
             font: 'helvetica',
+            lineColor: [200, 200, 200],
+            lineWidth: 0.1,
           },
           headStyles: {
             fillColor: [34, 139, 34],
             textColor: [255, 255, 255],
             fontStyle: 'bold',
-            font: 'helvetica',
           },
           columnStyles: {
             0: { cellWidth: 30 },
@@ -254,21 +317,39 @@ const ProductReportGenerator = () => {
             5: { cellWidth: 45 },
           },
           didDrawPage: (data) => {
+            // Header
+            doc.setFontSize(8);
+            doc.setTextColor(34, 139, 34);
+            doc.text('Freshly.lk', doc.internal.pageSize.width / 2, 10, { align: 'center' });
+            
+            // Footer on each page
             const pageCount = doc.internal.getNumberOfPages();
             const currentPage = data.pageNumber;
-            doc.setFontSize(10);
+            
+            doc.setFontSize(8);
             doc.setFont('helvetica', 'normal');
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(100, 100, 100);
+            
+            // Left side of footer
+            doc.text('Freshly.lk', 20, doc.internal.pageSize.height - 10);
+            
+            // Center of footer
+            doc.text(`www.freshly.lk`, doc.internal.pageSize.width / 2, doc.internal.pageSize.height - 10, { 
+              align: 'center' 
+            });
+            
+            // Right side of footer
             doc.text(
               `Page ${currentPage - 1} of ${pageCount - 1}`,
               doc.internal.pageSize.width - 20,
               doc.internal.pageSize.height - 10,
               { align: 'right' }
             );
-            // Add footer branding
-            doc.setTextColor(34, 139, 34);
-            doc.text('Freshly.lk', 20, doc.internal.pageSize.height - 10);
-            doc.text(`Report ID: ${reportId}`, 20, doc.internal.pageSize.height - 20);
+            
+            // Report ID in footer
+            doc.text(`Report ID: ${reportId}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 16, { 
+              align: 'right' 
+            });
           },
         });
 
@@ -276,7 +357,7 @@ const ProductReportGenerator = () => {
         const url = URL.createObjectURL(pdfOutput);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Farmer_Products_${new Date().toISOString().split('T')[0]}.pdf`;
+        link.download = `Freshly_Product_Report_${new Date().toISOString().split('T')[0]}.pdf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
