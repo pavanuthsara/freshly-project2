@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaSearch, FaEye } from 'react-icons/fa';
+import { FaSearch, FaEye, FaAward , FaFileDownload } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { generateOrderPDF } from '../../handlers/buyerPdfUtils';
 // Removed BuyerSidebar import since it's already in the parent layout
 
 const BuyerOrderHistory = () => {
@@ -15,7 +16,7 @@ const BuyerOrderHistory = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const { data } = await axios.get('/api/v1/orders/my-orders', {
+        const { data } = await axios.get('/api/orders/my-orders', {
           withCredentials: true
         });
         
@@ -80,6 +81,11 @@ const BuyerOrderHistory = () => {
     }
   };
 
+  // Handle PDF download
+  const handleDownloadPDF = (order) => {
+    generateOrderPDF(order);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -125,6 +131,7 @@ const BuyerOrderHistory = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Total</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Add Review</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -132,7 +139,7 @@ const BuyerOrderHistory = () => {
                         <tr key={order._id} className="hover:bg-teal-50/50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{order._id.slice(-6)}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                            {new Date(order.createdAt).toLocaleDateString()}
+                            {formatDate(order.createdAt)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`${getStatusClass(order.status)} text-white px-3 py-1 rounded-full text-xs font-medium`}>
@@ -142,12 +149,28 @@ const BuyerOrderHistory = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {formatCurrency(order.totalPrice)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm space-x-3">
                             <Link 
                               to={`/buyer/order/${order._id}`} 
                               className="text-teal-600 hover:text-teal-700 flex items-center"
                             >
                               <FaEye className="mr-1" /> Details
+                            </Link>
+                            <button
+                              onClick={() => handleDownloadPDF(order)}
+                              className="text-teal-600 hover:text-teal-700 flex items-center"
+                            >
+                              <FaFileDownload className="mr-1" /> PDF
+                            </button>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Link
+                              to="/buyer/review"
+                              state={{ orderId: order._id }} // Pass orderId in state
+                              className="text-teal-600 hover:text-teal-700 flex items-center"
+                            >
+                              <FaAward className="mr-1" /> Add Review
                             </Link>
                           </td>
                         </tr>

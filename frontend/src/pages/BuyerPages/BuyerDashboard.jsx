@@ -189,6 +189,24 @@ const BuyerDashboard = ({ setUser }) => {
                 </NavLink>
               </li>
 
+              {/* reviews feature */}
+              <li>
+                <NavLink
+                  to="/buyer/reviewlist"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <Star className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Reviews</span>}
+                </NavLink>
+              </li>
+              {/* end reviews feature */}
+
               <li>
                 <NavLink
                   to="/buyer/notifications"

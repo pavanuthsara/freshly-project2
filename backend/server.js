@@ -26,6 +26,8 @@ import complaint1Routes from './routes/complaint1.routes.js';
 import driverRoutes from './routes/deliveryRoutes/driver.routes.js';
 import deliveryRequestRoutes from './routes/deliveryRoutes/deliveryRequest.routes.js';
 
+import reviewRoutes from './routes/reviews.routes.js'; // Import review routes
+
 import { stripeWebhook } from './controllers/stripeWebhookController.js';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -93,6 +95,7 @@ mongoose
 // Routes
 app.use('/api/buyers', buyerRoutes);
 app.use('/api/v1/buyers', buyerRoutes); // Support both API versions
+app.use('/api/reviews',reviewRoutes )
 
 app.use('/api/products', productRoutes.publicRoutes); // Public product routes
 app.use('/api/farmerProducts', productRoutes.protectedRoutes); // Farmer-specific product routes
