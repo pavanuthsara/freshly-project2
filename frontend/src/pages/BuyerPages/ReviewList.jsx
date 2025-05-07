@@ -62,10 +62,12 @@ const ReviewsList = () => {
           <p className="text-center text-gray-600">No reviews found.</p>
         ) : (
           <div className="grid gap-6">
-            {reviews.map((review) => (
+            {reviews.map((review, index) => (
               <div key={review._id} className="bg-white rounded-xl shadow-lg p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">Order #{review.orderId}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    Order R{String(index + 1).padStart(3, '0')}
+                  </h3>
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleEdit(review)}

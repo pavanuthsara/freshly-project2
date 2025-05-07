@@ -9,7 +9,7 @@ const upload = multer({ storage });
 
 router.post('/', protect, upload.fields([{ name: 'pictures', maxCount: 3 }]), createReview);
 router.get('/', protect, getBuyerReviews);
-router.put('/:reviewId', protect, upload.fields([{ name: 'pictures', maxCount: 3 }]), updateReview);
+router.put('/edit/:reviewId', protect, upload.fields([{ name: 'pictures', maxCount: 3 }]), updateReview);
 router.delete('/:reviewId', protect, deleteReview);
 
 export default router;

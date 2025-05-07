@@ -35,6 +35,7 @@ import BuyerOrderDetails from './pages/BuyerPages/BuyerOrderDetails';
 import BuyerOrders from './pages/BuyerPages/BuyerOrders';
 import ComplaintHistory from './pages/BuyerPages/ComplaintHistory';
 import ReviewPage from './pages/BuyerPages/ReviewPage.jsx';
+import ReviewList from './pages/BuyerPages/ReviewList.jsx';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -507,6 +508,17 @@ function AppContent({
               )
             }
           />
+          <Route
+            path="/buyer/reviewlist"
+            element={
+              isAuthenticated ? (
+                <ReviewList />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
+          
           <Route
             path="/farmer"
             element={

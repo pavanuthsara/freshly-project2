@@ -192,7 +192,7 @@ const BuyerDashboard = ({ setUser }) => {
               {/* reviews feature */}
               <li>
                 <NavLink
-                  to="/buyer/complaints"
+                  to="/buyer/reviewlist"
                   className={({ isActive }) => 
                     `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
                       isActive
