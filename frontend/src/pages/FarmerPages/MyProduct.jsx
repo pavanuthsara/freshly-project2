@@ -245,8 +245,7 @@ const ProductSection = ({ farmerData }) => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-green-800">
-            {activeView === 'myProducts' ? 'My Products' : 'All Products'}
-          </h2>
+          {activeView === 'myProducts' && 'My Products'}          </h2>
           <div className="flex space-x-4">
             <div className="flex bg-green-100 rounded-lg p-1">
               <button

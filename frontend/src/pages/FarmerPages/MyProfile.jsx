@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Edit, Save, X } from 'lucide-react';
+import { User, MapPin, Edit, Save, X, Loader2 } from 'lucide-react';
 
 // Validate name (only letters, spaces, and hyphens)
 const validateName = (name) => {
@@ -334,13 +334,13 @@ const ProfileSection = () => {
         onChange: (e) => handleInputChange(e, field, subfield),
         onFocus: () => handleFocus(field, subfield),
         onBlur: () => handleBlur(field, subfield),
-        className: `w-full px-2 py-1 border-b ${
+        className: `w-full px-4 py-2 border rounded-lg ${
           isError 
-            ? 'border-red-500 focus:border-red-700' 
+            ? 'border-red-500 focus:border-red-700 text-red-700' 
             : isActive
-              ? 'border-blue-500 focus:border-blue-700'
-              : 'border-green-200 focus:border-green-500'
-        } focus:outline-none transition-colors duration-200`,
+              ? 'border-blue-500 focus:border-blue-700 text-blue-700'
+              : 'border-gray-300 focus:border-green-500 text-gray-800'
+        } focus:outline-none focus:ring-2 focus:ring-green-300 transition-all duration-200`,
         disabled: field === 'email',
       };
 
@@ -392,7 +392,7 @@ const ProfileSection = () => {
         const currentValue = editedData[field] || '';
         const currentLength = currentValue.length;
         return (
-          <div className="absolute right-0 top-1 text-xs">
+          <div className="absolute right-4 top-2 text-xs">
             <span className={currentLength === 10 ? 'text-green-600' : 'text-gray-400'}>
               {currentLength}/10
             </span>
@@ -408,19 +408,19 @@ const ProfileSection = () => {
 
         if (has10DigitsPlusV) {
           return (
-            <div className="absolute right-0 top-1 text-xs">
+            <div className="absolute right-4 top-2 text-xs">
               <span className="text-green-600">Valid (10+V format)</span>
             </div>
           );
         } else if (/^\d{12}$/.test(currentValue)) {
           return (
-            <div className="absolute right-0 top-1 text-xs">
+            <div className="absolute right-4 top-2 text-xs">
               <span className="text-green-600">Valid (12-digit format)</span>
             </div>
           );
         } else if (has10DigitsOrLess) {
           return (
-            <div className="absolute right-0 top-1 text-xs">
+            <div className="absolute right-4 top-2 text-xs">
               <span className="text-gray-400">
                 {currentLength}/10 digits {currentLength === 10 ? '(add V)' : ''}
               </span>
@@ -428,7 +428,7 @@ const ProfileSection = () => {
           );
         } else if (has12Digits && currentLength < 12) {
           return (
-            <div className="absolute right-0 top-1 text-xs">
+            <div className="absolute right-4 top-2 text-xs">
               <span className="text-gray-400">{currentLength}/12 digits</span>
             </div>
           );
@@ -438,8 +438,8 @@ const ProfileSection = () => {
     };
 
     return (
-      <div className="mb-4">
-        <h2 className="text-green-700 font-semibold mb-1">{label}</h2>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-green-800 mb-2">{label}</h2>
         {isEditing ? (
           <div className="relative">
             <input
@@ -448,7 +448,7 @@ const ProfileSection = () => {
             {getFieldProgress()}
             {renderFieldProgress(field, subfield)}
             {isActive && !isError && (
-              <div className="absolute -bottom-5 left-0 text-blue-500 text-xs">
+              <div className="absolute -bottom-6 left-0 text-blue-600 text-sm">
                 {field === 'name' && 'Only letters, spaces, and hyphens allowed'}
                 {field === 'phone' && 'Enter exactly 10 digits'}
                 {field === 'nic' && '10 digits + V/v or 12 digits'}
@@ -457,13 +457,13 @@ const ProfileSection = () => {
               </div>
             )}
             {isError && (
-              <div className="absolute -bottom-5 left-0 text-red-500 text-xs">
+              <div className="absolute -bottom-6 left-0 text-red-600 text-sm">
                 {errorMessage}
               </div>
             )}
           </div>
         ) : (
-          <p className="text-gray-800">{value || 'Not provided'}</p>
+          <p className="text-gray-700 text-base">{value || 'Not provided'}</p>
         )}
       </div>
     );
@@ -471,68 +471,76 @@ const ProfileSection = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-green-600">Loading profile...</p>
+      <div className="flex justify-center items-center h-screen">
+        <div className="flex items-center space-x-2 text-green-600">
+          <Loader2 className="animate-spin" size={24} />
+          <p className="text-lg">Loading profile...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-        {error}
+      <div className="max-w-md mx-auto mt-10 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-md flex justify-between items-center">
+        <span className="text-base">{error}</span>
+        <button
+          onClick={() => setError(null)}
+          className="text-red-700 hover:text-red-900 transition-colors"
+          aria-label="Dismiss error"
+        >
+          <X size={18} />
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 bg-white shadow-md rounded-lg">
-      <div className="space-y-6">
-        <div className="flex justify-between items-start">
-          <h1 className="text-2xl font-bold text-green-800 flex items-center">
-            <User className="mr-3 text-green-600" size={24} />
+    <div className="max-w-2xl mx-auto p-8 bg-white rounded-xl shadow-lg">
+      <div className="space-y-8">
+        <div className="flex justify-between items-center border-b border-green-100 pb-4">
+          <h1 className="text-3xl font-bold text-green-800 flex items-center">
+            <User className="mr-4 text-green-600" size={28} />
             My Profile
           </h1>
-          
           {!isEditing ? (
             <button 
               onClick={handleEdit}
-              className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+              className="flex items-center px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-all duration-200 shadow-sm"
             >
-              <Edit className="mr-1" size={18} /> Edit
+              <Edit className="mr-2" size={20} /> Edit
             </button>
           ) : (
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               <button 
                 onClick={handleCancel}
-                className="flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 shadow-sm"
               >
-                <X className="mr-1" size={18} /> Cancel
+                <X className="mr-2" size={20} /> Cancel
               </button>
               <button 
                 onClick={handleSave}
-                className="flex items-center text-green-600 hover:text-green-800 transition-colors"
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 shadow-md"
               >
-                <Save className="mr-1" size={18} /> Save
+                <Save className="mr-2" size={20} /> Save
               </button>
             </div>
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {renderField('Full Name', profileData.name, 'name')}
           {renderField('Email Address', profileData.email, 'email')}
           {renderField('Phone Number', profileData.phone, 'phone')}
           {renderField('NIC Number', profileData.nic, 'nic')}
         </div>
 
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-green-800 flex items-center">
-            <MapPin className="mr-3 text-green-600" size={20} />
+        <div className="mt-8 pt-6 border-t border-green-100">
+          <h2 className="text-2xl font-bold text-green-800 flex items-center">
+            <MapPin className="mr-4 text-green-600" size={24} />
             Farm Address
           </h2>
-          
-          <div className="mt-4 space-y-4">
+          <div className="mt-6 space-y-6">
             {profileData.farmAddress && (
               <>
                 {renderField('Street Number', profileData.farmAddress.streetNo, 'farmAddress', 'streetNo')}
