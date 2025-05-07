@@ -3,6 +3,9 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Star, Edit, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 
+// Backend base URL (adjust if necessary, e.g., use environment variable)
+const BACKEND_URL = 'http://localhost:5000';
+
 const ReviewsList = () => {
   const [reviews, setReviews] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
@@ -41,6 +44,11 @@ const ReviewsList = () => {
 
   const handleBackToDashboard = () => {
     navigate('/buyer/dashboard');
+  };
+
+  // Fallback image for broken or missing images
+  const handleImageError = (e) => {
+    e.target.src = 'https://via.placeholder.com/80?text=Image+Not+Found'; // Placeholder image
   };
 
   return (
@@ -110,9 +118,10 @@ const ReviewsList = () => {
                     {review.pictures.map((pic, index) => (
                       <img
                         key={index}
-                        src={pic}
+                        src={`${BACKEND_URL}${pic}`} // Prepend backend URL
                         alt={`Review ${index + 1}`}
                         className="w-20 h-20 object-cover rounded-lg"
+                        onError={handleImageError} // Fallback for broken images
                       />
                     ))}
                   </div>
