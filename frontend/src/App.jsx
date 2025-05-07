@@ -210,6 +210,12 @@ function AppContent({
   const currentPath = location.pathname;
 
   const isDeliveryRoute = (path) => path.startsWith('/drivers');
+  const isBuyerRoute = (path) => (
+    path.startsWith('/buyer') ||
+    path === '/products' ||
+    path === '/cart' ||
+    path === '/' // Home page
+  );
 
   const AuthenticatedLayout = ({ children }) => (
     <div className="flex min-h-screen">
@@ -220,7 +226,7 @@ function AppContent({
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {!isDeliveryRoute(currentPath) && (
+      {isBuyerRoute(currentPath) && !isDeliveryRoute(currentPath) && (
         <Header 
           user={user} 
           setUser={setUser} 
@@ -228,7 +234,7 @@ function AppContent({
         />
       )}
       
-      <main className={`flex-grow ${!isDeliveryRoute(currentPath) ? 'pt-16' : ''}`}>
+      <main className={`flex-grow ${isBuyerRoute(currentPath) && !isDeliveryRoute(currentPath) ? 'pt-16' : ''}`}>
         <ToastContainer position="top-right" autoClose={3000} />
         <Toaster
           position="top-right"
@@ -360,7 +366,7 @@ function AppContent({
               )
             }
           />
-          <Route
+            <Route
             path="/drivers/notifications"
             element={
               isAuthenticated ? (
@@ -600,7 +606,7 @@ function AppContent({
         </Routes>
       </main>
       
-      {!isDeliveryRoute(currentPath) && (
+      {isBuyerRoute(currentPath) && !isDeliveryRoute(currentPath) && (
         <footer className="bg-white border-t border-gray-200 pt-10 pb-8 mt-auto">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
