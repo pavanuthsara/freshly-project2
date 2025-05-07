@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Star, Edit, Trash2, AlertCircle } from 'lucide-react';
+import { Star, Edit, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 const ReviewsList = () => {
   const [reviews, setReviews] = useState([]);
@@ -39,10 +39,21 @@ const ReviewsList = () => {
     }
   };
 
+  const handleBackToDashboard = () => {
+    navigate('/buyer/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Your Reviews</h2>
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">Your Reviews</h2>
+        <button
+          onClick={handleBackToDashboard}
+          className="flex items-center space-x-2 mb-8 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span>Back to Dashboard</span>
+        </button>
 
         {errorMsg && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3 mb-6">

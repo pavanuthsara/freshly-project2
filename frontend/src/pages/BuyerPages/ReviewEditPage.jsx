@@ -1,29 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Star, Image, AlertCircle, CheckCircle, X } from 'lucide-react';
 
-const ReviewPage = () => {
+const ReviewEditPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const orderId = location.state?.orderId || '';
+  const review = location.state?.review;
 
   const [formData, setFormData] = useState({
-    orderId,
-    description: '',
-    rating: 0,
+    orderId: review?.orderId || '',
+    description: review?.description || '',
+    rating: review?.rating || 0,
     pictures: [],
   });
-  const [imagePreviews, setImagePreviews] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState(review?.pictures || []);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!review) {
+      setErrorMsg('No review data provided.');
+      setTimeout(() => navigate('/buyer/reviewlist'), 1500);
+    }
+  }, [review, navigate]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'pictures') {
       const newFiles = Array.from(files);
-      if (formData.pictures.length + newFiles.length > 3) {
+      if (formData.pictures.length + newFiles.length + imagePreviews.length > 3) {
         setErrorMsg('You can upload a maximum of 3 pictures.');
         return;
       }
@@ -81,7 +88,6 @@ const ReviewPage = () => {
     }
 
     const formDataToSend = new FormData();
-    formDataToSend.append('orderId', formData.orderId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('rating', formData.rating);
     formData.pictures.forEach((file) => {
@@ -89,14 +95,14 @@ const ReviewPage = () => {
     });
 
     try {
-      const response = await axios.post('/api/reviews', formDataToSend, {
+      const response = await axios.put(`/api/reviews/edit/${review._id}`, formDataToSend, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
-      setSuccessMsg(response.data.message || 'Review submitted successfully!');
+      setSuccessMsg(response.data.message || 'Review updated successfully!');
       setTimeout(() => navigate('/buyer/reviewlist'), 1500);
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to submit review.';
+      const message = error.response?.data?.message || 'Failed to update review.';
       setErrorMsg(message);
     } finally {
       setIsLoading(false);
@@ -106,7 +112,7 @@ const ReviewPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Add Review</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Edit Review</h2>
 
         {errorMsg && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3 mb-6">
@@ -206,8 +212,10 @@ const ReviewPage = () => {
                 ))}
               </div>
             )}
-            {formData.pictures.length > 0 && (
-              <p className="text-sm text-gray-600">{formData.pictures.length} image(s) selected</p>
+            {formData.pictures.length + imagePreviews.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {formData.pictures.length + imagePreviews.length} image(s) selected
+              </p>
             )}
           </div>
 
@@ -220,7 +228,7 @@ const ReviewPage = () => {
                 : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
             }`}
           >
-            {isLoading ? 'Submitting...' : 'Submit Review'}
+            {isLoading ? 'Updating...' : 'Update Review'}
           </button>
         </form>
       </div>
@@ -228,4 +236,4 @@ const ReviewPage = () => {
   );
 };
 
-export default ReviewPage;
+export default ReviewEditPage;
