@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaSearch, FaEye } from 'react-icons/fa';
+import { FaSearch, FaEye, FaAward } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 // Removed BuyerSidebar import since it's already in the parent layout
 
@@ -125,6 +125,7 @@ const BuyerOrderHistory = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Status</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Total</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-teal-600 uppercase tracking-wider">Add Review</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -148,6 +149,16 @@ const BuyerOrderHistory = () => {
                               className="text-teal-600 hover:text-teal-700 flex items-center"
                             >
                               <FaEye className="mr-1" /> Details
+                            </Link>
+                          </td>
+
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <Link
+                              to="/buyer/review"
+                              state={{ orderId: order._id }} // Pass orderId in state
+                              className="text-teal-600 hover:text-teal-700 flex items-center"
+                            >
+                              <FaAward className="mr-1" /> Add Review
                             </Link>
                           </td>
                         </tr>

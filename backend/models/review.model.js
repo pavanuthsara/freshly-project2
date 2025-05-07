@@ -1,26 +1,46 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
-  order: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
-    required: true
+  orderId: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  user: {
+  buyerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: 'Buyer',
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 300,
   },
   rating: {
     type: Number,
+    required: true,
     min: 1,
     max: 5,
-    required: true
   },
-  comment: {
-    type: String,
-    required: true
-  }
-}, { timestamps: true });
+  pictures: [{
+    type: String, // Store file paths or URLs
+    trim: true,
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = mongoose.model('Review', reviewSchema); 
+reviewSchema.pre('save', function (next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+const Review = mongoose.model("Review", reviewSchema);
+export default Review;
