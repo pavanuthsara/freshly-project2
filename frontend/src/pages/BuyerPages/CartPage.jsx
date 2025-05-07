@@ -3,12 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { IoTrashOutline, IoCartOutline, IoArrowBackOutline } from 'react-icons/io5';
 
+// Define BACKEND_URL for constructing image URLs
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 const CartPage = ({ cartItems, setCartItems }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
+
+  // Function to construct image URL (same as ProductListPage)
+  const getImageUrl = (image) => {
+    if (!image || typeof image !== 'string') {
+      console.log('Invalid or missing image, using default');
+      return '/default-product-image.jpg';
+    }
+    const url = image.startsWith('http') 
+      ? image 
+      : `${BACKEND_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+    console.log('Constructed image URL:', url);
+    return url;
+  };
 
   // Debug: Log props received
   useEffect(() => {
@@ -236,9 +252,13 @@ const CartPage = ({ cartItems, setCartItems }) => {
                             <div className="flex items-center">
                               <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 mr-4">
                                 <img 
-                                  src={item.product?.image} 
-                                  alt={item.product?.name}
+                                  src={getImageUrl(item.product?.image)} 
+                                  alt={item.product?.name || 'Product'}
                                   className="h-full w-full object-cover object-center transform hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    console.log('Image failed to load:', item.product?.image);
+                                    e.target.src = '/default-product-image.jpg';
+                                  }}
                                 />
                               </div>
                               <div>
