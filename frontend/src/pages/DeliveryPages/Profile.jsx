@@ -34,6 +34,14 @@ const Profile = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Validation functions from DriverSignInSignUp.jsx
+  const validateName = (name) => /^[a-zA-Z\s-]+$/i.test(name);
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(password);
+  const validateContactNumber = (phone) => /^(\+\d{1,3}[- ]?)?\d{10}$/.test(phone);
+  const validateVehicleNumber = (vehicleNumber) => /^[A-Z]{2,4}\d{4}$/.test(vehicleNumber);
+
   // Fetch driver profile
   useEffect(() => {
     const fetchDriverProfile = async () => {
@@ -58,6 +66,7 @@ const Profile = () => {
           vehicleNumber: driver.vehicleNumber || '',
           vehicleCapacity: driver.vehicleCapacity || '',
           password: '',
+          confirmPassword: '',
         });
         setLoading(false);
       } catch (error) {
@@ -69,27 +78,80 @@ const Profile = () => {
     fetchDriverProfile();
   }, []);
 
-  // Handle input changes
+  // Handle input changes with sanitization
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error for this field
+    let processedValue = value;
+
+    switch (name) {
+      case 'name':
+        processedValue = value.replace(/[^a-zA-Z\s-]/g, '').slice(0, 100);
+        break;
+      case 'district':
+        processedValue = value; // No sanitization needed as it's a dropdown
+        break;
+      case 'contactNumber':
+        processedValue = value.replace(/[^0-9]/g, '').slice(0, 10);
+        break;
+      case 'vehicleNumber':
+        processedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!/\d/.test(processedValue)) {
+          processedValue = processedValue.slice(0, 3);
+        } else {
+          const letters = processedValue.match(/[A-Z]{0,3}/)?.[0] || '';
+          const numbers = processedValue.match(/\d{0,4}$/)?.[0] || '';
+          if (letters.length >= 2 && letters.length <= 3) {
+            processedValue = letters + numbers;
+          } else {
+            processedValue = letters.slice(0, 3) + numbers;
+          }
+        }
+        break;
+      case 'vehicleCapacity':
+        processedValue = value.replace(/[^0-9]/g, '').slice(0, 5);
+        break;
+      default:
+        processedValue = value;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: processedValue }));
     setFormErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   // Validate form
   const validateForm = () => {
     const errors = {};
-    if (!formData.name.trim()) errors.name = 'Name is required';
-    if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) errors.email = 'Invalid email address';
-    if (!districts.includes(formData.district)) errors.district = 'Please select a valid district';
-    if (!formData.contactNumber.match(/^\d+$/)) errors.contactNumber = 'Contact number must be numeric';
-    if (!formData.vehicleNumber.trim()) errors.vehicleNumber = 'Vehicle number is required';
-    if (!formData.vehicleCapacity || isNaN(formData.vehicleCapacity) || formData.vehicleCapacity <= 0) {
-      errors.vehicleCapacity = 'Vehicle capacity must be a positive number';
+    if (!formData.name.trim() || !validateName(formData.name)) {
+      errors.name = 'Please enter a valid name (letters, spaces, or hyphens only)';
     }
-    if (formData.password && formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+    if (!validateEmail(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    if (!districts.includes(formData.district)) {
+      errors.district = 'Please select a valid district';
+    }
+    if (!formData.contactNumber || !validateContactNumber(formData.contactNumber)) {
+      errors.contactNumber = 'Please enter a valid 10-digit contact number';
+    }
+    if (!formData.vehicleNumber || !validateVehicleNumber(formData.vehicleNumber)) {
+      errors.vehicleNumber = 'Please enter a valid vehicle number (e.g., ABC1234)';
+    }
+    if (
+      !formData.vehicleCapacity ||
+      isNaN(formData.vehicleCapacity) ||
+      parseInt(formData.vehicleCapacity) < 100 ||
+      parseInt(formData.vehicleCapacity) > 30000
+    ) {
+      errors.vehicleCapacity = 'Vehicle capacity must be between 100 and 30,000 kg';
+    }
+    if (formData.password) {
+      if (!validatePassword(formData.password)) {
+        errors.password =
+          'Password must be at least 8 characters with one uppercase, one lowercase, one number, and one special character';
+      }
+      if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -107,8 +169,13 @@ const Profile = () => {
     try {
       const token = localStorage.getItem('token');
       const payload = { ...formData };
-      // Remove password from payload if empty
-      if (!payload.password) delete payload.password;
+      // Remove password and confirmPassword from payload if empty
+      if (!payload.password) {
+        delete payload.password;
+        delete payload.confirmPassword;
+      } else {
+        delete payload.confirmPassword;
+      }
 
       const response = await axios.put('/api/drivers/profile', payload, {
         headers: {
@@ -118,7 +185,7 @@ const Profile = () => {
       });
 
       setDriverDetails(response.data.driver);
-      setFormData((prev) => ({ ...prev, password: '' })); // Reset password field
+      setFormData((prev) => ({ ...prev, password: '', confirmPassword: '' }));
       setIsEditing(false);
       toast.success('Profile updated successfully', { position: 'top-right' });
     } catch (error) {
@@ -142,6 +209,7 @@ const Profile = () => {
       vehicleNumber: driverDetails.vehicleNumber || '',
       vehicleCapacity: driverDetails.vehicleCapacity || '',
       password: '',
+      confirmPassword: '',
     });
   };
 
@@ -354,7 +422,7 @@ const Profile = () => {
                         formErrors.vehicleCapacity ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Enter vehicle capacity"
-                      min="0"
+                      min="100"
                     />
                     {formErrors.vehicleCapacity && (
                       <p className="text-red-500 text-sm mt-1">{formErrors.vehicleCapacity}</p>
@@ -362,24 +430,46 @@ const Profile = () => {
                   </div>
                 </div>
 
-                <div className="col-span-2">
-                  <label className="flex items-center font-semibold text-gray-700 mb-1">
-                    <User className="mr-2 text-gray-500" size={20} />
-                    New Password (optional)
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
-                      formErrors.password ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter new password (leave blank to keep current)"
-                  />
-                  {formErrors.password && (
-                    <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>
-                  )}
+                <div className="col-span-2 space-y-4">
+                  <div>
+                    <label className="flex items-center font-semibold text-gray-700 mb-1">
+                      <User className="mr-2 text-gray-500" size={20} />
+                      New Password (optional)
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
+                        formErrors.password ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter new password (leave blank to keep current)"
+                    />
+                    {formErrors.password && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="flex items-center font-semibold text-gray-700 mb-1">
+                      <User className="mr-2 text-gray-500" size={20} />
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 ${
+                        formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Confirm new password"
+                    />
+                    {formErrors.confirmPassword && (
+                      <p className="text-red-500 text-sm mt-1">{formErrors.confirmPassword}</p>
+                    )}
+                  </div>
                 </div>
               </form>
             ) : (
@@ -398,6 +488,14 @@ const Profile = () => {
                     <div>
                       <p className="font-semibold text-gray-700">Email</p>
                       <p className="text-gray-600">{driverDetails.email || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start group hover:bg-green-50 p-3 rounded-lg transition-colors">
+                    <User className="mr-3 mt-1 text-gray-500 flex-shrink-0 group-hover:text-gray-600" size={24} />
+                    <div>
+                      <p className="font-semibold text-gray-700">NIC</p>
+                      <p className="text-gray-600">{driverDetails.NIC || 'N/A'}</p>
                     </div>
                   </div>
 
