@@ -49,6 +49,7 @@ import Register from './pages/FarmerPages/Register';
 import FarmerForgotPassword from './pages/FarmerPages/FarmerFogortPassword';
 import FarmerResetPassword from './pages/FarmerPages/FarmerResetPassword';
 import AnalyticsSection from './pages/FarmerPages/AnalyticsSection.jsx';
+import FarmerPlanForm from './pages/FarmerPages/FarmerPlanForm.jsx';
 
 // Admin Pages
 import AdminLogin from './pages/AdminPages/AdminLogin';
@@ -563,7 +564,7 @@ function AppContent({
             <Route path="profile" element={<ProfileSection farmerData={farmerData} />} />
             <Route path="complaints" element={<div className="text-3xl font-bold text-green-800">Complaints Section</div>} />
             <Route path="analytics" element={<AnalyticsSection/>} />
-            <Route path="help" element={<div className="text-3xl font-bold text-green-800">Help Bot Section</div>} />
+            <Route path="help" element={<FarmerPlanForm/>} />
             <Route path="product/:id" element={<FarmerProductPreview />} />
           </Route>
           <Route
