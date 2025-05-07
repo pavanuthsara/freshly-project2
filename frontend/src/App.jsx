@@ -10,8 +10,10 @@ import 'leaflet/dist/leaflet.css';
 import Header from './components/Header';
 import PageWrapper from './components/PageWrapper';
 
+// Home Page
+import HomePage from './components/HomePage.jsx';
+
 // Delivery Pages
-import Home from './pages/DeliveryPages/HomePage.jsx';
 import Sidebar from './components/DriverDashboardComponents/sidebar.component.jsx';
 import DriverSignInSignUp from './pages/DeliveryPages/DriverSignInSignUp.jsx';
 import Dashboard from './pages/DeliveryPages/Dashboard.jsx';
@@ -21,7 +23,6 @@ import AcceptedRequests from './pages/DeliveryPages/AcceptedRequests.jsx';
 import DriverNotifications from './pages/DeliveryPages/DriverNotifications.jsx';
 
 // Buyer Pages
-import HomePage from './pages/HomePage';
 import BuyerLogin from './pages/BuyerPages/BuyerLogin';
 import BuyerRegister from './pages/BuyerPages/BuyerRegister';
 import BuyerProfile from './pages/BuyerPages/BuyerProfile';
@@ -246,7 +247,7 @@ function AppContent({
         />
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route
             path="/drivers/login"
             element={
@@ -366,7 +367,7 @@ function AppContent({
               )
             }
           />
-            <Route
+          <Route
             path="/drivers/notifications"
             element={
               isAuthenticated ? (
