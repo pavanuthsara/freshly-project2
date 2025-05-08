@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import { FaDownload, FaArrowLeft, FaCheck, FaShieldAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaCheck, FaShieldAlt } from 'react-icons/fa';
 
 const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartItems }) => {
   const navigate = useNavigate();
@@ -19,7 +17,7 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
   // Prevent access if required data is missing
   if (!shippingAddress || !paymentMethod || !cartItems.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-10">
+      <div className="min-h-screen bg-gradient-to-b from-blue-100 to-gray-100 py-10">
         <div className="container mx-auto px-4 py-8 max-w-3xl">
           <div className="bg-white rounded-lg shadow-md border-l-4 border-red-500 p-6">
             <h2 className="text-xl font-bold text-red-700 mb-4">Missing Information</h2>
@@ -129,33 +127,8 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
     return paymentMethod;
   };
 
-  const downloadPDF = async () => {
-    const element = pageRef.current;
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    const imgWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    let position = 0;
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-
-    if (imgHeight > pdf.internal.pageSize.getHeight()) {
-      let heightLeft = imgHeight - pdf.internal.pageSize.getHeight();
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
-      }
-    }
-
-    pdf.save('Order_Confirmation.pdf');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-10">
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-gray-100 py-10">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Progress indicator */}
         <div className="mb-8">
@@ -284,19 +257,12 @@ const ConfirmOrderPage = ({ cartItems, shippingAddress, paymentMethod, setCartIt
                 <FaCheck className="mr-2" /> Place Order
               </button>
               
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+              <div className="flex justify-center">
                 <button 
-                  className="sm:flex-1 border border-gray-300 py-2 rounded-md hover:bg-gray-50 transition-colors text-gray-700 flex items-center justify-center"
+                  className="border border-gray-300 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors text-gray-700 flex items-center justify-center"
                   onClick={() => navigate('/buyer/payment')}
                 >
                   <FaArrowLeft className="mr-2" /> Back to Payment
-                </button>
-                
-                <button 
-                  className="sm:flex-1 bg-gray-800 text-white py-2 rounded-md hover:bg-gray-900 transition-colors flex items-center justify-center"
-                  onClick={downloadPDF}
-                >
-                  <FaDownload className="mr-2" /> Download PDF
                 </button>
               </div>
             </div>
