@@ -16,6 +16,7 @@ import {
   Truck,
   Star,
   Bell,
+  Bot ,
   Settings,
   Heart,
   AlertCircle,
@@ -206,6 +207,25 @@ const BuyerDashboard = ({ setUser }) => {
                 </NavLink>
               </li>
               {/* end reviews feature */}
+
+              {/* feedbackbot feature */}
+              <li>
+                <NavLink
+                  to="/buyer/feedbackbot"
+                  className={({ isActive }) => 
+                    `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-emerald-800 text-white'
+                        : 'text-emerald-200 hover:bg-emerald-800'
+                    }`
+                  }
+                >
+                  <Bot className="h-5 w-5" />
+                  {!isSidebarCollapsed && <span className="ml-3">Feedback Bot</span>}
+                </NavLink>
+              </li>
+              {/* end feedbackbot feature */}
+
 
               <li>
                 <NavLink

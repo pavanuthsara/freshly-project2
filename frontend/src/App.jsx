@@ -39,6 +39,7 @@ import ComplaintHistory from './pages/BuyerPages/ComplaintHistory';
 import ReviewPage from './pages/BuyerPages/ReviewPage.jsx';
 import ReviewList from './pages/BuyerPages/ReviewList.jsx';
 import ReviewEditPage from './pages/BuyerPages/ReviewEditPage.jsx';
+import FeedbackBot from './pages/FeedbackBot/FeedbackBot.jsx';
 
 // Farmer Pages
 import FarmerDashboard from './pages/FarmerPages/FarmerDashboard';
@@ -49,6 +50,8 @@ import Login from './pages/FarmerPages/Login';
 import Register from './pages/FarmerPages/Register';
 import FarmerForgotPassword from './pages/FarmerPages/FarmerFogortPassword';
 import FarmerResetPassword from './pages/FarmerPages/FarmerResetPassword';
+import AnalyticsSection from './pages/FarmerPages/AnalyticsSection.jsx';
+import FarmerPlanForm from './pages/FarmerPages/FarmerPlanForm.jsx';
 
 // Admin Pages
 import AdminLogin from './pages/AdminPages/AdminLogin';
@@ -370,7 +373,7 @@ function AppContent({
               )
             }
           />
-          <Route
+            <Route
             path="/drivers/notifications"
             element={
               isAuthenticated ? (
@@ -529,6 +532,17 @@ function AppContent({
               )
             }
           />
+
+          <Route
+            path="/buyer/feedbackbot"
+            element={
+              isAuthenticated ? (
+                <FeedbackBot />
+              ) : (
+                <Navigate to="/buyer/login" />
+              )
+            }
+          />
           <Route
             path="/buyer/review/edit"
             element={
@@ -553,8 +567,8 @@ function AppContent({
             <Route path="products" element={<ProductSection farmerData={farmerData} />} />
             <Route path="profile" element={<ProfileSection farmerData={farmerData} />} />
             <Route path="complaints" element={<div className="text-3xl font-bold text-green-800">Complaints Section</div>} />
-            <Route path="analytics" element={<div className="text-3xl font-bold text-green-800">Analytics Section</div>} />
-            <Route path="help" element={<div className="text-3xl font-bold text-green-800">Help Bot Section</div>} />
+            <Route path="analytics" element={<AnalyticsSection/>} />
+            <Route path="help" element={<FarmerPlanForm/>} />
             <Route path="product/:id" element={<FarmerProductPreview />} />
           </Route>
           <Route

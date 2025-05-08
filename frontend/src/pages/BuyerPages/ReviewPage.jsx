@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Star, Image, AlertCircle, CheckCircle, X } from 'lucide-react';
@@ -7,9 +7,9 @@ const ReviewPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const orderId = location.state?.orderId || '';
+  const order = location.state?.order || null;
 
   const [formData, setFormData] = useState({
-    orderId,
     description: '',
     rating: 0,
     pictures: [],
@@ -19,10 +19,18 @@ const ReviewPage = () => {
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Validate orderId on mount
+  useEffect(() => {
+    if (!orderId) {
+      setErrorMsg('No order ID provided. Redirecting to review list...');
+      setTimeout(() => navigate('/buyer/reviewlist'), 1500);
+    }
+  }, [orderId, navigate]);
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'pictures') {
-      const newFiles = Array.from(files).filter(file => file.type.startsWith('image/')); // Ensure only image files
+      const newFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
       if (formData.pictures.length + newFiles.length > 3) {
         setErrorMsg('You can upload a maximum of 3 pictures.');
         return;
@@ -56,11 +64,11 @@ const ReviewPage = () => {
   };
 
   const validateForm = () => {
-    if (!formData.orderId) {
+    if (!orderId) {
       setErrorMsg('Order ID is required.');
       return false;
     }
-    if (formData.description.split(' ').length > 50) {
+    if (formData.description.split(' ').filter((word) => word).length > 50) {
       setErrorMsg('Review description must not exceed 50 words.');
       return false;
     }
@@ -81,11 +89,11 @@ const ReviewPage = () => {
     }
 
     const formDataToSend = new FormData();
-    formDataToSend.append('orderId', formData.orderId);
+    formDataToSend.append('orderId', orderId);
     formDataToSend.append('description', formData.description);
     formDataToSend.append('rating', formData.rating);
-    formData.pictures.forEach((file, index) => {
-      formDataToSend.append('pictures', file); // Append each file individually
+    formData.pictures.forEach((file) => {
+      formDataToSend.append('pictures', file);
     });
 
     try {
@@ -103,10 +111,56 @@ const ReviewPage = () => {
     }
   };
 
+  // Format currency for LKR
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('si-LK', {
+      style: 'currency',
+      currency: 'LKR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Add Review</h2>
+
+        {/* Order Details Section */}
+        {order ? (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Order Details</h3>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Order ID:</span> {order._id}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Placed on:</span> {formatDate(order.createdAt)}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Total:</span> {formatCurrency(order.totalPrice)}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Items:</span>{' '}
+              {order.orderItems?.map((item) => item.name).join(', ') || 'No items available'}
+            </p>
+          </div>
+        ) : (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Order Details</h3>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Order ID:</span> {orderId}
+            </p>
+            <p className="text-sm text-gray-500">Additional order details unavailable</p>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3 mb-6">
@@ -124,19 +178,6 @@ const ReviewPage = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Order ID</label>
-            <input
-              type="text"
-              name="orderId"
-              value={formData.orderId}
-              onChange={handleChange}
-              required
-              disabled
-              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Review Description (max 50 words)</label>
             <textarea
               name="description"
@@ -148,7 +189,7 @@ const ReviewPage = () => {
               className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500">
-              {formData.description.split(' ').filter(word => word).length}/50 words
+              {formData.description.split(' ').filter((word) => word).length}/50 words
             </p>
           </div>
 
@@ -213,9 +254,9 @@ const ReviewPage = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !orderId}
             className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 ${
-              isLoading
+              isLoading || !orderId
                 ? 'bg-green-500 cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-700 hover:shadow-lg'
             }`}
