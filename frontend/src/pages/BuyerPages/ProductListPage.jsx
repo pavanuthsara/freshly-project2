@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './ProductListPage.css';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 const ProductListPage = ({ cartItems, setCartItems }) => {
   const [products, setProducts] = useState([]);
   const [error, setError] = useState('');
@@ -11,6 +13,22 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
   const [sortBy, setSortBy] = useState('');
   const [categories, setCategories] = useState([]);
   const [notification, setNotification] = useState({ show: false, message: '' });
+
+  // Log the BACKEND_URL for debugging
+  console.log('Using BACKEND_URL:', BACKEND_URL);
+
+  // Function to construct image URL
+  const getImageUrl = (image) => {
+    if (!image || typeof image !== 'string') {
+      console.log('Invalid or missing image, using default');
+      return '/default-product-image.jpg';
+    }
+    const url = image.startsWith('http') 
+      ? image 
+      : `${BACKEND_URL}${image.startsWith('/') ? '' : '/'}${image}`;
+    console.log('Constructed image URL:', url);
+    return url;
+  };
 
   // Fetch products with search params
   useEffect(() => {
@@ -37,18 +55,21 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
           url += `?${params.toString()}`;
         }
         
+        console.log('Fetching products from:', url);
         const res = await axios.get(url);
-        setProducts(res.data.products);
+        console.log('Received products:', res.data);
+        setProducts(res.data.products || []);
         
         // Extract unique categories for the filter
-        if (res.data.products.length > 0 && categories.length === 0) {
+        if (res.data.products?.length > 0 && categories.length === 0) {
           const uniqueCategories = [...new Set(res.data.products.map(product => product.category))];
           setCategories(uniqueCategories);
         }
         
         setLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load products');
+        console.error('Error fetching products:', err);
+        setError(err.response?.data?.message || 'Failed to load products. Please check your network or try again later.');
         setLoading(false);
       }
     };
@@ -122,6 +143,7 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
+            aria-label="Search products"
           />
         </div>
         
@@ -130,6 +152,7 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="filter-select"
+            aria-label="Filter by category"
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
@@ -143,6 +166,7 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="sort-select"
+            aria-label="Sort products"
           >
             <option value="">Sort By</option>
             <option value="price_asc">Price: Low to High</option>
@@ -168,38 +192,45 @@ const ProductListPage = ({ cartItems, setCartItems }) => {
               key={product._id}
             >
               <div className="product-image-container">
-                <img src={product.image} alt={product.name} />
-                {product.discount > 0 && (
-                  <span className="discount-badge">{product.discount}% OFF</span>
+                <img 
+                  src={getImageUrl(product.image)} 
+                  alt={product.name || 'Product'} 
+                  loading="lazy"
+                  onError={(e) => {
+                    console.log('Image failed to load:', product.image);
+                    e.target.src = '/default-product-image.jpg';
+                  }}
+                />
+                {product.certification && (
+                  <span className="certification-badge">{product.certification}</span>
                 )}
               </div>
               
               <div className="product-details">
-                <h4>{product.name}</h4>
+                <h4>{product.name || 'Unnamed Product'}</h4>
+                <p className="product-description">{product.description || 'No description'}</p>
                 <div className="product-price">
-                  {product.discount > 0 && (
-                    <span className="original-price">Rs. {product.price}</span>
-                  )}
                   <span className="current-price">
-                    Rs. {product.discount 
-                      ? Math.round(product.price * (1 - product.discount / 100)) 
-                      : product.price}
+                    Rs. {product.price ? product.price.toLocaleString(undefined, { minimumFractionDigits: 2 }) : 'N/A'}
                   </span>
                 </div>
-                <p className="product-category">{product.category}</p>
+                <p className="product-category">{product.category || 'N/A'}</p>
+                <p className="farmer-name">By: {product.farmer?.name || 'Unknown Farmer'}</p>
+                <p className="stock-info">Available: {product.countInStock} kg</p>
                 
                 {isOutOfStock(product) ? (
-                  <button className="out-of-stock-button" disabled>
+                  <button className="out-of-stock-button" disabled aria-label="Out of stock">
                     Out of Stock
                   </button>
                 ) : isInCart(product._id) ? (
-                  <button className="in-cart-button" disabled>
+                  <button className="in-cart-button" disabled aria-label="Already in cart">
                     Added to Cart
                   </button>
                 ) : (
                   <button 
                     className="add-to-cart-button"
                     onClick={() => addToCart(product)}
+                    aria-label={`Add ${product.name || 'product'} to cart`}
                   >
                     Add to Cart
                   </button>

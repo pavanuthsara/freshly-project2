@@ -1,12 +1,22 @@
 // backend/middleware/authMiddleware.js
 
-import User from '../models/buyer.model.js';
+import Buyer from '../models/buyer.model.js';
 import jwt from 'jsonwebtoken';
 
 // Middleware to protect routes by verifying JWT authentication token.
 const protect = async (req, res, next) => {
   try {
-    const token = req.cookies.jwt;
+    let token;
+    
+    // Check Authorization header first
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+    // If no token in header, check cookies
+    else if (req.cookies.jwt) {
+      token = req.cookies.jwt;
+    }
     
     if (!token) {
       res.statusCode = 401;
@@ -20,7 +30,7 @@ const protect = async (req, res, next) => {
       throw new Error('Authentication failed: Invalid token.');
     }
     
-    req.user = await User.findById(decodedToken.userId).select('-password');
+    req.user = await Buyer.findById(decodedToken.userId).select('-password');
     
     if (!req.user) {
       res.statusCode = 401;
@@ -42,8 +52,8 @@ const admin = (req, res, next) => {
       throw new Error('Authentication failed: User not authenticated.');
     }
     
-    // Check if user has admin role
-    if (req.user.role !== 'admin') {
+    // Check if user has admin status
+    if (!req.user.isAdmin) {
       res.statusCode = 403;
       throw new Error('Authorization failed: Admin access required.');
     }

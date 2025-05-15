@@ -11,6 +11,7 @@ import {
 import { protect } from '../middleware/authMiddleware.js';
 import validateRequest from '../middleware/validator.js';
 import { body, param } from 'express-validator';
+import Order from '../models/order.model.js';
 
 const router = express.Router();
 
@@ -100,5 +101,45 @@ router
   .route('/profile')
   .get(protect, getUserProfile)
   .put(validator.checkNewUser, validateRequest, protect, updateUserProfile);
+
+// Route for buyer dashboard stats
+router.get('/stats', protect, async (req, res) => {
+  try {
+    const buyerId = req.user._id;
+    
+    // Get total orders count
+    const totalOrders = await Order.countDocuments({ user: buyerId });
+    
+    // Get total amount spent
+    const orders = await Order.find({ 
+      user: buyerId, 
+      status: 'Delivered',
+      totalPrice: { $exists: true }
+    });
+    const totalSpent = orders.reduce((sum, order) => sum + (order.totalPrice || 0), 0);
+    
+    // Get pending orders count
+    const pendingOrders = await Order.countDocuments({ 
+      user: buyerId, 
+      status: { $in: ['Processing', 'Shipped'] } 
+    });
+    
+    // Get favorite products count (you can implement this based on your logic)
+    const favoriteProducts = 0; // Placeholder - implement based on your wishlist logic
+    
+    res.json({
+      totalOrders,
+      totalSpent,
+      pendingOrders,
+      favoriteProducts
+    });
+  } catch (error) {
+    console.error('Error fetching buyer stats:', error);
+    res.status(500).json({ 
+      message: 'Error fetching dashboard stats',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 export default router;

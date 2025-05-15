@@ -11,11 +11,24 @@ import Stripe from 'stripe';
 import fs from 'fs';
 
 import buyerRoutes from './routes/Buyer.routes.js';
-import productRoutes from './routes/product.routes.js';
+
+import productRoutes from './routes/productListingRoutes/product.routes.js';
+import farmerRoutes from './routes/productListingRoutes/farmer.routes.js';
+import uploadRoutes from './routes/productListingRoutes/upload.routes.js';
+
+
 import orderRoutes from './routes/order.routes.js';
-import uploadRoutes from './routes/upload.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import complaint1Routes from './routes/complaint1.routes.js';
+
+import driverRoutes from './routes/deliveryRoutes/driver.routes.js';
+import deliveryRequestRoutes from './routes/deliveryRoutes/deliveryRequest.routes.js';
+
+import reviewRoutes from './routes/reviews.routes.js'; // Import review routes
+import feedbackBotRoutes from './routes/feedbackhelpbot.routes.js'
+
 import { stripeWebhook } from './controllers/stripeWebhookController.js';
 
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -82,12 +95,26 @@ mongoose
 
 // Routes
 app.use('/api/buyers', buyerRoutes);
-app.use('/api/products', productRoutes);
+app.use('/api/v1/buyers', buyerRoutes); // Support both API versions
+app.use('/api/reviews',reviewRoutes )
+app.use('/api/bot', feedbackBotRoutes)
+
+app.use('/api/products', productRoutes.publicRoutes); // Public product routes
+app.use('/api/farmerProducts', productRoutes.protectedRoutes); // Farmer-specific product routes
+app.use('/api/farmers', farmerRoutes);
+app.use('/api/upload', uploadRoutes);
+
+
 app.use('/api/orders', orderRoutes);
 app.use('/api/v1/orders', orderRoutes); // Support both API versions
 app.use('/api/upload', uploadRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes); // Note: /webhook handled separately
+app.use('/api/admin', adminRoutes); // Add admin routes
+app.use('/api', complaint1Routes); // Add complaint1 routes
+
+app.use('/api/deliveryrequest', deliveryRequestRoutes);
+app.use('/api/drivers', driverRoutes);
 
 // Serve uploads - include refund evidence
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));

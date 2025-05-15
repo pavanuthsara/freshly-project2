@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 // Define schema for individual cart items
 const cartItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'fProduct',
     required: true
   },
   qty: {
@@ -34,10 +35,21 @@ const buyerSchema = new mongoose.Schema(
       required: true
     },
     // Buyer's cart (array of products with quantity)
-    cart: [cartItemSchema]
+    cart: [cartItemSchema],
+    // Admin status
+    isAdmin: {
+      type: Boolean,
+      required: true,
+      default: false
+    }
   },
   { timestamps: true } // Adds createdAt and updatedAt
 );
+
+// Add method to compare entered password with hashed password
+buyerSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 // Create and export the Buyer model
 const Buyer = mongoose.model('Buyer', buyerSchema);

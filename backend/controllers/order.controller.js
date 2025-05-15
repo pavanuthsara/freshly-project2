@@ -3,7 +3,35 @@
 import Order from '../models/order.model.js';
 import Buyer from '../models/buyer.model.js';
 import RefundRequest from '../models/refundRequest.model.js';
+import DeliveryRequest from '../models/deliveryModels/deliveryRequest.model.js';
 import mongoose from 'mongoose';
+
+// @desc     Create delivery request for an order
+// @route    POST /api/v1/orders/:id/delivery-request
+// @access   Private
+const createDeliveryRequest = async (order) => {
+  try {
+    // Calculate total weight from order items (assuming each item has a weight property)
+    const totalWeight = Math.floor(Math.random() * (500 - 10 + 1)) + 10;;
+
+    // Create delivery request
+    const deliveryRequest = new DeliveryRequest({
+      deliveryId: `DEL-${Date.now()}`,
+      buyerId: order.user,
+      farmerId: order.orderItems[0].product, // Assuming first item's product belongs to the farmer
+      weight: totalWeight,
+      pickup: order.shippingAddress.address, // Using shipping address as pickup point
+      dropOff: order.shippingAddress.address, // Using shipping address as drop-off point
+      status: 'pending'
+    });
+
+    await deliveryRequest.save();
+    return deliveryRequest;
+  } catch (error) {
+    console.error('Error creating delivery request:', error);
+    throw error;
+  }
+};
 
 // @desc     Create new order & empty user's cart
 // @route    POST /api/v1/orders
@@ -52,7 +80,10 @@ const addOrderItems = async (req, res, next) => {
     // 4) Save the newly created order
     const createdOrder = await order.save({ session });
 
-    // 5) Empty the cart of the current user (Buyer)
+    // 5) Create delivery request for the order
+    await createDeliveryRequest(createdOrder);
+
+    // 6) Empty the cart of the current user (Buyer)
     const buyer = await Buyer.findById(req.user._id).session(session);
     if (buyer) {
       buyer.cart = [];
@@ -62,7 +93,7 @@ const addOrderItems = async (req, res, next) => {
     // Commit the transaction
     await session.commitTransaction();
     
-    // 6) Return the newly created order
+    // 7) Return the newly created order
     return res.status(201).json(createdOrder);
   } catch (error) {
     await session.abortTransaction();
