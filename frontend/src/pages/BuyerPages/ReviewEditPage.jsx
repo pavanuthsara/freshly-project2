@@ -7,9 +7,9 @@ const ReviewEditPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const review = location.state?.review;
+  const order = location.state?.order; // Assuming order details are passed in state
 
   const [formData, setFormData] = useState({
-    orderId: review?.orderId || '',
     description: review?.description || '',
     rating: review?.rating || 0,
     pictures: [],
@@ -63,10 +63,6 @@ const ReviewEditPage = () => {
   };
 
   const validateForm = () => {
-    if (!formData.orderId) {
-      setErrorMsg('Order ID is required.');
-      return false;
-    }
     if (formData.description.split(' ').length > 50) {
       setErrorMsg('Review description must not exceed 50 words.');
       return false;
@@ -109,10 +105,48 @@ const ReviewEditPage = () => {
     }
   };
 
+  // Format currency for LKR
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('si-LK', {
+      style: 'currency',
+      currency: 'LKR',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-12">
       <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Edit Review</h2>
+
+        {/* Order Details Section */}
+        {order && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Order Details</h3>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Order ID:</span> {order._id}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Placed on:</span> {formatDate(order.createdAt)}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Total:</span> {formatCurrency(order.totalPrice)}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Items:</span>{' '}
+              {order.orderItems.map((item) => item.name).join(', ')}
+            </p>
+          </div>
+        )}
 
         {errorMsg && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg border-l-4 border-red-600 flex items-center space-x-3 mb-6">
@@ -130,19 +164,6 @@ const ReviewEditPage = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Order ID</label>
-            <input
-              type="text"
-              name="orderId"
-              value={formData.orderId}
-              onChange={handleChange}
-              required
-              disabled
-              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Review Description (max 50 words)</label>
             <textarea
               name="description"
@@ -154,7 +175,7 @@ const ReviewEditPage = () => {
               className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
             <p className="text-xs text-gray-500">
-              {formData.description.split(' ').filter(word => word).length}/50 words
+              {formData.description.split(' ').filter((word) => word).length}/50 words
             </p>
           </div>
 

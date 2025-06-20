@@ -28,6 +28,18 @@ const ProductListing = () => {
     return () => window.removeEventListener('resize', logViewport);
   }, [filteredProducts]);
 
+  // Debug viewport and product count
+  useEffect(() => {
+    const logViewport = () => {
+      console.log('Viewport width:', window.innerWidth);
+      console.log('Number of filtered products:', filteredProducts.length);
+      console.log('Tailwind grid classes applied:', document.querySelector('.product-grid')?.classList.contains('grid'));
+    };
+    logViewport();
+    window.addEventListener('resize', logViewport);
+    return () => window.removeEventListener('resize', logViewport);
+  }, [filteredProducts]);
+
   useEffect(() => {
     fetchProducts();
     
@@ -193,7 +205,7 @@ const ProductListing = () => {
         </div>
       </div>
 
-      {/* Loading State with improved animation */}
+{/* Loading State with improved animation */}
       {loading && (
         <div className="product-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {[...Array(8)].map((_, index) => (
@@ -211,6 +223,7 @@ const ProductListing = () => {
           ))}
         </div>
       )}
+
 
       {/* Error State with improved styling */}
       {error && (
@@ -253,6 +266,7 @@ const ProductListing = () => {
                   {product.certification}
                 </span>
               )}
+
               <div className="w-full h-48 mb-5 overflow-hidden rounded-xl group-hover:shadow-md transition-all duration-300">
                 <img
                   src={getImageUrl(product.image)}
@@ -265,6 +279,7 @@ const ProductListing = () => {
                   }}
                 />
               </div>
+
               <h3 className="text-xl font-bold text-green-900 mb-2 line-clamp-1 group-hover:text-green-700 transition-colors">
                 {product.name || 'Unnamed Product'}
               </h3>
@@ -286,6 +301,7 @@ const ProductListing = () => {
               </div>
               <button
                 onClick={() => navigate(`/farmer/product/${product._id}`, { state: { search, category } })}
+
                 className="mt-auto w-full px-5 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-full hover:from-green-700 hover:to-green-600 transition-all duration-300 flex items-center justify-center shadow-md group-hover:shadow-lg transform group-hover:translate-y-0"
                 aria-label={`View ${product.name || 'product'} details`}
               >
@@ -296,6 +312,7 @@ const ProductListing = () => {
           ))
         ) : (
           !loading && (
+
             <div className="col-span-full text-center py-16 bg-white rounded-xl shadow-md transition-all hover:shadow-lg">
               <div className="p-4 bg-green-100 rounded-full inline-flex items-center justify-center mb-4">
                 <Sprout className="text-green-600" size={48} />

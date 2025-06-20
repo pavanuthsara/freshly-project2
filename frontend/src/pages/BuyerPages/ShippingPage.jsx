@@ -20,34 +20,50 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
   }, [shippingAddress]);
 
   const handleKeyDown = (e) => {
-    if (e.key === '@') e.preventDefault();
+    if (e.key === '@' || e.key === '#' || e.key === '$' || e.key === '%') e.preventDefault();
   };
 
   const validate = () => {
     const errors = {};
 
+    // Address validation
     if (!formData.address.trim()) {
       errors.address = 'Street address is required.';
     } else if (formData.address.length < 5) {
       errors.address = 'Address must be at least 5 characters.';
+    } else if (formData.address.length > 100) {
+      errors.address = 'Address cannot exceed 100 characters.';
+    } else if (!/^[a-zA-Z0-9\s,.#-]+$/.test(formData.address)) {
+      errors.address = 'Address can only contain letters, numbers, spaces, and basic punctuation (,.#-).';
     }
 
+    // City validation
     if (!formData.city.trim()) {
       errors.city = 'City is required.';
     } else if (!/^[a-zA-Z\s]+$/.test(formData.city)) {
       errors.city = 'City must contain only letters and spaces.';
+    } else if (formData.city.length < 2) {
+      errors.city = 'City must be at least 2 characters.';
+    } else if (formData.city.length > 50) {
+      errors.city = 'City cannot exceed 50 characters.';
     }
 
+    // Postal code validation
     if (!formData.postalCode.trim()) {
       errors.postalCode = 'Postal Code is required.';
-    } else if (!/^\d{5}(-\d{4})?$/.test(formData.postalCode)) {
-      errors.postalCode = 'Postal Code must be 5 digits or 5 digits + 4.';
+    } else if (!/^\d{5}$/.test(formData.postalCode)) {
+      errors.postalCode = 'Postal Code must be exactly 5 digits.';
     }
 
+    // Country validation
     if (!formData.country.trim()) {
       errors.country = 'Country is required.';
     } else if (!/^[a-zA-Z\s]+$/.test(formData.country)) {
       errors.country = 'Country must contain only letters and spaces.';
+    } else if (formData.country.length < 2) {
+      errors.country = 'Country must be at least 2 characters.';
+    } else if (formData.country.length > 50) {
+      errors.country = 'Country cannot exceed 50 characters.';
     }
 
     return errors;
@@ -55,8 +71,20 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // For postalCode, only allow digits and limit to 5
+    if (name === 'postalCode') {
+      const filteredValue = value.replace(/[^0-9]/g, '').slice(0, 5);
+      setFormData(prev => ({ ...prev, [name]: filteredValue }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+    const validationErrors = validate();
+    setErrors(prev => ({ ...prev, [name]: validationErrors[name] || '' }));
   };
 
   const handleContinue = (e) => {
@@ -67,7 +95,6 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
       return;
     }
 
-    // ✅ Save to state and localStorage
     setShippingAddress(formData);
     localStorage.setItem('shippingAddress', JSON.stringify(formData));
 
@@ -78,7 +105,6 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-50 py-10">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Progress indicator */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
             <div className="flex flex-col items-center">
@@ -120,8 +146,10 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
                   name="address"
                   value={formData.address}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
                   placeholder="Enter your street address"
+                  maxLength={100}
                   className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`}
                 />
                 {errors.address && (
@@ -139,8 +167,10 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   onKeyDown={handleKeyDown}
                   placeholder="Enter your city"
+                  maxLength={50}
                   className={`w-full px-3 py-2 border ${errors.city ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`}
                 />
                 {errors.city && (
@@ -159,8 +189,10 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
                     placeholder="Enter postal code"
+                    maxLength={5}
                     className={`w-full px-3 py-2 border ${errors.postalCode ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   />
                   {errors.postalCode && (
@@ -178,8 +210,10 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
                     name="country"
                     value={formData.country}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
                     placeholder="Enter country"
+                    maxLength={50}
                     className={`w-full px-3 py-2 border ${errors.country ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`}
                   />
                   {errors.country && (
@@ -188,7 +222,6 @@ const ShippingPage = ({ shippingAddress, setShippingAddress }) => {
                 </div>
               </div>
               
-              {/* Safe delivery message */}
               <div className="bg-teal-50 border-l-4 border-teal-500 p-4 mb-6 rounded-md">
                 <div className="flex">
                   <div className="flex-shrink-0">
