@@ -1,11 +1,11 @@
 import React from 'react';
 
-export function HowItWorks() {
+const HowItWorks = () => {
   return (
     <div className="bg-gray-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 id="how-it-works-title" className="text-3xl font-bold text-gray-800 mb-4">
             How Freshly.lk Works
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -16,7 +16,7 @@ export function HowItWorks() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Step 1 */}
-          <div className="bg-white rounded-xl p-8 shadow-md text-center relative">
+          <div className="bg-white rounded-xl p-8 shadow-md text-center relative transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
               1
             </div>
@@ -45,7 +45,7 @@ export function HowItWorks() {
           </div>
 
           {/* Step 2 */}
-          <div className="bg-white rounded-xl p-8 shadow-md text-center relative">
+          <div className="bg-white rounded-xl p-8 shadow-md text-center relative transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
               2
             </div>
@@ -74,7 +74,7 @@ export function HowItWorks() {
           </div>
 
           {/* Step 3 */}
-          <div className="bg-white rounded-xl p-8 shadow-md text-center relative">
+          <div className="bg-white rounded-xl p-8 shadow-md text-center relative transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold">
               3
             </div>
@@ -107,11 +107,13 @@ export function HowItWorks() {
           <p className="text-gray-600 mb-6">
             Join thousands of happy customers enjoying farm-fresh produce
           </p>
-          <button className="bg-emerald-600 text-white hover:bg-emerald-700 px-8 py-3 rounded-lg font-medium shadow-md transition-colors">
+          <button className="bg-emerald-600 text-white hover:bg-emerald-700 px-8 py-3 rounded-lg font-medium shadow-md transition-all duration-300 transform hover:scale-105">
             Start Shopping Now
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default HowItWorks;

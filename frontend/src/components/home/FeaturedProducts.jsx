@@ -44,13 +44,13 @@ const products = [
   },
 ];
 
-export function FeaturedProducts() {
+const FeaturedProducts = () => {
   return (
     <div className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
           <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            <h2 id="featured-products-title" className="text-3xl font-bold text-gray-800 mb-2">
               Featured Products
             </h2>
             <p className="text-lg text-gray-600">
@@ -58,7 +58,7 @@ export function FeaturedProducts() {
             </p>
           </div>
           <div className="mt-4 md:mt-0">
-            <button className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center transition-colors">
+            <button className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center transition-colors transform hover:scale-105">
               View All Products
               <svg
                 className="ml-2 w-5 h-5"
@@ -81,13 +81,14 @@ export function FeaturedProducts() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="relative">
                 <img
                   src={product.image}
                   alt={product.name}
                   className="h-56 w-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute top-4 right-4">
                   <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
@@ -113,7 +114,7 @@ export function FeaturedProducts() {
                 <p className="text-emerald-600 font-bold mb-4">
                   Rs. {product.price.toFixed(2)}
                 </p>
-                <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg flex items-center justify-center transition-colors">
+                <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg flex items-center justify-center transition-colors transform hover:scale-105">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Add to Cart
                 </button>
@@ -124,4 +125,6 @@ export function FeaturedProducts() {
       </div>
     </div>
   );
-}
+};
+
+export default FeaturedProducts;

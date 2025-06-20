@@ -27,12 +27,12 @@ const categories = [
   },
 ];
 
-export function Categories() {
+const Categories = () => {
   return (
     <div className="bg-emerald-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 id="categories-title" className="text-3xl font-bold text-gray-800 mb-4">
             Shop by Category
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -51,6 +51,7 @@ export function Categories() {
                 src={category.image}
                 alt={category.name}
                 className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-300"
+                loading="lazy"
               />
               <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
                 <h3 className="text-xl font-bold text-white mb-1">
@@ -62,11 +63,13 @@ export function Categories() {
           ))}
         </div>
         <div className="text-center mt-10">
-          <button className="bg-emerald-600 text-white hover:bg-emerald-700 px-8 py-3 rounded-lg font-medium shadow-md transition-colors">
+          <button className="bg-emerald-600 text-white hover:bg-emerald-700 px-8 py-3 rounded-lg font-medium shadow-md transition-colors transform hover:scale-105">
             View All Categories
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Categories;

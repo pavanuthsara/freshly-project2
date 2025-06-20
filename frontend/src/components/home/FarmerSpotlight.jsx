@@ -1,11 +1,11 @@
 import React from 'react';
 
-export function FarmerSpotlight() {
+const FarmerSpotlight = () => {
   return (
     <div className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 id="farmer-spotlight-title" className="text-3xl font-bold text-gray-800 mb-4">
             Meet Our Farmers
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -14,18 +14,19 @@ export function FarmerSpotlight() {
           </p>
         </div>
 
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl overflow-hidden shadow-xl transform transition-all duration-300 hover:shadow-2xl">
           <div className="flex flex-col lg:flex-row">
             <div className="w-full lg:w-1/2">
               <img
                 src="https://images.unsplash.com/photo-1595132513848-5115660a81e6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
                 alt="Sri Lankan farmer in rice field"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
 
             <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-              <div className="bg-white/10 inline-block px-4 py-1 rounded-full text-emerald-50 text-sm font-medium mb-4">
+              <div className="bg-white/10 inline-block px-4 py-1 rounded-full text-emerald-50 text-sm font-medium mb-4 transform transition-all duration-300 hover:scale-105">
                 Featured Farmer
               </div>
 
@@ -40,7 +41,7 @@ export function FarmerSpotlight() {
               </p>
 
               <div className="space-y-4 mb-8">
-                <div className="flex items-center">
+                <div className="flex items-center transform transition-all duration-300 hover:translate-x-2">
                   <div className="bg-white/20 p-2 rounded-full mr-4">
                     <svg
                       className="w-5 h-5 text-white"
@@ -68,7 +69,7 @@ export function FarmerSpotlight() {
                   </span>
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center transform transition-all duration-300 hover:translate-x-2">
                   <div className="bg-white/20 p-2 rounded-full mr-4">
                     <svg
                       className="w-5 h-5 text-white"
@@ -88,7 +89,7 @@ export function FarmerSpotlight() {
                   <span className="text-white">Certified Organic Farmer</span>
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center transform transition-all duration-300 hover:translate-x-2">
                   <div className="bg-white/20 p-2 rounded-full mr-4">
                     <svg
                       className="w-5 h-5 text-white"
@@ -111,7 +112,7 @@ export function FarmerSpotlight() {
                 </div>
               </div>
 
-              <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-lg font-medium shadow-md transition-colors inline-block self-start">
+              <button className="bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-lg font-medium shadow-md transition-all duration-300 transform hover:scale-105 inline-block self-start">
                 Shop Kumara's Products
               </button>
             </div>
@@ -119,7 +120,7 @@ export function FarmerSpotlight() {
         </div>
 
         <div className="mt-12 text-center">
-          <button className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center mx-auto transition-colors">
+          <button className="text-emerald-600 hover:text-emerald-800 font-medium flex items-center mx-auto transition-colors transform hover:scale-105">
             Meet More Farmers
             <svg
               className="ml-2 w-5 h-5"
@@ -140,4 +141,6 @@ export function FarmerSpotlight() {
       </div>
     </div>
   );
-}
+};
+
+export default FarmerSpotlight;

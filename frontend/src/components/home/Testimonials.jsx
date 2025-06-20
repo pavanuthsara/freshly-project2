@@ -34,12 +34,12 @@ const testimonials = [
   },
 ];
 
-export function Testimonials() {
+const Testimonials = () => {
   return (
     <div className="bg-emerald-50 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 id="testimonials-title" className="text-3xl font-bold text-gray-800 mb-4">
             What Our Customers Say
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -51,13 +51,14 @@ export function Testimonials() {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.id}
-              className="bg-white rounded-xl shadow-md p-8 relative"
+              className="bg-white rounded-xl shadow-md p-8 relative transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex items-center mb-6">
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
                   className="w-14 h-14 rounded-full object-cover mr-4"
+                  loading="lazy"
                 />
                 <div>
                   <h3 className="font-semibold text-gray-800">
@@ -96,7 +97,7 @@ export function Testimonials() {
         <div className="mt-12 text-center">
           <a
             href="#"
-            className="text-emerald-600 hover:text-emerald-800 font-medium underline"
+            className="text-emerald-600 hover:text-emerald-800 font-medium underline transition-colors"
           >
             Read more customer reviews
           </a>
@@ -104,4 +105,6 @@ export function Testimonials() {
       </div>
     </div>
   );
-}
+};
+
+export default Testimonials;
